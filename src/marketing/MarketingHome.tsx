@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import PropertyInvestmentStrategySection from "../components/PropertyInvestmentStrategySection";
-import DSCRInvestorMindsetSection from "../components/DSCRInvestorMindsetSection";
+import { replaceUnverifiedBookingEmbeds } from "./bookingEmbed";
 import homepageMarkup from "./home-markup.html?raw";
 
 const CLAIM_REPLACEMENTS = [
@@ -233,8 +233,6 @@ function sanitizeUnsupportedHomepageClaims(markup: string): string {
 }
 
 function repairHomepageSemantics(markup: string): string {
-  let bookingIdIndex = 0;
-  let bookingScriptIndex = 0;
   let burgerControlIndex = 0;
   let featuredNavNodeIndex = 0;
   let burgerNodeIndex = 0;
@@ -311,21 +309,12 @@ function repairHomepageSemantics(markup: string): string {
     )
     .replace(
       /<div class="page_main"([^>]*)>/,
-      '<main class="page_main" id="main-content"$1>',
+      '<main class="page_main" id="main-content" tabindex="-1"$1>',
     )
     .replace(
       '</div><div class="footer_component">',
       '</main><div class="footer_component">',
     )
-    .replace(/#hs-booking/g, ".meetings-iframe-container")
-    .replace(/id="hs-booking"/g, () => {
-      bookingIdIndex += 1;
-      return `id="hs-booking-${bookingIdIndex}"`;
-    })
-    .replace(/getElementById\('hs-booking'\)/g, () => {
-      bookingScriptIndex += 1;
-      return `getElementById('hs-booking-${bookingScriptIndex}')`;
-    })
     .replace(
       / id="w-node-_099235b4-dc1c-00f9-c99c-0ba16fa92a7f-6fa92a72"/g,
       (attribute) => {
@@ -360,7 +349,7 @@ const HELD_STATE_MAP = `<section class="gs-statemap-section" aria-label="State r
  * before the markup reaches the DOM (and before embedded scripts can run).
  */
 export const publicMarketingMarkup = repairHomepageSemantics(
-  sanitizeUnsupportedHomepageClaims(homepageMarkup),
+  replaceUnverifiedBookingEmbeds(sanitizeUnsupportedHomepageClaims(homepageMarkup)),
 )
   .replace(/<section class="gs-rate-widget-section"[\s\S]*?<\/section><script>[\s\S]*?<\/script>/, HELD_RATE_WIDGET)
   .replace(/<section class="gs-statemap-section"[\s\S]*?<\/section>/, HELD_STATE_MAP);
@@ -485,10 +474,28 @@ function startMarketingRuntime(runtime: MarketingRuntime) {
   runtime.__gsStartMarketing?.();
 }
 
+function ensureHomepagePropertySlot(root: HTMLElement): HTMLElement | null {
+  const existing = root.querySelector<HTMLElement>("#gs-property-types-slot");
+  if (existing) return existing;
+
+  const resourcesHeading = Array.from(root.querySelectorAll("h2")).find(
+    (heading) => heading.textContent?.trim() === "Resources",
+  );
+  const resourcesSection = resourcesHeading?.closest<HTMLElement>(
+    ".feature_contain.u-container",
+  );
+  if (!resourcesSection?.parentElement) return null;
+
+  const slot = document.createElement("div");
+  slot.id = "gs-property-types-slot";
+  slot.dataset.homeIntegration = "property-guide";
+  resourcesSection.before(slot);
+  return slot;
+}
+
 export default function MarketingHome({ onNavigate }: { onNavigate?: (view: string) => void }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [propertySlot, setPropertySlot] = useState<HTMLElement | null>(null);
-  const [investorSlot, setInvestorSlot] = useState<HTMLElement | null>(null);
 
   const portalHost =
     typeof document === "undefined"
@@ -496,18 +503,21 @@ export default function MarketingHome({ onNavigate }: { onNavigate?: (view: stri
       : document.getElementById("marketing-root");
 
   useEffect(() => {
-    const root = rootRef.current;
+    const dynamicRoot = rootRef.current;
+    const root = dynamicRoot ?? document.getElementById("webflow-root");
     if (!root) return;
 
-    // Find property types & investor mindset portal slots after markup is attached to DOM
-    const pSlot = root.querySelector<HTMLElement>("#gs-property-types-slot");
+    // The production homepage is restored directly in index.html. Add a stable
+    // React island immediately before Resources when the legacy export does not
+    // already include the property-guide slot.
+    const pSlot = ensureHomepagePropertySlot(root);
     if (pSlot) setPropertySlot(pSlot);
 
-    const iSlot = root.querySelector<HTMLElement>("#gs-investor-mindset-slot");
-    if (iSlot) setInvestorSlot(iSlot);
-
     const runtime = window as MarketingRuntime;
-    runEmbeddedScripts(root);
+    // The static homepage already parsed its embedded scripts; a React-owned
+    // copy has not. In both cases, restart the shared interaction lifecycle
+    // after React has mounted so GSAP binds to the final homepage DOM.
+    if (dynamicRoot) runEmbeddedScripts(root);
     const removeMobileMenuAccessibility =
       installMobileMenuAccessibility(root);
 
@@ -530,27 +540,24 @@ export default function MarketingHome({ onNavigate }: { onNavigate?: (view: stri
     };
   }, []);
 
-  if (!portalHost) return null;
-
   return (
     <>
-      {createPortal(
-        <div
-          id="webflow-root"
-          ref={rootRef}
-          dangerouslySetInnerHTML={{ __html: publicMarketingMarkup }}
-        />,
-        portalHost,
-      )}
+      {portalHost &&
+        createPortal(
+          <div
+            id="webflow-root"
+            ref={rootRef}
+            dangerouslySetInnerHTML={{ __html: publicMarketingMarkup }}
+          />,
+          portalHost,
+        )}
       {propertySlot &&
         createPortal(
-          <PropertyInvestmentStrategySection onNavigate={onNavigate} />,
+          <PropertyInvestmentStrategySection
+            onNavigate={onNavigate}
+            variant="homepage"
+          />,
           propertySlot,
-        )}
-      {investorSlot &&
-        createPortal(
-          <DSCRInvestorMindsetSection onNavigate={onNavigate} />,
-          investorSlot,
         )}
     </>
   );

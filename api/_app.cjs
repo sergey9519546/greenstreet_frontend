@@ -92,8 +92,9 @@ function errorHandler(err, req, res, _next) {
     return;
   }
   const requestId = (Math.random() * 1e9).toString(36);
-  logger.error({ err, requestId, path: req.path }, "Unhandled express error");
-  const status = typeof err.status === "number" && err.status >= 400 && err.status < 600 ? err.status : 500;
+  const status = typeof err?.status === "number" && err.status >= 400 && err.status < 600 ? err.status : 500;
+  const errorType = err?.type === "entity.parse.failed" ? "malformed_json" : err?.type === "entity.too.large" ? "payload_too_large" : status < 500 ? "client_error" : "server_error";
+  logger.error({ errorType, requestId, status }, "Unhandled express error");
   const message = status < 500 ? err.message || "Bad request" : "Internal server error";
   res.status(status).json({ error: message, requestId });
 }
@@ -842,7 +843,7 @@ function computeAppraisalBreakpoint(qualifyingRent, pitia) {
   return { rent: Math.round(breakpointRent), percentBelow: Math.round(percentBelow * 10) / 10 };
 }
 function solveDSCR(property, borrower, loan, strategy, vacancyHaircutEnabled = false, vacancyHaircutPct = 0, formulaMethod = "GROSS_PITIA", reassessedAnnualTaxOverride) {
-  if (!Number.isFinite(property.purchasePrice) || property.purchasePrice <= 0 || !Number.isFinite(property.leaseRent) || property.leaseRent < 0 || !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100) {
+  if (!Number.isFinite(property.purchasePrice) || property.purchasePrice <= 0 || !Number.isFinite(property.leaseRent) || property.leaseRent < 0 || !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100 || !Number.isFinite(property.strProjectedRent) || !Number.isFinite(property.annualTaxes) || property.annualTaxes < 0 || !Number.isFinite(property.annualInsurance) || property.annualInsurance < 0 || !Number.isFinite(property.hoa) || property.hoa < 0 || !Number.isFinite(property.floodInsurance) || property.floodInsurance < 0 || reassessedAnnualTaxOverride !== void 0 && (!Number.isFinite(reassessedAnnualTaxOverride) || reassessedAnnualTaxOverride < 0)) {
     const zeroPITIA = {
       principalAndInterest: 0,
       taxes: 0,
@@ -3381,6 +3382,7 @@ var LEAD_STATES = [
   "Colorado",
   "Connecticut",
   "Delaware",
+  "District of Columbia",
   "Florida",
   "Georgia",
   "Hawaii",
@@ -3432,7 +3434,7 @@ var LeadSubmissionSchema = import_zod3.z.object({
   name: nameSchema,
   email: import_zod3.z.string().trim().toLowerCase().email().max(254),
   phone: phoneSchema.optional().default(""),
-  role: import_zod3.z.enum(["investor", "foreign", "str", "vacation"]).optional(),
+  role: import_zod3.z.enum(["investor", "broker", "foreign", "str", "vacation"]).optional(),
   timeline: import_zod3.z.enum(["exploring", "under-30", "30-90", "refi-soon"]),
   propertyType: import_zod3.z.enum(["sfr", "2-4-unit", "condo", "townhouse", "5-8-unit", "short-term-rental"]),
   propertyValue: import_zod3.z.number().finite().min(5e4).max(1e8),
@@ -3447,6 +3449,7 @@ var LeadSubmissionSchema = import_zod3.z.object({
   investmentConfirmed: import_zod3.z.literal(true),
   contactConsent: import_zod3.z.literal(true),
   page: import_zod3.z.string().trim().regex(/^\/[a-z0-9/_-]*$/i).max(100),
+  submissionId: import_zod3.z.string().uuid(),
   // Honeypot. It is accepted only so spam can receive an indistinguishable
   // acknowledgement without creating a document.
   website: import_zod3.z.string().trim().max(200).optional().default("")
@@ -3456,16 +3459,43 @@ var LeadSubmissionSchema = import_zod3.z.object({
 });
 var LEAD_BODY_LIMIT_BYTES = 8 * 1024;
 var ACCEPTED_RESPONSE = Object.freeze({ accepted: true });
-function defaultPersistLead(lead) {
-  return getAdminFirestore().collection("leads").add({
-    ...lead,
-    // Server-owned audit metadata. The client cannot choose or backdate it.
-    contactConsentAt: import_firestore2.FieldValue.serverTimestamp(),
-    consentPolicyVersion: "2026-07",
-    submittedAt: import_firestore2.FieldValue.serverTimestamp(),
-    source: "public-scenario-review-v1",
-    status: "new"
-  }).then(() => void 0);
+function isAlreadyExists(error) {
+  if (!error || typeof error !== "object" || !("code" in error)) return false;
+  const code = error.code;
+  return code === 6 || code === "6" || code === "already-exists" || code === "ALREADY_EXISTS";
+}
+async function persistLeadIdempotently(lead, store = getAdminFirestore()) {
+  try {
+    await store.collection("leads").doc(lead.submissionId).create({
+      ...lead,
+      // Server-owned audit metadata. The client cannot choose or backdate it.
+      contactConsentAt: import_firestore2.FieldValue.serverTimestamp(),
+      consentPolicyVersion: "2026-07",
+      submittedAt: import_firestore2.FieldValue.serverTimestamp(),
+      source: "public-scenario-review-v1",
+      status: "new"
+    });
+  } catch (error) {
+    if (isAlreadyExists(error)) return;
+    throw error;
+  }
+}
+function createStorageOnlyLeadDeliveryRecorder(options = {}) {
+  return async (lead) => {
+    const store = options.store ?? getAdminFirestore();
+    try {
+      await store.collection("leadDelivery").doc(lead.submissionId).create({
+        attemptCount: 0,
+        channel: "none",
+        status: "not_configured",
+        updatedAt: import_firestore2.FieldValue.serverTimestamp()
+      });
+      return { status: "not_configured" };
+    } catch (error) {
+      if (isAlreadyExists(error)) return { status: "existing" };
+      throw error;
+    }
+  };
 }
 function hasTrustedOrigin(req, allowedOrigins2) {
   const origin = req.get("origin");
@@ -3474,7 +3504,11 @@ function hasTrustedOrigin(req, allowedOrigins2) {
 function invalidRequest(res) {
   res.status(400).json({ error: "Invalid lead submission" });
 }
-function createLeadsRouter({ allowedOrigins: allowedOrigins2, persistLead = defaultPersistLead }) {
+function createLeadsRouter({
+  allowedOrigins: allowedOrigins2,
+  persistLead = persistLeadIdempotently,
+  recordDeliveryStatus
+}) {
   const router = (0, import_express3.Router)();
   router.post("/", async (req, res) => {
     if (allowedOrigins2.length === 0) {
@@ -3511,6 +3545,20 @@ function createLeadsRouter({ allowedOrigins: allowedOrigins2, persistLead = defa
     }
     try {
       await persistLead(lead);
+      if (recordDeliveryStatus) {
+        try {
+          await recordDeliveryStatus(lead);
+        } catch (error) {
+          logger.warn(
+            {
+              errorName: error instanceof Error ? error.name : "UnknownError",
+              route: "lead-intake",
+              stage: "delivery-status"
+            },
+            "Lead stored but delivery status could not be recorded"
+          );
+        }
+      }
       res.status(202).json(ACCEPTED_RESPONSE);
     } catch (error) {
       logger.error(
@@ -3758,7 +3806,22 @@ function createRateLimitStore(bucket) {
 // src/serverApp.ts
 var app = (0, import_express5.default)();
 var isProd3 = process.env.NODE_ENV === "production";
+app.disable("x-powered-by");
 app.set("trust proxy", 1);
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-DNS-Prefetch-Control", "off");
+  if (isProd3) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  if (req.path === "/health" || req.path === "/api" || req.path.startsWith("/api/")) {
+    res.setHeader("Content-Security-Policy", "default-src 'none'");
+  }
+  next();
+});
 function parseAllowedOrigins(value) {
   const candidates = value ? value.split(",").map((origin) => origin.trim()).filter(Boolean) : isProd3 ? ["https://www.greenstreet.finance"] : ["http://localhost:3000", "http://localhost:5173"];
   return [...new Set(candidates.flatMap((candidate) => {
@@ -3781,9 +3844,7 @@ app.use(
     methods: ["GET", "POST", "OPTIONS"]
   })
 );
-app.set("trust proxy", 1);
 app.use(import_express5.default.json({ limit: "100kb" }));
-app.disable("x-powered-by");
 app.use("/api", verifyFirebaseToken);
 app.use((req, res, next) => {
   const start = Date.now();
@@ -3794,20 +3855,6 @@ app.use((req, res, next) => {
       logRequest(req.method, req.path, res.statusCode, duration, extra);
     }
   });
-  next();
-});
-app.use((req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("X-DNS-Prefetch-Control", "off");
-  if (isProd3) {
-    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  }
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  if (req.path === "/health" || req.path === "/api" || req.path.startsWith("/api/")) {
-    res.setHeader("Content-Security-Policy", "default-src 'none'");
-  }
   next();
 });
 function createLimiter(bucket, windowMs, max) {
@@ -3832,7 +3879,14 @@ app.get("/health", (_req, res) => {
   });
 });
 app.use("/api/dscr", apiLimiter, dscrRouter);
-app.use("/api/leads", leadLimiter, createLeadsRouter({ allowedOrigins }));
+app.use(
+  "/api/leads",
+  leadLimiter,
+  createLeadsRouter({
+    allowedOrigins,
+    recordDeliveryStatus: createStorageOnlyLeadDeliveryRecorder()
+  })
+);
 app.use("/api/sdr", apiLimiter, sdrRouter);
 app.use("/api/narrate", narrateLimiter, requireAuth, narrateRouter);
 app.use(errorHandler);

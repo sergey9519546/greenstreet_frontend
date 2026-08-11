@@ -28,7 +28,6 @@ dist-ssr/
 # beside it is generated: `npm run build` emits api/_app.cjs from
 # src/serverApp.ts via esbuild.
 api/_app.cjs
-*.cjs
 
 # Dependencies
 node_modules/
@@ -76,6 +75,7 @@ hf-*/skills-lock.json
 .vercel
 
 # Generated / scratch artifacts (CI hygiene)
+.playwright-cli/
 graphify-out/
 _regen_tmp/
 .trash/

@@ -162,7 +162,7 @@ const STUDIES: Study[] = [
     result:
       "In this hypothetical, three scenarios clear the payment-coverage view but fall below break-even once vacancy and management assumptions are applied. At the $3,000–7,000 per-file diligence assumption used here, that is $14,800 of modeled diligence-cost exposure. No approval, timeline, or customer outcome is claimed.",
     quote:
-      "Non-US investor ITIN flow used to take a week. Greenstreet's Global program approved us fast — and Track 2 stopped us from buying three appraisals we'd have regretted.",
+      "Illustrative takeaway: confirm non-US investor eligibility, then use Track 2 to screen marginal scenarios before appraisal spend.",
     program: "Illustrative non-US investor assumptions",
   },
 ];

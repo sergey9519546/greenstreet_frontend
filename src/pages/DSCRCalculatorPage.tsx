@@ -557,10 +557,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
               <div role="tablist" aria-label="Calculator mode" style={{ display: 'inline-flex', gap: 4, background: CARD, padding: 5, borderRadius: radius.sm }}>
-                <button role="tab" aria-selected={tab === 'dscr'} onClick={() => setTab('dscr')} style={{ padding: '11px 22px', background: tab === 'dscr' ? LEMON : 'transparent', border: 'none', borderRadius: radius.sm, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'dscr' ? MIDNIGHT : 'rgba(238,239,211,0.6)', transition: 'all .2s', minHeight: 44 }}>
+                <button type="button" role="tab" aria-selected={tab === 'dscr'} onClick={() => setTab('dscr')} style={{ padding: '11px 22px', background: tab === 'dscr' ? LEMON : 'transparent', border: 'none', borderRadius: radius.sm, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'dscr' ? MIDNIGHT : 'rgba(238,239,211,0.6)', transition: 'all .2s', minHeight: 44 }}>
                   DSCR Gauge
                 </button>
-                <button role="tab" aria-selected={tab === 'maxprice'} onClick={() => setTab('maxprice')} style={{ padding: '11px 22px', background: tab === 'maxprice' ? LEMON : 'transparent', border: 'none', borderRadius: radius.sm, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'maxprice' ? MIDNIGHT : 'rgba(238,239,211,0.6)', transition: 'all .2s', minHeight: 44 }}>
+                <button type="button" role="tab" aria-selected={tab === 'maxprice'} onClick={() => setTab('maxprice')} style={{ padding: '11px 22px', background: tab === 'maxprice' ? LEMON : 'transparent', border: 'none', borderRadius: radius.sm, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'maxprice' ? MIDNIGHT : 'rgba(238,239,211,0.6)', transition: 'all .2s', minHeight: 44 }}>
                   Max Purchase
                 </button>
               </div>
@@ -1327,8 +1327,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: swatch.emerald, color: MIDNIGHT, fontWeight: 700, fontSize: 14, textDecoration: 'none', padding: '12px 22px', borderRadius: radius.sm, minHeight: 44 }}>
                         Find my program →
                       </a>
-                      <button type="button" onClick={() => (window as any).openQualify?.()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, border: 'none', color: MIDNIGHT, fontWeight: 700, fontSize: 14, fontFamily: font.family, padding: '12px 20px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}>
-                        Check if I qualify →
+                      <button type="button" onClick={() => window.openQualify?.({ propertyValue: price, loanAmount: loan, rent, rate, purpose: 'purchase' })} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, border: 'none', color: MIDNIGHT, fontWeight: 700, fontSize: 14, fontFamily: font.family, padding: '12px 20px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}>
+                        Continue scenario for qualification →
                       </button>
                       <button type="button" onClick={onShare} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1.5px solid rgba(238,239,211,0.45)', color: 'rgba(238,239,211,0.85)', fontWeight: 600, fontSize: 14, fontFamily: font.family, padding: '12px 18px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}>
                         Copy share link

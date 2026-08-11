@@ -7,7 +7,7 @@ import { logger } from "../logger";
 
 const LEAD_STATES = [
   "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
-  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
+  "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho",
   "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
   "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
   "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
@@ -41,7 +41,7 @@ export const LeadSubmissionSchema = z
     name: nameSchema,
     email: z.string().trim().toLowerCase().email().max(254),
     phone: phoneSchema.optional().default(""),
-    role: z.enum(["investor", "foreign", "str", "vacation"]).optional(),
+    role: z.enum(["investor", "broker", "foreign", "str", "vacation"]).optional(),
     timeline: z.enum(["exploring", "under-30", "30-90", "refi-soon"]),
     propertyType: z.enum(["sfr", "2-4-unit", "condo", "townhouse", "5-8-unit", "short-term-rental"]),
     propertyValue: z.number().finite().min(50_000).max(100_000_000),
@@ -56,6 +56,7 @@ export const LeadSubmissionSchema = z
     investmentConfirmed: z.literal(true),
     contactConsent: z.literal(true),
     page: z.string().trim().regex(/^\/[a-z0-9/_-]*$/i).max(100),
+    submissionId: z.string().uuid(),
     // Honeypot. It is accepted only so spam can receive an indistinguishable
     // acknowledgement without creating a document.
     website: z.string().trim().max(200).optional().default(""),
@@ -68,29 +69,102 @@ export const LeadSubmissionSchema = z
 
 export type LeadSubmission = z.infer<typeof LeadSubmissionSchema>;
 
-type PersistLead = (lead: Omit<LeadSubmission, "website">) => Promise<void>;
+export type PublicLead = Omit<LeadSubmission, "website">;
+type PersistLead = (lead: PublicLead) => Promise<void>;
+type RecordLeadDeliveryStatus = (lead: PublicLead) => Promise<unknown>;
+
+interface LeadStore {
+  collection(name: string): {
+    doc(id: string): {
+      create(data: Record<string, unknown>): Promise<unknown>;
+    };
+  };
+}
+
+interface LeadDeliveryStore {
+  collection(name: string): {
+    doc(id: string): {
+      create(data: Record<string, unknown>): Promise<unknown>;
+    };
+  };
+}
+
+export interface LeadDeliveryOutcome {
+  status: "not_configured" | "existing";
+}
+
+export interface LeadDeliveryFactoryOptions {
+  store?: LeadDeliveryStore;
+}
 
 export interface LeadsRouterOptions {
   allowedOrigins: readonly string[];
   persistLead?: PersistLead;
+  recordDeliveryStatus?: RecordLeadDeliveryStatus;
 }
 
 const LEAD_BODY_LIMIT_BYTES = 8 * 1024;
 const ACCEPTED_RESPONSE = Object.freeze({ accepted: true });
 
-function defaultPersistLead(lead: Omit<LeadSubmission, "website">): Promise<void> {
-  return getAdminFirestore()
-    .collection("leads")
-    .add({
-      ...lead,
-      // Server-owned audit metadata. The client cannot choose or backdate it.
-      contactConsentAt: FieldValue.serverTimestamp(),
-      consentPolicyVersion: "2026-07",
-      submittedAt: FieldValue.serverTimestamp(),
-      source: "public-scenario-review-v1",
-      status: "new",
-    })
-    .then(() => undefined);
+function isAlreadyExists(error: unknown): boolean {
+  if (!error || typeof error !== "object" || !("code" in error)) return false;
+  const code = (error as { code?: unknown }).code;
+  return code === 6 || code === "6" || code === "already-exists" || code === "ALREADY_EXISTS";
+}
+
+export async function persistLeadIdempotently(
+  lead: PublicLead,
+  store: LeadStore = getAdminFirestore(),
+): Promise<void> {
+  try {
+    await store
+      .collection("leads")
+      .doc(lead.submissionId)
+      .create({
+        ...lead,
+        // Server-owned audit metadata. The client cannot choose or backdate it.
+        contactConsentAt: FieldValue.serverTimestamp(),
+        consentPolicyVersion: "2026-07",
+        submittedAt: FieldValue.serverTimestamp(),
+        source: "public-scenario-review-v1",
+        status: "new",
+      });
+  } catch (error) {
+    // Firestore create() is atomic. A retry using the same UUID therefore
+    // acknowledges the original record without duplicating or overwriting it.
+    if (isAlreadyExists(error)) return;
+    throw error;
+  }
+}
+
+/**
+ * Records the truthful storage-only delivery state in a separate document.
+ * Creating the recorder does not initialize Firebase, so `/health` remains
+ * independent from lead persistence and any future delivery integration.
+ */
+export function createStorageOnlyLeadDeliveryRecorder(
+  options: LeadDeliveryFactoryOptions = {},
+): (lead: PublicLead) => Promise<LeadDeliveryOutcome> {
+  return async (lead) => {
+    const store = options.store ?? getAdminFirestore();
+    try {
+      await store
+        .collection("leadDelivery")
+        .doc(lead.submissionId)
+        .create({
+          attemptCount: 0,
+          channel: "none",
+          status: "not_configured",
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      return { status: "not_configured" };
+    } catch (error) {
+      // A retry must never reset a later/manual delivery result. Firestore's
+      // atomic create preserves whichever status already owns this UUID.
+      if (isAlreadyExists(error)) return { status: "existing" };
+      throw error;
+    }
+  };
 }
 
 function hasTrustedOrigin(req: Request, allowedOrigins: readonly string[]): boolean {
@@ -109,7 +183,11 @@ function invalidRequest(res: Response) {
  * alone: CORS prevents reading a response but does not stop a hostile site
  * from sending a request, so the Origin is enforced before parsing/writing.
  */
-export function createLeadsRouter({ allowedOrigins, persistLead = defaultPersistLead }: LeadsRouterOptions): Router {
+export function createLeadsRouter({
+  allowedOrigins,
+  persistLead = persistLeadIdempotently,
+  recordDeliveryStatus,
+}: LeadsRouterOptions): Router {
   const router = Router();
 
   router.post("/", async (req, res) => {
@@ -161,6 +239,23 @@ export function createLeadsRouter({ allowedOrigins, persistLead = defaultPersist
 
     try {
       await persistLead(lead);
+      if (recordDeliveryStatus) {
+        try {
+          await recordDeliveryStatus(lead);
+        } catch (error) {
+          // Persistence is the intake contract. Delivery metadata is separate
+          // and must not turn a stored lead into a false "not received"
+          // response that encourages a new UUID/document.
+          logger.warn(
+            {
+              errorName: error instanceof Error ? error.name : "UnknownError",
+              route: "lead-intake",
+              stage: "delivery-status",
+            },
+            "Lead stored but delivery status could not be recorded",
+          );
+        }
+      }
       // Never return a Firestore id or a calculated/financial result snapshot.
       res.status(202).json(ACCEPTED_RESPONSE);
     } catch (error) {

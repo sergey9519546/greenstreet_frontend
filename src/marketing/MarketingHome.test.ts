@@ -32,6 +32,9 @@ describe("public marketing reliability holds", () => {
       "All-in-one platform for non-QM and DSCR lending",
       "The whitepaper will be sent",
       'id="hs-booking"',
+      "meetings-iframe-container",
+      "static.hsappstatic.net",
+      "meetings-na2.hubspot.com",
     ]) {
       expect(publicMarketingMarkup).not.toContain(unsupported);
     }
@@ -49,8 +52,7 @@ describe("public marketing reliability holds", () => {
       /<main class="page_main" id="main-content"[^>]*>/,
     );
     expect(publicMarketingMarkup).toContain('aria-label="Dismiss announcement"');
-    expect(publicMarketingMarkup).toContain('id="hs-booking-1"');
-    expect(publicMarketingMarkup).toContain('id="hs-booking-2"');
+    expect(publicMarketingMarkup.match(/class="booking-fallback-link" href="\/book-demo"/g)).toHaveLength(2);
     expect(publicMarketingMarkup).toContain(
       'aria-label="Whitepaper form unavailable"',
     );

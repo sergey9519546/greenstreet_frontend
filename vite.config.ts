@@ -3,7 +3,32 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 import type { UserConfig } from 'vite';
+import { replaceUnverifiedBookingEmbeds } from './src/marketing/bookingEmbed';
 import { injectSchemaPlugin } from './vite-plugins/inject-schema';
+
+const OPTIONAL_RELEASE_SCRIPT_MARKERS = [
+  "cdn-cookieyes.com",
+  "www.googletagmanager.com",
+  "www.google-analytics.com",
+  "cdn.vector.co",
+  "static.claydar.com",
+  "js.hs-scripts.com",
+  "js-na2.hs-scripts.com",
+  "hubspotv2.use1-marketplace-1p-apps-prod-red.if.webflow.services",
+  "google_tags_first_party",
+  "G-JERVW0S7X4",
+  "GTM-WB2F5WH6",
+] as const;
+
+export function sanitizeReleaseHtml(html: string): string {
+  return replaceUnverifiedBookingEmbeds(
+    html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (script) =>
+      OPTIONAL_RELEASE_SCRIPT_MARKERS.some((marker) => script.includes(marker))
+        ? ""
+        : script
+    )
+  );
+}
 
 export default defineConfig(() => {
   return {
@@ -14,14 +39,11 @@ export default defineConfig(() => {
         name: "release-html-sanitizer",
         enforce: "pre",
         transformIndexHtml(html) {
-          return html
+          return sanitizeReleaseHtml(html)
             // Optional analytics and de-anonymization are disabled until a
             // consent owner, retention policy, and verified production domain
-            // are configured. Essential behavior does not depend on this banner.
-            .replace(
-              /<script async="" id="cookieyes"[^>]*><\/script>/,
-              ""
-            )
+            // are configured. The unverified legacy booking embed is replaced
+            // by an owned /book-demo fallback before release.
             // A stale Webflow export contained an opaque path with no matching
             // asset. Leaving it in the document causes browsers to fetch the
             // SPA fallback as JavaScript and emit a production console error.
@@ -29,11 +51,18 @@ export default defineConfig(() => {
               /<script async="" src="\/wvxwa3jtwetcNjdkMGE4YTkxNTZiN2I3YmQ0NmZmZGZk\/nq6SdY9yd98sJXX5znRjqfSpD1o"><\/script>/,
               ""
             )
-            // This static whitepaper form has no delivery backend. Keep its
-            // validation UI but do not pretend a visitor's data was sent.
+            // This static whitepaper form has no delivery backend. Replace the
+            // native form element so it cannot leak entered PII through a GET
+            // even when JavaScript is disabled or blocked.
             .replace(
-              /(<div class="soa-form-popup">[\s\S]*?<form\b[^>]*\bid="wf-form-System-Action-Form"[^>]*\bonsubmit=")[^"]*(")/,
-              "$1event.preventDefault();var f=event.target;var e=f.parentElement.querySelector('.form_main_error_wrap');if(e){e.style.display='block';}return false;$2"
+              /<form\b(?=[^>]*\bid="wf-form-System-Action-Form")([^>]*)>([\s\S]*?)<\/form>/,
+              (_form, rawAttributes: string, contents: string) => {
+                const attributes = rawAttributes.replace(
+                  /\s+(?:action|method|name|onsubmit)="[^"]*"/gi,
+                  ""
+                );
+                return `<div role="form"${attributes}>${contents}</div>`;
+              }
             )
             // This form has no submission endpoint. Keep it out of Webflow's
             // form bootstrapper, which otherwise emits a misleading runtime
@@ -93,7 +122,12 @@ export default defineConfig(() => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        // No `@/` imports exist anywhere in the repo today (verified via
+        // `grep -rn "from ['\"]@/" .` outside node_modules) — this alias is
+        // currently unused. Points at src/ (the conventional target) rather
+        // than repo root so any future `@/foo` import resolves predictably
+        // to src/foo instead of a root-level file.
+        '@': path.resolve(__dirname, './src'),
       },
     },
     server: {

@@ -10,7 +10,7 @@
  */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { calculatePaymentFactor } from '../engine';
 import DscrCalculatorPage, { DEFAULT_EFF_TAX, EFF_TAX_RATE } from './DSCRCalculatorPage';
@@ -72,6 +72,10 @@ describe('DSCRCalculatorPage — live DSCR', () => {
     // The page hydrates from the URL then localStorage; both are cleared by the
     // shared setup, so every test starts from DEFAULT_DEAL.
     expect(window.location.search).toBe('');
+  });
+
+  afterEach(() => {
+    delete window.openQualify;
   });
 
   it('renders the opening deal at the DSCR the engine computes for it', () => {
@@ -190,5 +194,24 @@ describe('DSCRCalculatorPage — live DSCR', () => {
     });
 
     await waitFor(() => expect(readGaugeDscr()).toBeCloseTo(expected, 2));
+  });
+
+  it('carries the current scenario into the visitor-requested qualification flow', async () => {
+    const user = userEvent.setup();
+    const openQualify = vi.fn();
+    window.openQualify = openQualify;
+    renderPage();
+
+    await user.click(
+      screen.getByRole('button', { name: /continue scenario for qualification/i }),
+    );
+
+    expect(openQualify).toHaveBeenCalledWith({
+      propertyValue: DEFAULT_DEAL.price,
+      loanAmount: DEFAULT_DEAL.price * (1 - DEFAULT_DEAL.down / 100),
+      rent: DEFAULT_DEAL.rent,
+      rate: DEFAULT_DEAL.rate,
+      purpose: 'purchase',
+    });
   });
 });

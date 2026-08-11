@@ -5,7 +5,7 @@
   },
   "functions": {
     "source": ".",
-    "runtime": "nodejs20",
+    "runtime": "nodejs22",
     "predeploy": [
       "npm run build"
     ],
@@ -13,6 +13,10 @@
       "node_modules",
       "**/node_modules/**",
       ".git",
+      ".github",
+      ".claude",
+      ".codex",
+      ".firebase",
       ".agents",
       ".gemini",
       "src",
@@ -55,6 +59,9 @@
       "*.html",
       "*.ps1",
       "*.log",
+      "*.mp4",
+      "*.mp3",
+      "*.md",
       "vite.config.ts",
       "tsconfig.json"
     ]
@@ -74,6 +81,19 @@
       {
         "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+          { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+          { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.prod.website-files.com https://cdn.vector.co https://cdn-cookieyes.com https://www.googletagmanager.com https://www.google-analytics.com https://d3e54v103j8qbb.cloudfront.net https://cdn.jsdelivr.net https://static.claydar.com https://hubspotv2.use1-marketplace-1p-apps-prod-red.if.webflow.services https://js.hs-scripts.com https://js-na2.hs-scripts.com; style-src 'self' 'unsafe-inline' https://cdn.prod.website-files.com https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://www.google-analytics.com https://www.googletagmanager.com https://cdn.vector.co https://cdn-cookieyes.com https://static.claydar.com https://js.hs-scripts.com https://js-na2.hs-scripts.com; frame-src 'self'; object-src 'none'; base-uri 'self'" }
+        ]
       }
     ]
   }

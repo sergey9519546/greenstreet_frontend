@@ -263,6 +263,71 @@ body {
 .step-cards-list {
   margin-right: -100vw;
 }
+
+/* The exported homepage uses a tall sticky track and a translated horizontal
+   card row on desktop. Small screens and reduced-motion users get the same
+   content in normal document flow, with no off-canvas rail or scroll scrub. */
+@media screen and (max-width: 767px), (prefers-reduced-motion: reduce) {
+  .step_height,
+  .step_wrap,
+  .step_contain,
+  .step_layout,
+  .step_layout-cs,
+  .step_tab,
+  .step-cards-track {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .step_wrap {
+    position: relative !important;
+    inset: auto !important;
+  }
+
+  .step-cards-track {
+    overflow: hidden !important;
+  }
+
+  .step-cards-list {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+    margin-right: 0 !important;
+    transform: none !important;
+  }
+
+  .step_tab_content_list_wrap,
+  .step_tab_content_list,
+  .step_tab_content_item {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .step_tab_content_item {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .step_height .div-block-23 {
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .step_height .cs-home-scroll-cards {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .step_layout,
+  .step_layout-cs,
+  .step-cards-list,
+  .gs-hf-frame {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 .link-item {
   pointer-events: auto;
 }
@@ -1305,37 +1370,11 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
   flex: 0 0 auto !important;
 }
 
-/* The announcement's Webflow `.u-container` sizing only expands edge-to-edge
-   inside the original homepage wrapper. Routed pages do not have that wrapper,
-   so make the shared version explicitly match the homepage band and give its
-   dismiss control a real hit target instead of a zero-sized button. */
-.gs-site-announcement {
-  width: 100% !important;
-  max-width: none !important;
-  min-height: 38px;
-  padding: 8px var(--gs-page-gutter, clamp(1rem, 4.6vw, 1.25rem)) !important;
-  background: #d8d958 !important;
-  color: #003738 !important;
-}
-
-.gs-site-announcement .announcement-close {
-  position: absolute !important;
-  top: 50% !important;
-  right: max(0.25rem, calc(var(--gs-page-gutter, 1.25rem) - 0.5rem)) !important;
-  width: 44px !important;
-  height: 38px !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  transform: translateY(-50%);
-  z-index: 5;
-}
-
-.gs-site-announcement .announcement-close .svg {
-  position: static !important;
-  inset: auto !important;
-  width: 16px !important;
-  height: 16px !important;
+/* Retire the inherited campaign strip. It had no current campaign context,
+   duplicated InvestGO navigation, and crowded the phone header. The legacy
+   homepage markup remains inert until that export is regenerated. */
+.announcement {
+  display: none !important;
 }
 
 /* React owns this disclosure at every breakpoint where its burger is shown.
@@ -1372,6 +1411,21 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
   .gs-site-mobile-menu .nav-link:last-child {
     justify-content: center;
     min-height: 48px;
+  }
+}
+
+/* At Webflow's tablet breakpoint the nav becomes a two-column grid. Without
+   an explicit inline size the button stretches across the entire second
+   column, leaving a ~500px invisible click target at 846px. */
+@media (max-width: 991px) {
+  .gs-site-nav .burger-wrap {
+    justify-self: end;
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    padding: 16px !important;
   }
 }
 
@@ -1500,6 +1554,12 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
     display: flex;
     flex-wrap: wrap;
     gap: 14px 22px;
+  }
+}
+
+@media (max-width: 479px) {
+  .gs-site-nav .nav-logo > span {
+    font-size: 25px !important;
   }
 }
 
@@ -1682,17 +1742,37 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
   animation-play-state: running;
 }
 
-/* ---- Embedded Style ---- */
-
-@media (max-width: 767px) {
-  #hs-booking {
-    min-height: 900px !important;
-  }
+.booking-fallback-panel {
+  min-height: min(32rem, 70vh);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: clamp(2rem, 7vw, 5rem);
+  color: #003738;
+  text-align: center;
+  background: #eeefd3;
 }
-@media (max-width: 479px) {
-  #hs-booking {
-    min-height: 1200px !important;
-  }
+
+.booking-fallback-panel p {
+  max-width: 34rem;
+  margin: 0;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  line-height: 1.4;
+}
+
+.booking-fallback-link {
+  min-height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  color: #eeefd3;
+  font-weight: 700;
+  text-decoration: none;
+  background: #003738;
 }
 
 /* ── WCAG 2.1 AA Accessibility Focus Rings ── */

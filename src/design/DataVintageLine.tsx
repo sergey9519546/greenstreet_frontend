@@ -1,5 +1,10 @@
 import React from "react";
-import { DATA_VINTAGE_DISCLOSURE } from "../engine/dataVintage";
+import {
+  ageInDays,
+  DATA_VINTAGE_DISCLOSURE,
+  getDataVintage,
+  type DataVintageKey,
+} from "../engine/dataVintage";
 
 /**
  * The one quiet line that tells users how old the platform's market data is.
@@ -22,12 +27,36 @@ const GROUND_COLOR = {
 } as const;
 
 export default function DataVintageLine({
+  datasetKey,
   ground = "light",
+  now = new Date(),
   style,
 }: {
+  datasetKey?: DataVintageKey;
   ground?: "light" | "dark" | "inherit";
+  now?: Date;
   style?: React.CSSProperties;
 }) {
+  const entry = datasetKey ? getDataVintage(datasetKey) : null;
+  const asOfLabel = entry?.asOf
+    ? new Date(`${entry.asOf}T00:00:00.000Z`).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
+  const isPastCadence = entry
+    ? ageInDays(entry, now.toISOString().slice(0, 10)) > entry.refreshCadenceDays
+    : false;
+  const disclosure = entry
+    ? `${entry.label} as of ${asOfLabel ?? "an undocumented date"}. ${
+        isPastCadence
+          ? `This dataset is past its ${entry.refreshCadenceDays}-day review cadence — `
+          : ""
+      }verify current rates before relying on it.`
+    : DATA_VINTAGE_DISCLOSURE;
+
   return (
     <p
       data-testid="data-vintage-line"
@@ -40,7 +69,7 @@ export default function DataVintageLine({
         ...style,
       }}
     >
-      {DATA_VINTAGE_DISCLOSURE}
+      {disclosure}
     </p>
   );
 }

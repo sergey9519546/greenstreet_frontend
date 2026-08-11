@@ -12,7 +12,11 @@ const contract = JSON.parse(
   ),
 );
 const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const actualHash = createHash("sha256").update(markup).digest("hex");
+// Git checkouts may expose the reviewed HTML with LF or CRLF line endings.
+// Hash a canonical LF representation so the same committed content verifies
+// identically on Windows development machines and Linux CI runners.
+const canonicalMarkup = markup.replace(/\r\n?/g, "\n");
+const actualHash = createHash("sha256").update(canonicalMarkup).digest("hex");
 
 if (actualHash !== contract.sha256) {
   throw new Error(

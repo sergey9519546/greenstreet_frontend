@@ -242,10 +242,10 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
       // offering it here would be offering an action that cannot work.
       const stale = isChunkLoadError(error);
       return (
-        <div style={{ minHeight: "100vh", background: depth.browse.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font.family }}>
+        <main aria-labelledby="application-error-heading" style={{ minHeight: "100vh", background: depth.browse.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font.family }}>
           <div style={{ maxWidth: "520px", padding: "40px", textAlign: "center" }}>
             <div style={{ fontSize: "48px", marginBottom: "16px" }} aria-hidden="true">⚠</div>
-            <h2 style={{ color: depth.browse.ink, fontSize: "24px", marginBottom: "12px" }}>
+            <h2 id="application-error-heading" style={{ color: depth.browse.ink, fontSize: "24px", marginBottom: "12px" }}>
               {stale ? "This tab is running an older version" : "This page didn't load"}
             </h2>
             <p style={{ color: swatch.rainforest, marginBottom: "24px", lineHeight: 1.55 }}>
@@ -276,14 +276,19 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
               </pre>
             </details>
           </div>
-        </div>
+        </main>
       );
     }
     return this.props.children;
   }
 }
 
-import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
+import {
+  isKnownRoute,
+  normalizeInternalRouteHref,
+  resolveRoute,
+  PageView,
+} from "./router/resolve";
 import { depth, swatch, radius, font } from "./theme";
 import { captureException } from "./monitoring/sentry";
 
@@ -411,8 +416,7 @@ function portalTabFromPath(pathname: string): string | undefined {
   return undefined;
 }
 
-function navigateTo(view: PageView) {
-  const path = viewToPath(view);
+function navigateTo(view: PageView, path = viewToPath(view)) {
   if (typeof window !== "undefined") {
     window.history.pushState({}, "", path);
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -513,10 +517,10 @@ export default function App() {
   }, []);
 
   // Global link interceptor: any <a href="/internal"> click navigates via
-  // React Router instead of doing a full page reload. Unknown paths fall
+  // the app's History API router instead of doing a full page reload. Unknown paths fall
   // through so external links (HubSpot booking, asset files, etc.) keep working.
-  const goTo = (nextView: PageView) => {
-    navigateTo(nextView);
+  const goTo = (nextView: PageView, path?: string) => {
+    navigateTo(nextView, path);
     setView(nextView);
     if (typeof window !== "undefined") {
       setPathname(window.location.pathname);
@@ -556,10 +560,11 @@ export default function App() {
       if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
       if (!href.startsWith("/")) return;
       if (href.startsWith("//")) return;
-      if (!isKnownRoute(href)) return;
+      const normalizedHref = normalizeInternalRouteHref(href);
+      if (!normalizedHref || !isKnownRoute(normalizedHref)) return;
 
       e.preventDefault();
-      goToRef.current(resolveRoute(href));
+      goToRef.current(resolveRoute(normalizedHref), normalizedHref);
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
@@ -604,7 +609,7 @@ export default function App() {
   const renderPage = () => {
     switch (view) {
       case "marketing":
-        return <MarketingHome />;
+        return <MarketingHome onNavigate={navigateFromReliabilityHold} />;
       case "portal":
         if (!CLIENT_WORKSPACE_CONFIGURED) {
           return (
@@ -724,7 +729,6 @@ export default function App() {
         QUALIFY_WIDGET_SUPPRESSED_VIEWS.has(view) ? null : (
           <QualifyWidget
             showTrigger={view !== "book-demo"}
-            autoOpen={view !== "book-demo"}
           />
         )}
       </div>

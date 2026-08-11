@@ -6,8 +6,7 @@
  * Step 4: Contact capture
  * Step 5: Confirmation
  *
- * PRESERVED: DSCR calc formula, trigger pill + window.openQualify +
- * one-time auto-open + localStorage gate.
+ * PRESERVED: DSCR calc formula and trigger pill + window.openQualify.
  *
  * ADDED: step-enter animation, progress bar transition, result reveal (count-up),
  * submit loading spinner, shake-on-error, DSCR color transition, pill hover states,
@@ -25,11 +24,15 @@ import type {
   EngineFicoBand,
   QualifyInput,
 } from "../engine";
+import {
+  sanitizeQualificationScenarioDraft,
+  type QualificationScenarioDraft,
+} from "../conversion/qualificationScenario";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Purpose = "purchase" | "rate-term" | "cash-out";
 type FicoBand = "under-680" | "680-719" | "720-759" | "760-plus";
-type Role = "investor" | "foreign" | "str" | "vacation";
+type Role = "investor" | "broker" | "foreign" | "str" | "vacation";
 type Experience = "0" | "1-3" | "4-9" | "10-plus";
 type Timeline = "exploring" | "under-30" | "30-90" | "refi-soon";
 
@@ -65,6 +68,43 @@ interface StepFourData {
   website: string;
 }
 
+function freshStepOne(): StepOneData {
+  return {
+    propertyValue: 425000,
+    loanAmount: 318750,
+    rent: 3000,
+    rate: 7,
+    propertyType: null,
+    investmentConfirmed: true,
+  };
+}
+
+function freshStepTwo(): StepTwoData {
+  return {
+    purpose: null,
+    state: "",
+    ficoBand: null,
+    borrowerType: null,
+    experience: null,
+  };
+}
+
+function freshStepFour(): StepFourData {
+  return {
+    name: "",
+    email: "",
+    phone: "",
+    role: null,
+    timeline: null,
+    contactConsent: false,
+    website: "",
+  };
+}
+
+function createSubmissionId(): string {
+  return globalThis.crypto.randomUUID();
+}
+
 // Modal credit bands → engine credit bands (engine separates <660; the modal's
 // lowest band is "under-680", mapped to the entry tier).
 const FICO_TO_ENGINE: Record<FicoBand, EngineFicoBand> = {
@@ -79,7 +119,7 @@ const FICO_TO_ENGINE: Record<FicoBand, EngineFicoBand> = {
 // "FL") — convert before lookup so PPP tier detection actually matches.
 const STATE_NAME_TO_CODE: Record<string, string> = {
   Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA",
-  Colorado: "CO", Connecticut: "CT", Delaware: "DE", Florida: "FL", Georgia: "GA",
+  Colorado: "CO", Connecticut: "CT", Delaware: "DE", "District of Columbia": "DC", Florida: "FL", Georgia: "GA",
   Hawaii: "HI", Idaho: "ID", Illinois: "IL", Indiana: "IN", Iowa: "IA",
   Kansas: "KS", Kentucky: "KY", Louisiana: "LA", Maine: "ME", Maryland: "MD",
   Massachusetts: "MA", Michigan: "MI", Minnesota: "MN", Mississippi: "MS",
@@ -207,7 +247,7 @@ export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         headline: "This estimate shows a stronger cushion",
         detail: "The estimated rent clears the illustrative 1.25x coverage marker used in this tool.",
         purposeNote: ctx?.strong ?? "",
-        nextStep: "You can share contact details to request a human review. Product availability, eligibility, timing, and terms still require confirmation by the responsible provider.",
+        nextStep: "You can store this scenario with the configured intake for later review. A submission does not confirm staff notification or follow-up. Product availability, eligibility, timing, and terms still require confirmation by the responsible provider.",
         color: swatch.emerald,
       };
     case "BORDERLINE":
@@ -216,7 +256,7 @@ export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         headline: "This estimate reaches payment coverage",
         detail: "The estimated rent is at or above the full monthly payment in this scenario. That is not an approval or product-eligibility decision.",
         purposeNote: ctx?.borderline ?? "",
-        nextStep: "You can request a human review of the assumptions. Any program, rate, approval, or closing path must be confirmed by the responsible provider.",
+        nextStep: "You can store these assumptions with the configured intake for later review. A submission does not confirm staff notification or follow-up. Any program, rate, approval, or closing path must be confirmed by the responsible provider.",
         color: swatch.rainforest,
       };
     case "SPECIALIST_REQUIRED":
@@ -225,7 +265,7 @@ export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         headline: "This estimate is below full payment coverage",
         detail: "The estimated rent is below the full monthly payment. A different structure may change the arithmetic, but this tool does not determine product eligibility.",
         purposeNote: ctx?.low ?? "Adjust the loan amount, rate, or rent assumptions to see how the estimate changes.",
-        nextStep: "You can request a human review of the assumptions. Do not treat this result as evidence that a sub-1.0 product is available.",
+        nextStep: "You can store these assumptions with the configured intake for later review. A submission does not confirm staff notification or follow-up. Do not treat this result as evidence that a sub-1.0 product is available.",
         color: "#b8a820",
       };
     case "UNLIKELY":
@@ -235,7 +275,7 @@ export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         headline: "This deal needs restructuring",
         detail: "The estimated rent is materially below the full monthly payment. Lowering the payment or increasing verified rent would change the arithmetic.",
         purposeNote: ctx?.low ?? "Adjust the loan amount, rate, or rent assumptions to see how the estimate changes.",
-        nextStep: "You can request a human review of the inputs. This result is not a decline or a statement that financing is available.",
+        nextStep: "You can store these inputs with the configured intake for later review. A submission does not confirm staff notification or follow-up. This result is not a decline or a statement that financing is available.",
         color: "#c25b4e",
       };
   }
@@ -244,19 +284,20 @@ export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
 // ─── US States ────────────────────────────────────────────────────────────────
 const US_STATES = [
   "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
-  "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
+  "Delaware","District of Columbia","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
   "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
   "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada",
   "New Hampshire","New Jersey","New Mexico","New York","North Carolina",
   "North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island",
   "South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont",
-  "Virginia","Washington","West Virginia","Wisconsin","Wyoming","Other",
+  "Virginia","Washington","West Virginia","Wisconsin","Wyoming",
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface QualifyModalProps {
   open: boolean;
   onClose: () => void;
+  initialDraft?: QualificationScenarioDraft | null;
 }
 
 // ─── Animation CSS injected once ─────────────────────────────────────────────
@@ -596,6 +637,7 @@ function PillBtn({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={active ? "qm-pill qm-pill-active" : "qm-pill"}
       style={{
         padding: "8px 16px",
@@ -1553,7 +1595,7 @@ function Step3({
           ← Back
         </button>
         <button className="qm-btn-primary" style={btnPrimary} onClick={onNext}>
-          Request a human review →
+          Store scenario for review →
         </button>
       </div>
     </div>
@@ -1591,6 +1633,7 @@ function Step4({
 
   const roles: { val: Role; label: string; helper: string }[] = [
     { val: "investor", label: "Buy & hold investor", helper: "Long-term rental income." },
+    { val: "broker", label: "Broker or loan officer", helper: "Reviewing a scenario for a client." },
     { val: "foreign", label: "Non-US investor", helper: "Investing from outside the U.S." },
     { val: "str", label: "STR / Airbnb host", helper: "Short-term / vacation rental." },
     { val: "vacation", label: "Second / vacation home", helper: "A second home I'll also rent." },
@@ -1640,9 +1683,9 @@ function Step4({
         Where should we send your scenario review?
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
-        Submit only the contact details you want the review team to use. The
-        site does not promise a response time, quote, program match, or financing
-        outcome, and this form does not pull credit.
+        Submit only the contact details you want stored with this scenario. The
+        intake does not confirm staff notification or promise follow-up, a quote,
+        a program match, or a financing outcome, and this form does not pull credit.
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -1729,7 +1772,7 @@ function Step4({
 
       <FieldGroup
         label="What best describes you?"
-        helper="Provides context for the requested human review."
+        helper="Provides context if the stored request is reviewed."
       >
         <div
           role="group"
@@ -1859,9 +1902,9 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.55,
         }}
       >
-        The configured intake accepted your request. This confirms delivery only;
-        it does not promise a response time, program match, quote, or financing
-        outcome.
+        The configured intake stored your request for review. This does not
+        confirm a staff notification or promise a response time, program match,
+        quote, or financing outcome.
       </p>
       <p
         style={{
@@ -1912,37 +1955,50 @@ const FOCUSABLE =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
-export default function QualifyModal({ open, onClose }: QualifyModalProps) {
+export default function QualifyModal({ open, onClose, initialDraft = null }: QualifyModalProps) {
+  const submissionIdRef = useRef(createSubmissionId());
+  const formGenerationRef = useRef(0);
+  const submitAbortRef = useRef<AbortController | null>(null);
   const [step, setStep] = useState(1);
-  const [step1, setStep1] = useState<StepOneData>({
-    propertyValue: 425000,
-    loanAmount: 318750,
-    rent: 3000,
-    rate: 7,
-    propertyType: null,
-    investmentConfirmed: true,
-  });
-  const [step2, setStep2] = useState<StepTwoData>({
-    purpose: null,
-    state: "",
-    ficoBand: null,
-    borrowerType: null,
-    experience: null,
-  });
-  const [step4, setStep4] = useState<StepFourData>({
-    name: "",
-    email: "",
-    phone: "",
-    role: null,
-    timeline: null,
-    contactConsent: false,
-    website: "",
-  });
+  const [step1, setStep1] = useState<StepOneData>(freshStepOne);
+  const [step2, setStep2] = useState<StepTwoData>(freshStepTwo);
+  const [step4, setStep4] = useState<StepFourData>(freshStepFour);
   const [submitting, setSubmitting] = useState(false);
   // `canRetry` separates the two failure classes: a delivery failure is worth
   // pressing again (and worth offering a human fallback), whereas missing
   // scenario details need the user to walk back through the steps.
   const [submissionError, setSubmissionError] = useState<SubmissionError | null>(null);
+
+  // Start every opening from fresh defaults, then hydrate only whitelisted,
+  // non-PII scenario values. Closing also clears contact and consent state,
+  // aborts an in-flight request, and invalidates its callbacks.
+  useEffect(() => {
+    formGenerationRef.current += 1;
+    submitAbortRef.current?.abort();
+    submitAbortRef.current = null;
+    setStep(1);
+    setStep4(freshStepFour());
+    setSubmitting(false);
+    setSubmissionError(null);
+
+    const draft = open
+      ? sanitizeQualificationScenarioDraft(initialDraft)
+      : null;
+    setStep1({
+      ...freshStepOne(),
+      ...(draft?.propertyValue !== undefined
+        ? { propertyValue: draft.propertyValue }
+        : {}),
+      ...(draft?.loanAmount !== undefined ? { loanAmount: draft.loanAmount } : {}),
+      ...(draft?.rent !== undefined ? { rent: draft.rent } : {}),
+      ...(draft?.rate !== undefined ? { rate: draft.rate } : {}),
+    });
+    setStep2({
+      ...freshStepTwo(),
+      ...(draft?.purpose ? { purpose: draft.purpose } : {}),
+    });
+    if (open) submissionIdRef.current = createSubmissionId();
+  }, [initialDraft, open]);
 
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -2012,14 +2068,6 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     }, 0);
     return () => window.clearTimeout(timer);
   }, [open, submissionError]);
-
-  // Reset to step 1 when closed
-  useEffect(() => {
-    if (!open) {
-      const t = setTimeout(() => setStep(1), 300);
-      return () => clearTimeout(t);
-    }
-  }, [open]);
 
   // Esc to close + Tab focus trap
   useEffect(() => {
@@ -2113,15 +2161,19 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       investmentConfirmed: step1.investmentConfirmed,
       contactConsent: step4.contactConsent,
       page: typeof window !== "undefined" ? window.location.pathname : "/",
+      submissionId: submissionIdRef.current,
       website: step4.website,
       // No client timestamps. LeadSubmissionSchema is .strict() and rejects any
       // key it does not declare, so sending createdAt/submittedAt made every
       // real submission fail with HTTP 400. The server stamps submittedAt and
       // contactConsentAt with FieldValue.serverTimestamp() in defaultPersistLead.
-      // (lead persists to Firestore `leads` below; CRM/email sync is a future add)
+      // The lead is stored in Firestore. No staff-notification or CRM delivery
+      // is implied by this request or its acknowledgement.
     };
 
     const controller = new AbortController();
+    const formGeneration = formGenerationRef.current;
+    submitAbortRef.current = controller;
     const timeout = window.setTimeout(() => controller.abort(), 12_000);
     try {
       const response = await fetch("/api/leads", {
@@ -2135,8 +2187,10 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       if (!response.ok) {
         throw new Error(`Lead endpoint returned ${response.status}`);
       }
+      if (formGeneration !== formGenerationRef.current) return;
       setStep(5);
     } catch (err) {
+      if (formGeneration !== formGenerationRef.current) return;
       // Do not store loan scenarios or contact details in a visitor's browser,
       // and do not show a success state unless the business received the lead.
       console.error(
@@ -2154,7 +2208,8 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       });
     } finally {
       window.clearTimeout(timeout);
-      setSubmitting(false);
+      if (submitAbortRef.current === controller) submitAbortRef.current = null;
+      if (formGeneration === formGenerationRef.current) setSubmitting(false);
     }
   };
 

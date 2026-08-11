@@ -10,6 +10,7 @@ import { summarizeByYear } from "../engine/amortization";
 import { computeRefiProceedsGap } from "../engine/refiProceeds";
 import type { ARMTerms, ARMIndex } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
+import DataVintageLine from "../design/DataVintageLine";
 import { risk } from "../theme";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -842,6 +843,18 @@ export default function ARMPage({
                   <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginBottom: 16, letterSpacing: "-0.01em" }}>
                     SOFR is the index your rate floats with after the fixed period. Each row shows a different SOFR future — from falling rates (Bullish) to a spike (Crisis). "Deal breaks" means DSCR (rent ÷ full payment including taxes + insurance) drops below 1.0 — the property can no longer cover its own costs. Caps are enforced exactly as in your loan note.
                   </div>
+                  <DataVintageLine
+                    datasetKey="sofrModel"
+                    ground="dark"
+                    style={{
+                      color: "#e6b84d",
+                      background: "rgba(230,184,77,0.1)",
+                      border: "1px solid rgba(230,184,77,0.28)",
+                      borderRadius: dc.r.sm,
+                      padding: "8px 12px",
+                      marginBottom: 16,
+                    }}
+                  />
                   {result.scenarios.map((s) => {
                     const breaks = s.dscrAtFirst < 1.0 || s.dscrAtLast < 1.0;
                     // Use the worst DSCR between first reset and stabilized for the flame

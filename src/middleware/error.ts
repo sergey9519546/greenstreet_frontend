@@ -14,12 +14,21 @@ export function errorHandler(err: any, req: Request, res: Response, _next: NextF
   }
 
   const requestId = (Math.random() * 1e9).toString(36);
-  // Log full error server-side (includes stack, message) — never send internals to client
-  logger.error({ err, requestId, path: req.path }, "Unhandled express error");
-
-  const status = typeof err.status === "number" && err.status >= 400 && err.status < 600
+  const status = typeof err?.status === "number" && err.status >= 400 && err.status < 600
     ? err.status
     : 500;
+  const errorType = err?.type === "entity.parse.failed"
+    ? "malformed_json"
+    : err?.type === "entity.too.large"
+      ? "payload_too_large"
+      : status < 500
+        ? "client_error"
+        : "server_error";
+
+  // Never pass the raw error or request into the logger. Body-parser attaches
+  // the complete raw request body to `err.body`, and arbitrary error messages,
+  // paths, or headers may contain credentials or personal information.
+  logger.error({ errorType, requestId, status }, "Unhandled express error");
 
   // For 4xx errors caused by the client (bad input etc.), surface a safe message.
   // For 5xx, never reflect internal details — return a generic message + requestId for tracing.

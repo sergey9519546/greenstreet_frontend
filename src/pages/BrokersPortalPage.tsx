@@ -49,25 +49,25 @@ const BENEFITS = [
 // role-only attribution, no invented named individuals or companies. Replace
 // with verified, permissioned quotes before presenting as real endorsements.
 const TESTIMONIALS_DISCLAIMER =
-  "Illustrative composite quotes reflecting common user feedback — not attributed to verified named individuals.";
+  "Illustrative composite scenarios for educational purposes — not verified customer testimonials or reported outcomes.";
 const TESTIMONIALS = [
   {
     quote:
-      "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it — lower down payment, IO for year one. We closed in 19 days.",
-    name: "Alex Stickelman",
-    role: "CCO & COO, Vela Capital",
+      "A scenario tool can make it easier to compare how down payment and interest-only assumptions affect projected DSCR.",
+    name: "Illustrative composite",
+    role: "Rental-property investor scenario",
   },
   {
     quote:
-      "The program match and state-rule checks mean I stopped second-guessing my quotes. I price the deal and move on.",
-    name: "Sandra Rivera",
-    role: "Real Estate Investor, Miami FL",
+      "Program screens and state-rule prompts can help organize the questions to verify during a provider-specific review.",
+    name: "Illustrative composite",
+    role: "Portfolio-investor scenario",
   },
   {
     quote:
-      "I run eight loans through Greenstreet a week. The CCO actually likes the audit logs — that's new for us.",
-    name: "Robert Hayes",
-    role: "Buy-and-Hold Investor, Austin TX",
+      "Saved scenarios and audit logs can help an investment team document the assumptions it still needs to verify.",
+    name: "Illustrative composite",
+    role: "Investment-team scenario",
   },
 ];
 
@@ -403,7 +403,7 @@ export default function BrokersPortalPage({
                 margin: 0,
               }}
             >
-              What investors tell us.
+              Illustrative investor scenarios.
             </h2>
           </div>
 

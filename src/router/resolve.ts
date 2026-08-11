@@ -116,9 +116,48 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/tools/scenario-history": "portal",
 };
 
-export function resolveRoute(href: string): PageView {
+function routeBaseUrl(): URL {
+  if (typeof window !== "undefined" && window.location?.href) {
+    return new URL(window.location.href);
+  }
+  return new URL("http://localhost/");
+}
+
+function parseRouteHref(href: string): { url: URL; sameOrigin: boolean } | null {
+  // Browsers treat backslashes as URL path separators. A value such as
+  // `/\\evil.example` therefore normalizes to a cross-origin URL even though it
+  // appears to begin with a single slash. Internal links never need a
+  // backslash, so reject the ambiguous spelling before route matching.
+  if (!href || href.includes("\\")) return null;
+
   try {
-    const url = new URL(href, "http://localhost");
+    const base = routeBaseUrl();
+    const url = new URL(href, base);
+    return { url, sameOrigin: url.origin === base.origin };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Return the exact same-origin path safe to pass to history.pushState.
+ * Cross-origin, malformed, and backslash-normalized hrefs return null.
+ */
+export function normalizeInternalRouteHref(href: string): string | null {
+  const parsed = parseRouteHref(href);
+  if (!parsed?.sameOrigin) return null;
+  return `${parsed.url.pathname}${parsed.url.search}${parsed.url.hash}`;
+}
+
+export function resolveRoute(href: string): PageView {
+  const parsed = parseRouteHref(href);
+  if (!parsed) {
+    return href.includes("\\") ? "external" : "not-found";
+  }
+  if (!parsed.sameOrigin) return "external";
+
+  try {
+    const { url } = parsed;
     let path = url.pathname;
     if (path.length > 1 && path.endsWith("/")) {
       path = path.slice(0, -1);
@@ -130,7 +169,6 @@ export function resolveRoute(href: string): PageView {
       return "blog";
     }
     if (path.startsWith("/case-studies/")) return "case-studies";
-    if (path.startsWith("/book-demo")) return "book-demo";
     if (path.startsWith("/tools/")) {
       const slug = path.replace("/tools/", "").replace(/\/$/, "");
       if (slug === "workspace" || slug === "deal-workspace") return "portal";
@@ -155,13 +193,6 @@ export function resolveRoute(href: string): PageView {
       if (slug === "deal-analyzer") return "deal-analyzer";
       if (slug === "borrower-profiles") return "borrower-profiles";
     }
-    if (
-      url.hostname &&
-      url.hostname !== "localhost" &&
-      (typeof window === "undefined" || url.hostname !== window.location.hostname)
-    ) {
-      return "external";
-    }
     return "not-found";
   } catch {
     return "not-found";
@@ -174,13 +205,9 @@ export function resolveRoute(href: string): PageView {
  * external subdomains, asset files) fall through to normal browser navigation.
  */
 export function isKnownRoute(href: string): boolean {
-  let path = (() => {
-    try {
-      return new URL(href, "http://localhost").pathname;
-    } catch {
-      return "";
-    }
-  })();
+  const normalizedHref = normalizeInternalRouteHref(href);
+  if (!normalizedHref) return false;
+  let path = new URL(normalizedHref, routeBaseUrl()).pathname;
   if (!path || !path.startsWith("/")) return false;
   if (path.length > 1 && path.endsWith("/")) {
     path = path.slice(0, -1);
@@ -191,9 +218,8 @@ export function isKnownRoute(href: string): boolean {
     const slug = path.replace("/investgo/", "").replace(/\/$/, "");
     return ["analyze", "sensitivity", "optimize", "state", "history", "settings"].includes(slug);
   }
-  if (path.startsWith("/book-demo")) return true;
-  if (path.startsWith("/blog")) return true;
-  if (path.startsWith("/case-studies")) return true;
+  if (path.startsWith("/blog/")) return true;
+  if (path.startsWith("/case-studies/")) return true;
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "").replace(/\/$/, "");
     return [

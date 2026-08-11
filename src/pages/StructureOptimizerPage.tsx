@@ -2,9 +2,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { swatch, radius, font } from "../theme";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
-import { solveDSCR } from "../engine/engine";
-import { buildEngineInputs } from "../engine/inputs";
-import { assumptionsFromV11, buildReturnsSchedule, DEFAULT_TAX_ASSUMPTIONS } from "../engine/returnsEngine";
+import {
+  compareLoanStructures,
+  STRUCTURE_COMPARISON_ASSUMPTIONS,
+} from "./structureComparison";
 
 const BAND = dc.dark;
 const CARD = swatch.darkTeal;
@@ -50,42 +51,15 @@ export default function StructureOptimizerPage({ onNavigate }: { onBack?: () => 
   const [monthlyRent, setMonthlyRent] = useState(3500);
   const [fico, setFico] = useState(740);
 
-  const result = useMemo(() => {
-    const inputs = buildEngineInputs({
+  const result = useMemo(
+    () => compareLoanStructures({
       purchasePrice,
-      loanAmount: purchasePrice * (1 - downPct / 100),
+      downPaymentPct: downPct,
       monthlyRent,
-      state: "TX",
       ficoScore: fico,
-      propertyType: "SFR" as const,
-      annualTaxes: purchasePrice * 0.015,
-      annualInsurance: 2000,
-      hoa: 0,
-    });
-
-    const deal30Y = solveDSCR(inputs.property, inputs.borrower, inputs.loan, inputs.strategy);
-    const deal10YIO = solveDSCR(inputs.property, inputs.borrower, { ...inputs.loan, ioPeriod: "10_YR" }, inputs.strategy);
-    const deal51ARM = solveDSCR(inputs.property, inputs.borrower, { ...inputs.loan, armType: "5_6_ARM" }, inputs.strategy);
-
-    const grossRentMonthly = Math.min(inputs.property.leaseRent, inputs.property.marketRent);
-
-    const assumptions30Y = {
-      ...assumptionsFromV11(inputs.property, inputs.loan, grossRentMonthly, inputs.strategy, deal30Y.solvedRate, 0, deal30Y.cashToClose.total),
-      exitCapRatePct: 6.5,
-      holdYears: 5,
-      tax: { ...DEFAULT_TAX_ASSUMPTIONS, enabled: true },
-    };
-
-    const sched30Y = buildReturnsSchedule(assumptions30Y);
-    const sched10YIO = buildReturnsSchedule({ ...assumptions30Y }); // approximate, ignores IO
-    const sched51ARM = buildReturnsSchedule({ ...assumptions30Y, ratePct: deal51ARM.solvedRate });
-
-    return [
-      { name: "30-Year Fixed", deal: deal30Y, schedule: sched30Y, coc: sched30Y.metrics.year1CashOnCashPct },
-      { name: "10-Year Interest Only", deal: deal10YIO, schedule: sched10YIO, coc: (deal10YIO.dualTrackDSCR.track1.monthlyCashFlow * 12) / deal10YIO.cashToClose.total * 100 },
-      { name: "5/1 ARM", deal: deal51ARM, schedule: sched51ARM, coc: sched51ARM.metrics.year1CashOnCashPct },
-    ];
-  }, [purchasePrice, downPct, monthlyRent, fico]);
+    }),
+    [purchasePrice, downPct, monthlyRent, fico],
+  );
 
   return (
     <DcShell
@@ -124,7 +98,7 @@ export default function StructureOptimizerPage({ onNavigate }: { onBack?: () => 
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, marginTop: 24 }}>
             {result.map((struct) => (
-              <Card key={struct.name}>
+              <Card key={struct.id}>
                 <Eyebrow>{struct.name}</Eyebrow>
                 <div style={{ margin: "16px 0", borderBottom: HAIRLINE, paddingBottom: 16 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
@@ -142,17 +116,35 @@ export default function StructureOptimizerPage({ onNavigate }: { onBack?: () => 
                 </div>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                    <span style={{ color: INK_DIM, fontSize: 14 }}>Year 1 Cash-on-Cash</span>
-                    <Mono style={{ fontWeight: 600 }}>{pct(struct.coc, 2)}</Mono>
+                    <span style={{ color: INK_DIM, fontSize: 14 }}>Year 1 Cash-on-Cash (after expenses)</span>
+                    <Mono style={{ fontWeight: 600 }}>{pct(struct.cashOnCashPct, 2)}</Mono>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                     <span style={{ color: INK_DIM, fontSize: 14 }}>After-Tax IRR (5yr)</span>
-                    <Mono style={{ fontWeight: 600 }}>{struct.name.includes("Interest Only") ? "N/A" : pct(struct.schedule.metrics.afterTaxIrrPct, 2)}</Mono>
+                    <Mono style={{ fontWeight: 600 }}>{pct(struct.afterTaxIrrPct, 2)}</Mono>
                   </div>
                 </div>
               </Card>
             ))}
           </div>
+          <p style={{ color: INK_DIM, fontSize: 12, lineHeight: 1.6, margin: "4px 0 0" }}>
+            Five-year after-tax IRR is shown only for the fixed-rate structure. It is not established for the interest-only or ARM examples because this returns model does not simulate their payment changes.
+          </p>
+          <aside
+            aria-label="Illustrative comparison assumptions"
+            style={{
+              color: INK_DIM,
+              fontSize: 12,
+              lineHeight: 1.7,
+              border: HAIRLINE,
+              borderRadius: radius.sm,
+              padding: "14px 16px",
+              marginTop: 4,
+            }}
+          >
+            <strong style={{ color: INK }}>Illustrative assumptions:</strong>{" "}
+            Texas single-family rental; property tax {STRUCTURE_COMPARISON_ASSUMPTIONS.annualPropertyTaxRatePct}% of purchase price annually; insurance {money(STRUCTURE_COMPARISON_ASSUMPTIONS.annualInsurance)} annually; {money(STRUCTURE_COMPARISON_ASSUMPTIONS.monthlyHoa)} monthly HOA; {STRUCTURE_COMPARISON_ASSUMPTIONS.exitCapRatePct}% exit cap; {STRUCTURE_COMPARISON_ASSUMPTIONS.holdYears}-year hold; and the returns engine&apos;s default tax profile. Cash-on-cash uses expense-aware modeled cash flow. Results are educational estimates, not a rate quote, approval, tax advice, or provider commitment.
+          </aside>
         </div>
       </section>
     </DcShell>

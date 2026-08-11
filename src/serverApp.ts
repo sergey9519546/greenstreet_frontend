@@ -6,7 +6,10 @@ import { logger, logRequest } from "./logger";
 import { errorHandler } from "./middleware/error";
 import { dscrRouter } from "./routes/dscr";
 import { narrateRouter } from "./routes/narrate";
-import { createLeadsRouter } from "./routes/leads";
+import {
+  createLeadsRouter,
+  createStorageOnlyLeadDeliveryRecorder,
+} from "./routes/leads";
 import { sdrRouter } from "./routes/sdr";
 import { verifyFirebaseToken, requireAuth } from "./middleware/auth";
 import { createRateLimitStore } from "./middleware/rateLimitStore";
@@ -15,12 +18,40 @@ export const app = express();
 
 const isProd = process.env.NODE_ENV === "production";
 
+// Explicitly remove the X-Powered-By header so the runtime stack is not disclosed.
+app.disable("x-powered-by");
+
 // This app is only ever reached through a reverse-proxy hop (Firebase Hosting
 // rewrite -> Cloud Functions v2, per firebase.json + src/function.ts), so
 // Express's default req.ip (from the raw socket) does not reflect the real
 // client address. Trust exactly one hop so req.ip resolves from
 // X-Forwarded-For correctly — this is what narrateLimiter/apiLimiter key on.
 app.set("trust proxy", 1);
+
+// ── Security headers ─────────────────────────────────────────────────────────
+// This must be the first response middleware. CORS preflights, body-parser
+// failures, and authentication failures can all terminate the request early.
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  // Prevent browsers from doing MIME-type sniffing for DNS prefetch
+  res.setHeader("X-DNS-Prefetch-Control", "off");
+  // Enforce HTTPS in production (1 year, include subdomains)
+  if (isProd) {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+  // Disable powerful features not used by this API
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  // Defense-in-depth for JSON responses. The standalone Node host also serves
+  // the SPA from this same Express app; applying `default-src 'none'` to those
+  // HTML responses blocks the Vite bundle, styles, and the marketing assets.
+  // Keep the API policy narrow without breaking static delivery.
+  if (req.path === "/health" || req.path === "/api" || req.path.startsWith("/api/")) {
+    res.setHeader("Content-Security-Policy", "default-src 'none'");
+  }
+  next();
+});
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Keep the canonical first-party origin as the production fail-safe. Deployments
@@ -56,12 +87,8 @@ app.use(
   })
 );
 
-// Explicitly set trust proxy for Vercel/Firebase reverse proxies
-app.set("trust proxy", 1);
 // Hard cap on request body size — prevents memory/cost abuse from large payloads
 app.use(express.json({ limit: "100kb" }));
-// Explicitly remove the X-Powered-By header so the runtime stack is not disclosed
-app.disable("x-powered-by");
 // Scoped to /api/* only — health checks and static/SPA assets must stay
 // reachable without a token (load balancer / uptime probes never send one).
 app.use("/api", verifyFirebaseToken);
@@ -79,29 +106,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       logRequest(req.method, req.path, res.statusCode, duration, extra);
     }
   });
-  next();
-});
-
-// ── Security headers ─────────────────────────────────────────────────────────
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  // Prevent browsers from doing MIME-type sniffing for DNS prefetch
-  res.setHeader("X-DNS-Prefetch-Control", "off");
-  // Enforce HTTPS in production (1 year, include subdomains)
-  if (isProd) {
-    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  }
-  // Disable powerful features not used by this API
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  // Defense-in-depth for JSON responses. The standalone Node host also serves
-  // the SPA from this same Express app; applying `default-src 'none'` to those
-  // HTML responses blocks the Vite bundle, styles, and the marketing assets.
-  // Keep the API policy narrow without breaking static delivery.
-  if (req.path === "/health" || req.path === "/api" || req.path.startsWith("/api/")) {
-    res.setHeader("Content-Security-Policy", "default-src 'none'");
-  }
   next();
 });
 
@@ -137,7 +141,14 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/dscr", apiLimiter, dscrRouter);
-app.use("/api/leads", leadLimiter, createLeadsRouter({ allowedOrigins }));
+app.use(
+  "/api/leads",
+  leadLimiter,
+  createLeadsRouter({
+    allowedOrigins,
+    recordDeliveryStatus: createStorageOnlyLeadDeliveryRecorder(),
+  }),
+);
 app.use("/api/sdr", apiLimiter, sdrRouter);
 // /api/narrate calls a paid third-party LLM. Beyond rate limiting, it must
 // never be reachable anonymously: requireAuth (src/middleware/auth.ts) 401s

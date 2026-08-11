@@ -53,15 +53,15 @@ const TOOLS: Tool[] = [
     panelNote: "Live dual-track coverage + lender shortlist",
   },
   {
-    title: "Program Intelligence",
-    desc: "Filter all 19 published Greenstreet DSCR program profiles by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See which program parameters your scenario clears — and which it misses — before you make a single call. Screening is not an eligibility decision.",
+    title: "DSCR Loan Programs",
+    desc: "Filter all 7 published Greenstreet DSCR program profiles by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See which program parameters your scenario clears — and which it misses — before you make a single call. Screening is not an eligibility decision.",
     cta: "Screen my scenario against the programs",
     view: "lender-intel",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.62)",
     panelTag: "Lender Intel",
-    panelMetric: "19",
+    panelMetric: "7",
     panelNote: "Programs ranked by fit score",
   },
   {

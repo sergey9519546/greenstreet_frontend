@@ -1,12 +1,12 @@
 # Greenstreet DSCR Loan Platform
 
-**Production-grade DSCR loan qualification engine and borrower portal** for real estate investors.
+**DSCR loan decision-support platform and borrower portal** for real estate investors.
 
 ## Overview
 
 Greenstreet is a full-stack TypeScript application providing:
 - **DSCR Calculator** — Debt-service coverage ratio analysis with dual-track methodology
-- **Lender Intel** — 14+ lender program database with fit scoring
+- **Lender Intel** — Program data with fit scoring and provenance labels
 - **ARM Reset Engine** — Payment shock modeling with 5-scenario SOFR stress analysis
 - **True Cost Comparator** — XIRR-based all-in effective yield calculations
 - **Tax Engine** — IRC-compliant after-tax IRR with depreciation recapture
@@ -15,25 +15,25 @@ Greenstreet is a full-stack TypeScript application providing:
 
 ## Tech Stack
 
-- **Frontend:** React 19, TypeScript 5.7, Vite 6
+- **Frontend:** React 19, TypeScript 5.8, Vite 6
 - **UI:** Tailwind CSS 4, Motion (Framer Motion), GSAP
 - **Backend:** Express, Firebase Functions
 - **Database:** Firebase Firestore
 - **Auth:** Firebase Authentication
-- **Testing:** Vitest (364 tests, 100% engine coverage target)
-- **Deployment:** Vercel
+- **Testing:** Vitest
+- **Deployment:** Firebase Hosting / Functions and Vercel-compatible builds
 
 ## Quick Start
 
 ### Prerequisites
-- Node.js 20+ and npm 10+
+- Node.js 22.x and npm 10+
 - Firebase account (free Spark plan works for development)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/sergey9519546/greenstreet_frontend.git
 cd greenstreet_frontend
 
 # Install dependencies
@@ -61,21 +61,21 @@ npm run start
 ```
 greenstreet_frontend/
 ├── src/
-│   ├── engine/          # Pure TypeScript calculation engines (36 modules)
+│   ├── engine/          # Pure TypeScript calculation engines
 │   │   ├── engine.ts            # DSCR solver, payment calculations
 │   │   ├── qualify.ts           # Lender qualification logic
 │   │   ├── taxEngine.ts         # IRC-compliant tax calculations
 │   │   ├── lenders.ts           # 14 lender profiles with provenance tracking
 │   │   ├── statePppLaws.ts      # State-by-state prepayment penalty rules
-│   │   ├── types.ts             # 100+ TypeScript interfaces (1513 lines)
-│   │   └── *.test.ts            # 32 test files, 364 tests
-│   ├── pages/           # Route-level React components (33 pages)
+│   │   ├── types.ts             # Shared calculation types
+│   │   └── *.test.ts            # Engine regression tests
+│   ├── pages/           # Route-level React components
 │   ├── components/      # Shared UI components
 │   ├── design/          # Design system (dc.tsx, theme.ts, artifacts)
 │   ├── lib/             # Utilities (dealState, engineService)
 │   ├── routes/          # Express API routes
 │   └── firebase.ts      # Firebase initialization
-├── public/              # Static assets (7.2MB images/videos)
+├── public/              # Static assets
 ├── .env.example         # Environment variable template
 └── package.json
 ```
@@ -122,15 +122,14 @@ npm run test:watch
 npm run test -- --coverage
 ```
 
-**Current Coverage:** 364 tests across 32 engine files
-
 ## Environment Variables
 
 See `.env.example` for required configuration.
 
 **Critical Variables:**
 - `VITE_FIREBASE_*` — Firebase client config (required)
-- `ANTHROPIC_AUTH_TOKEN` — AI narration feature (optional)
+- `ANTHROPIC_AUTH_TOKEN` — Server-side AI narration credential (optional)
+- `ANTHROPIC_BASE_URL` — Required in production when narration is enabled
 
 ## Development
 
@@ -142,7 +141,7 @@ See `.env.example` for required configuration.
 
 ### Code Style
 - **TypeScript strict mode** enabled
-- **No `any` types** in engine layer (227 to eliminate in UI layer)
+- **Strict TypeScript** across the application
 - **JSDoc comments** on all public functions
 - **Design tokens** via `theme.ts` (use instead of hardcoded colors)
 
@@ -158,7 +157,7 @@ See `.env.example` for required configuration.
 
 ### Engine Layer (Pure TypeScript)
 - **Zero side effects** — all functions pure and deterministic
-- **Comprehensive types** — 1513 lines of TypeScript interfaces
+- **Comprehensive types** — shared contracts for engine inputs and outputs
 - **Golden test values** — calculations verified against known good results
 - **Provenance tracking** — three-tier verification system
 
@@ -175,26 +174,26 @@ See `.env.example` for required configuration.
 
 ## Deployment
 
-Deploys to Vercel automatically on push to `main`.
-
-**Production URL:** `https://yourapp.vercel.app`
+Deployment configuration is included for Firebase and Vercel-compatible runtimes. The
+canonical public origin is `https://www.greenstreet.finance`.
 
 ## Security
 
-- **Firestore security rules** — user data scoped to `request.auth.uid`
+- **Firestore security rules** — browser lead writes fail closed; submissions use the server endpoint
+- **Idempotent lead intake** — `/api/leads` atomically creates `leads/{submissionId}` from the client UUID, so a retry cannot create or overwrite another intake record
+- **Truthful delivery state** — the separate `leadDelivery/{submissionId}` document records `not_configured`; `{ accepted: true }` means the intake was stored, not that staff, a CRM, or a webhook was notified
 - **Rate limiting** — Express middleware prevents abuse
 - **Input validation** — Zod schemas on all API endpoints
-- **Security headers** — CSP, X-Frame-Options, HSTS
+- **Security headers** — deployment-specific CSP reporting and baseline browser protections
 - **No secrets in client bundle** — `.env` excluded from git
 
-⚠️ **IMPORTANT:** After cloning, rotate Firebase credentials if this repo was ever public.
+Server credentials belong only in local or deployment environment variables. Never commit
+service-account keys, webhook secrets, or AI provider tokens.
 
-## Known Issues
-
-See GitHub Issues for tracking. Critical items:
-- [ ] firebase-admin should be server-only (not in client bundle)
-- [ ] Replace hardcoded colors with design tokens (1,617 instances)
-- [ ] Add tests for v11Runner.ts, returnsEngine.ts, lenders.ts
+Lead intake is storage-only until a specific outbound owner and HTTPS destination are
+approved. `/health` does not depend on lead-delivery configuration. Any future receiver
+must use the existing `submissionId` as its idempotency key and keep delivery-attempt
+metadata separate from the immutable intake document.
 
 ## Contributing
 
@@ -211,8 +210,7 @@ Proprietary — All rights reserved
 ## Support
 
 - **Documentation:** See `/docs` directory
-- **Issues:** GitHub Issues
-- **Contact:** [your-email]
+- **Issues:** [GitHub Issues](https://github.com/sergey9519546/greenstreet_frontend/issues)
 
 ---
 

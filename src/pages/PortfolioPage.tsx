@@ -494,6 +494,26 @@ export default function PortfolioPage({
             </div>
           )}
 
+          {rows === SEED && (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                color: dc.lemon,
+                background: "rgba(216,217,88,0.12)",
+                border: "1px solid rgba(216,217,88,0.3)",
+                borderRadius: dc.r.pill,
+                padding: "6px 14px",
+                marginBottom: 14,
+              }}
+            >
+              Example portfolio — edit the rows or clear to start fresh
+            </div>
+          )}
+
           {/* Inline-editable property table */}
           <div
             style={{

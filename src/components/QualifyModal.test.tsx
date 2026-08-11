@@ -20,6 +20,7 @@ import QualifyModal, { classifyQuickDscr, dscrVerdict } from './QualifyModal';
 import { LeadSubmissionSchema } from '../routes/leads';
 
 type LeadPayload = {
+  submissionId: string;
   name: string;
   email: string;
   phone: string;
@@ -142,6 +143,106 @@ describe('QualifyModal — lead funnel', () => {
     expect(within(dialog()).getAllByText(expectedTier).length).toBeGreaterThan(0);
   });
 
+  it('hydrates the opening step from an in-memory non-PII scenario draft', async () => {
+    render(
+      <QualifyModal
+        open
+        onClose={() => {}}
+        initialDraft={{
+          propertyValue: 610_000,
+          loanAmount: 427_000,
+          rent: 4_900,
+          rate: 6.875,
+          purpose: 'cash-out',
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(within(dialog()).getByLabelText(/estimated property value/i)).toHaveValue(610_000);
+      expect(within(dialog()).getByLabelText(/desired loan amount/i)).toHaveValue(427_000);
+      expect(within(dialog()).getByLabelText(/expected monthly rent/i)).toHaveValue(4_900);
+      expect(within(dialog()).getByLabelText(/estimated interest rate/i)).toHaveValue(6.875);
+    });
+    expect(
+      within(within(dialog()).getByRole('group', { name: /loan purpose/i })).getByRole(
+        'button',
+        { name: /cash-out refi/i },
+      ),
+    ).toHaveClass('qm-pill-active');
+  });
+
+  it('starts every reopening from fresh scenario, contact, and consent state', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <QualifyModal
+        open
+        onClose={() => {}}
+        initialDraft={{
+          propertyValue: 610_000,
+          loanAmount: 427_000,
+          rent: 4_900,
+          rate: 6.875,
+          purpose: 'cash-out',
+        }}
+      />,
+    );
+
+    await completeStep1(user);
+    await completeStep2(user);
+    await user.click(primaryCta());
+    await waitFor(() => expect(currentStep()).toBe(4));
+    await settleStepFocus();
+    await user.type(within(dialog()).getByLabelText(/full name/i), CONTACT.name);
+    await user.type(within(dialog()).getByLabelText(/work email/i), CONTACT.email);
+    await user.click(pill(/timeline/i, 1));
+    await user.click(within(dialog()).getByRole('checkbox'));
+
+    rerender(<QualifyModal open={false} onClose={() => {}} initialDraft={null} />);
+    rerender(
+      <QualifyModal
+        open
+        onClose={() => {}}
+        initialDraft={{ propertyValue: 700_000 }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(currentStep()).toBe(1);
+      expect(within(dialog()).getByLabelText(/estimated property value/i)).toHaveValue(700_000);
+      expect(within(dialog()).getByLabelText(/desired loan amount/i)).toHaveValue(318_750);
+      expect(within(dialog()).getByLabelText(/expected monthly rent/i)).toHaveValue(3_000);
+      expect(within(dialog()).getByLabelText(/estimated interest rate/i)).toHaveValue(7);
+    });
+
+    await completeStep1(user);
+    await completeStep2(user);
+    await user.click(primaryCta());
+    await waitFor(() => expect(currentStep()).toBe(4));
+
+    expect(within(dialog()).getByLabelText(/full name/i)).toHaveValue('');
+    expect(within(dialog()).getByLabelText(/work email/i)).toHaveValue('');
+    expect(within(dialog()).getByLabelText(/phone number/i)).toHaveValue('');
+    expect(within(dialog()).getByRole('checkbox')).not.toBeChecked();
+  });
+
+  it('supports District of Columbia properties and broker contacts', async () => {
+    const user = userEvent.setup();
+    render(<QualifyModal open onClose={() => {}} />);
+
+    await completeStep1(user);
+    await completeStep2(user, 'District of Columbia');
+    await user.click(primaryCta()); // step 3 → step 4
+    await waitFor(() => expect(currentStep()).toBe(4));
+
+    expect(
+      within(within(dialog()).getByRole('group', { name: /i am a/i })).getByRole(
+        'button',
+        { name: /broker or loan officer/i },
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('submits the entered contact data to the lead endpoint and confirms', async () => {
     const fetchMock = mockFetch(okResponse);
     const user = userEvent.setup();
@@ -169,6 +270,9 @@ describe('QualifyModal — lead funnel', () => {
       purpose: 'purchase',
       state: 'Texas',
     });
+    expect(payload.submissionId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
     // The scenario the visitor was shown must travel with the lead.
     expect(payload.propertyValue).toBeGreaterThan(0);
     expect(payload.loanAmount).toBeGreaterThan(0);
@@ -247,6 +351,35 @@ describe('QualifyModal — lead funnel', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     // A rejected write must never look like a delivered lead.
     await waitFor(() => expect(currentStep()).toBe(4));
+  });
+
+  it('reuses one submission id when a lost response is retried', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) } as Response)
+      .mockResolvedValueOnce({ ok: true, status: 202, json: async () => ({ accepted: true }) } as Response);
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    render(<QualifyModal open onClose={() => {}} />);
+
+    await completeStep1(user);
+    await completeStep2(user);
+    await user.click(primaryCta());
+    await waitFor(() => expect(currentStep()).toBe(4));
+    await completeStep4(user);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    await user.click(within(dialog()).getByRole('button', { name: /try again/i }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    const payloads = fetchMock.mock.calls.map(([, init]) =>
+      JSON.parse(String((init as RequestInit).body)) as LeadPayload,
+    );
+    expect(payloads[0].submissionId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    expect(payloads[1].submissionId).toBe(payloads[0].submissionId);
   });
 
   it('renders nothing while closed', () => {

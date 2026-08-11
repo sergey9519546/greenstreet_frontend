@@ -1,34 +1,27 @@
 /**
- * QualifyWidget — global sticky trigger + auto-open logic for QualifyModal.
+ * QualifyWidget — global sticky trigger for QualifyModal.
  *
  * Mount once at the App root so it overlays every view.
- *
- * Auto-open heuristic (fires at most once per visitor):
- *   • After 30 seconds idle on the page, OR
- *   • When the user scrolls past 55% of document height,
- *   whichever comes first.
- *
- * Respects localStorage key "gs_qualify_seen" — once set, never auto-opens again.
  *
  * Exposes window.openQualify and window.closeQualify for external CTAs.
  *
  * ADDED: hover state (midnight bg / pistachio text) on the sticky pill trigger.
  * Animation CSS injected via local <style> tag — no shared files modified.
  */
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import QualifyModal from "./QualifyModal";
 import { swatch, font } from "../theme";
+import {
+  sanitizeQualificationScenarioDraft,
+  type QualificationScenarioDraft,
+} from "../conversion/qualificationScenario";
 
 declare global {
   interface Window {
-    openQualify?: () => void;
+    openQualify?: (draft?: QualificationScenarioDraft) => void;
     closeQualify?: () => void;
   }
 }
-
-const STORAGE_KEY = "gs_qualify_seen";
-const AUTO_OPEN_DELAY_MS = 30_000;
-const SCROLL_THRESHOLD = 0.55;
 
 // Widget-specific CSS — injected once, no shared files touched.
 const WIDGET_CSS = `
@@ -70,29 +63,27 @@ function ensureWidgetStyles() {
 
 export default function QualifyWidget({
   showTrigger = true,
-  autoOpen = true,
 }: {
   showTrigger?: boolean;
-  autoOpen?: boolean;
 } = {}) {
   const [open, setOpen] = useState(false);
-  const autoTriggeredRef = useRef(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [initialDraft, setInitialDraft] = useState<QualificationScenarioDraft | null>(null);
 
   // Inject widget CSS once on mount
   useEffect(() => {
     ensureWidgetStyles();
   }, []);
 
-  const openModal = useCallback(() => {
+  const openModal = useCallback((draft?: QualificationScenarioDraft) => {
+    // The global helper can be invoked by untyped page scripts. Whitelist at
+    // runtime so identity/contact fields can never enter this handoff state.
+    setInitialDraft(sanitizeQualificationScenarioDraft(draft));
     setOpen(true);
-    try {
-      localStorage.setItem(STORAGE_KEY, "1");
-    } catch (_) {}
   }, []);
 
   const closeModal = useCallback(() => {
     setOpen(false);
+    setInitialDraft(null);
   }, []);
 
   // Expose global helpers so any CTA on the page (including the Webflow
@@ -106,56 +97,12 @@ export default function QualifyWidget({
     };
   }, [openModal, closeModal]);
 
-  // Auto-open logic — runs once per mount; guards against repeated triggers.
-  useEffect(() => {
-    // A blocking form is disruptive while someone is editing a compact tool;
-    // the in-flow mobile CTA remains available without interrupting the task.
-    if (!autoOpen || window.matchMedia("(max-width: 479px)").matches) return;
-
-    const alreadySeen = () => {
-      try {
-        return localStorage.getItem(STORAGE_KEY) === "1";
-      } catch (_) {
-        return false;
-      }
-    };
-
-    if (alreadySeen()) return;
-
-    const trigger = () => {
-      if (autoTriggeredRef.current) return;
-      if (alreadySeen()) return;
-      autoTriggeredRef.current = true;
-      cleanup();
-      openModal();
-    };
-
-    const onScroll = () => {
-      const scrolled = window.scrollY + window.innerHeight;
-      const total = document.documentElement.scrollHeight;
-      if (total > 0 && scrolled / total >= SCROLL_THRESHOLD) trigger();
-    };
-
-    timerRef.current = setTimeout(trigger, AUTO_OPEN_DELAY_MS);
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    function cleanup() {
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-      window.removeEventListener("scroll", onScroll);
-    }
-
-    return cleanup;
-  }, [autoOpen, openModal]);
-
   return (
     <>
       {/* Sticky pill trigger — hidden while modal is open */}
       {showTrigger && !open && (
         <button
-          onClick={openModal}
+          onClick={() => openModal()}
           aria-label="Request a scenario review"
           className="qw-pill"
           style={{
@@ -183,7 +130,7 @@ export default function QualifyWidget({
         </button>
       )}
 
-      <QualifyModal open={open} onClose={closeModal} />
+      <QualifyModal open={open} onClose={closeModal} initialDraft={initialDraft} />
     </>
   );
 }

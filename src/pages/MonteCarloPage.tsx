@@ -5,6 +5,7 @@ import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT 
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
 import { DscrGauge, RiskFlame, riskFromDscr, MotionWorkbench } from "../design/artifacts";
 import { PremiumSlider } from "../components/ui/PremiumSlider";
+import DataVintageLine from "../design/DataVintageLine";
 import { risk } from "../theme";
 
 // ─── color helpers ────────────────────────────────────────────────────────────
@@ -558,6 +559,19 @@ export default function MonteCarloPage({
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>
                 Rate assumptions
               </div>
+
+              <DataVintageLine
+                datasetKey="sofrModel"
+                ground="dark"
+                style={{
+                  color: YELLOW,
+                  background: "rgba(154,123,0,0.08)",
+                  border: "1px solid rgba(154,123,0,0.25)",
+                  borderRadius: dc.r.sm,
+                  padding: "8px 10px",
+                  marginBottom: 16,
+                }}
+              />
 
               <div style={hl("initialSofr")}>
                 <SliderField label="Initial SOFR %" hint="Today's short-term rate index. ARM resets float off this after the fixed period ends." value={initialSofr} set={onRateSlider("initialSofr", setInitialSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
