@@ -238,6 +238,8 @@ export interface V11AnalysisInput {
 }
 
 export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
+  const sellerAnnualTax = input.sellerAnnualTax ?? input.property.annualTaxes;
+
   // v11.1 D-1 fix: Replicate AUDIT-8 #1 — compute reassessed tax FIRST,
   // then pass it into solveDSCR so PITIA uses the reassessed tax (not
   // seller's current bill). Without this, the runner silently overstates
@@ -245,7 +247,7 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
   const reassessmentPre = computeReassessedTax(
     input.property.purchasePrice,
     input.property.state,
-    input.sellerAnnualTax ?? input.property.annualTaxes,
+    sellerAnnualTax,
   );
 
   // 1. Dual-track DSCR — pass reassessed tax override (matches page.tsx production path)
@@ -265,16 +267,18 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
 
   // 2. Reassessment — reuse the precomputed reassessed tax (avoid double work)
   const reassessmentResult = reassessmentPre;
+  // `solveDSCR` already includes buyer/reassessed tax. The impact helper
+  // expects seller-tax PITIA and adds the delta itself, so recover only that
+  // tax component before calling it to avoid applying reassessment twice.
+  const sellerTaxBasePITIA = dscr.monthlyPITIA.total
+    - (reassessmentResult.reassessedAnnualTax / 12)
+    + (sellerAnnualTax / 12);
   const reassessment = computeReassessmentDSCRImpact(
     input.property.purchasePrice,
     input.property.state,
     dscr.qualifyingRent,
-    dscr.monthlyPITIA.total,
-    // sellerAnnualTax is optional on V11AnalysisInput. Fall back to the
-    // property's own annual tax bill — the same default already used for
-    // computeReassessedTax above (line ~232), so both reassessment calls see
-    // an identical "current bill" and cannot disagree.
-    input.sellerAnnualTax ?? input.property.annualTaxes,
+    sellerTaxBasePITIA,
+    sellerAnnualTax,
     reassessmentResult.reassessedAnnualTax,
   );
 

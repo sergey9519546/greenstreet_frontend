@@ -45,17 +45,17 @@ describe("computeTcoDscr — reproduces TCO doc §9 worked example", () => {
     rateOpts: { propertyType: "SFR" }, depreciableBasis: 280000, marginalTaxRate: 0.24,
   });
 
-  it("standard DSCR 1.036, TCO-DSCR 0.803", () => {
+  it("standard DSCR 1.036, Track-2 NOI/PITIA 0.746", () => {
     expect(r.standardDSCR).toBeCloseTo(1.036, 2);
-    expect(r.tcoDSCR).toBeCloseTo(0.803, 2);
+    expect(r.tcoDSCR).toBeCloseTo(0.746, 2);
   });
 
   it("break-even rent $3,351 (PITIA / (1 − 0.28))", () => {
     expect(r.breakEvenRent).toBe(3351);
   });
 
-  it("after-tax TCO-DSCR ~0.859 (depreciation shield lifts it)", () => {
-    expect(r.afterTaxTcoDSCR).toBeCloseTo(0.859, 2);
+  it("after-tax TCO-DSCR uses full PITIA and the depreciation shield", () => {
+    expect(r.afterTaxTcoDSCR).toBeCloseTo(0.891, 2);
     expect(r.afterTaxTcoDSCR).toBeGreaterThan(r.tcoDSCR);
   });
 
@@ -68,5 +68,34 @@ describe("computeTcoDscr — reproduces TCO doc §9 worked example", () => {
 describe("tcoEquivalent", () => {
   it("1.25 standard ≈ 0.90 TCO at 28% (TCO §10.2)", () => {
     expect(tcoEquivalent(1.25, 0.28)).toBeCloseTo(0.9, 2);
+  });
+});
+
+describe("computeTcoDscr finite guards", () => {
+  it("rejects a finite PITIA input set whose sum overflows", () => {
+    expect(() => computeTcoDscr({
+      grossRent: 3_000,
+      principalAndInterest: Number.MAX_VALUE,
+      propertyTax: Number.MAX_VALUE,
+      insurance: 0,
+      hoa: 0,
+    })).toThrow(RangeError);
+  });
+
+  it("rejects non-finite and negative underwriting inputs", () => {
+    expect(() => computeTcoDscr({
+      grossRent: Number.NaN,
+      principalAndInterest: 1_500,
+      propertyTax: 300,
+      insurance: 100,
+      hoa: 0,
+    })).toThrow(RangeError);
+    expect(() => computeTcoDscr({
+      grossRent: 3_000,
+      principalAndInterest: -1,
+      propertyTax: 300,
+      insurance: 100,
+      hoa: 0,
+    })).toThrow(RangeError);
   });
 });

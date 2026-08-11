@@ -216,30 +216,68 @@ export function computeAEY(
   prepayPenaltyAtExit: number,
   parRate?: number,
 ): TrueCostResult {
+  const numericInputs = [
+    loanAmount,
+    annualRate,
+    termMonths,
+    holdMonths,
+    pointsPct,
+    lenderFees,
+    brokerFees,
+    rateLockCost,
+    prepayPenaltyAtExit,
+  ];
+  if (numericInputs.some((value) => !Number.isFinite(value))) {
+    throw new RangeError('True-cost inputs must be finite numbers.');
+  }
+  if (loanAmount <= 0 || annualRate < 0 || termMonths <= 0 || !Number.isInteger(termMonths)) {
+    throw new RangeError('Loan amount and term must be positive, and rate cannot be negative.');
+  }
+  if (holdMonths <= 0 || !Number.isInteger(holdMonths) || holdMonths > termMonths) {
+    throw new RangeError('Hold period must be a whole number of months within the loan term.');
+  }
+  if ([pointsPct, lenderFees, brokerFees, rateLockCost, prepayPenaltyAtExit].some((value) => value < 0)) {
+    throw new RangeError('Points, fees, lock cost, and prepayment penalty cannot be negative.');
+  }
+  if (parRate !== undefined && (!Number.isFinite(parRate) || parRate < 0)) {
+    throw new RangeError('Par rate must be a finite, non-negative number when supplied.');
+  }
+
   const pointsDollars = loanAmount * (pointsPct / 100);
   const netLoanProceeds = loanAmount - pointsDollars - lenderFees - brokerFees - rateLockCost;
+  if (!Number.isFinite(netLoanProceeds) || netLoanProceeds <= 0) {
+    throw new RangeError('Fees and points must leave positive net loan proceeds.');
+  }
 
   const piMonthly = calculatePI(loanAmount, annualRate, termMonths);
   const remainingBalance = computeRemainingBalance(loanAmount, annualRate, termMonths, holdMonths);
+  if (!Number.isFinite(piMonthly) || !Number.isFinite(remainingBalance)) {
+    throw new RangeError('True-cost inputs exceeded the supported calculation range.');
+  }
 
-  // Build cash flows for XIRR (annual granularity for stability)
-  const holdYears = holdMonths / 12;
+  // Build one actual borrower cash-flow row per payment month. The final row
+  // also carries the remaining balance and exit penalty at the exact hold month.
   const cashFlows: TrueCostCashFlow[] = [];
 
   // t=0: net proceeds (positive cash inflow to borrower)
   cashFlows.push({ month: 0, amount: netLoanProceeds });
 
-  // t=1..holdYears: monthly payments aggregated annually
-  for (let yr = 1; yr <= holdYears; yr++) {
-    cashFlows.push({ month: yr * 12, amount: -piMonthly * 12 });
+  for (let month = 1; month <= holdMonths; month++) {
+    cashFlows.push({ month, amount: -piMonthly });
   }
 
-  // t=holdYears: exit balloon + prepay penalty
+  // Exit balloon + prepay penalty land on the exact exit month.
   cashFlows[cashFlows.length - 1].amount += -(remainingBalance + prepayPenaltyAtExit);
+  if (cashFlows.some((flow) => !Number.isFinite(flow.amount))) {
+    throw new RangeError('True-cost cash flows exceeded the supported calculation range.');
+  }
 
   // Convert to XIRR format
   const xirrFlows = cashFlows.map(cf => ({ time: cf.month / 12, amount: cf.amount }));
   const aey = computeXIRR(xirrFlows);
+  if (!Number.isFinite(aey)) {
+    throw new RangeError('Unable to compute a finite all-in effective yield.');
+  }
 
   // APR-equivalent (Reg Z style — includes fees, no prepay)
   const aprCashFlows: TrueCostCashFlow[] = [
@@ -251,6 +289,9 @@ export function computeAEY(
   aprCashFlows[aprCashFlows.length - 1].amount += -remainingBalance; // no prepay for APR
   const aprXirrFlows = aprCashFlows.map(cf => ({ time: cf.month / 12, amount: cf.amount }));
   const aprEquivalent = computeXIRR(aprXirrFlows);
+  if (!Number.isFinite(aprEquivalent)) {
+    throw new RangeError('Unable to compute a finite APR equivalent.');
+  }
 
   // YSP-adjusted APR (if rate > par, broker earns YSP)
   const yspFlag = parRate !== undefined && annualRate > parRate + 0.125;
@@ -264,11 +305,14 @@ export function computeAEY(
     const yspFlows: { time: number; amount: number }[] = [
       { time: 0, amount: yspNetProceeds },
     ];
-    for (let yr = 1; yr <= holdYears; yr++) {
-      yspFlows.push({ time: yr, amount: -piMonthly * 12 });
+    for (let month = 1; month <= holdMonths; month++) {
+      yspFlows.push({ time: month / 12, amount: -piMonthly });
     }
     yspFlows[yspFlows.length - 1].amount += -(remainingBalance + prepayPenaltyAtExit);
     yspAdjustedAPR = computeXIRR(yspFlows);
+    if (!Number.isFinite(yspAdjustedAPR)) {
+      throw new RangeError('Unable to compute a finite YSP-adjusted APR.');
+    }
   }
 
   // Total cost at 12/24/36/60 months (sum of interest + fees + prepay if applicable)
@@ -278,6 +322,11 @@ export function computeAEY(
     const prepaid = months >= holdMonths ? prepayPenaltyAtExit : 0;
     return pi - (loanAmount - bal) + pointsDollars + lenderFees + brokerFees + rateLockCost + prepaid;
   };
+
+  const totalCosts = [interestAt(12), interestAt(24), interestAt(36), interestAt(60)];
+  if (totalCosts.some((cost) => !Number.isFinite(cost))) {
+    throw new RangeError('True-cost totals exceeded the supported calculation range.');
+  }
 
   // Points recoup: break-even vs par rate (no points)
   const parPiMonthly = parRate !== undefined ? calculatePI(loanAmount, parRate, termMonths) : piMonthly;
@@ -312,15 +361,22 @@ export function computeAEY(
     aprEquivalent: Math.round(aprEquivalent * 10000) / 100,
     yspAdjustedAPR: yspAdjustedAPR !== null ? Math.round(yspAdjustedAPR * 10000) / 100 : null,
     yspFlag,
-    totalCost12mo: Math.round(interestAt(12)),
-    totalCost24mo: Math.round(interestAt(24)),
-    totalCost36mo: Math.round(interestAt(36)),
-    totalCost60mo: Math.round(interestAt(60)),
+    totalCost12mo: Math.round(totalCosts[0]),
+    totalCost24mo: Math.round(totalCosts[1]),
+    totalCost36mo: Math.round(totalCosts[2]),
+    totalCost60mo: Math.round(totalCosts[3]),
     pointsRecoupMonths: isFinite(pointsRecoupMonths) ? pointsRecoupMonths : 999,
     pointsRecoupVerdict,
     provenance: 'VERIFIED_PRIMARY', // filled by caller
     confidenceScore: 0, // filled by caller
   };
+}
+
+function resolvePrepayPenaltyAtExit(pppAllowed: boolean, quotedPenalty: number): number {
+  if (!Number.isFinite(quotedPenalty) || quotedPenalty < 0) {
+    throw new RangeError('Quoted prepayment penalty must be finite and non-negative.');
+  }
+  return pppAllowed ? quotedPenalty : 0;
 }
 
 // ============================================================
@@ -373,23 +429,36 @@ export function rankLendersByAEY(
     }
     // v11 FIX (AUDIT-7 #1): Use ACTUAL lender fees from the quote, NOT loanAmountMin.value
     // (which is the lender's minimum loan size — a $50K-$2M figure that was inflating AEY by ~700bps)
-    const trueCost = computeAEY(
-      q.loanAmount,
-      q.estimatedRate,
-      q.termMonths,
-      q.holdMonths,
-      q.pointsPct ?? 0,           // points % from quote
-      q.lenderFees ?? 1500,       // actual lender fees from quote (default $1500 if missing)
-      q.brokerFees ?? 0,          // broker fees
-      q.rateLockCost ?? 0,        // rate lock cost
-      q.pppAllowed ? 0 : q.prepayPenaltyAtExit,
-      q.parRate,
-    );
-    trueCost.lenderId = q.lender.id;
-    trueCost.lenderName = q.lender.name;
-    trueCost.provenance = q.lender.sourceType;
-    trueCost.confidenceScore = q.lender.confidenceScore;
-    return { quote: q, aey: trueCost.aey, trueCost };
+    try {
+      const trueCost = computeAEY(
+        q.loanAmount,
+        q.estimatedRate,
+        q.termMonths,
+        q.holdMonths,
+        q.pointsPct ?? 0,           // points % from quote
+        q.lenderFees ?? 1500,       // actual lender fees from quote (default $1500 if missing)
+        q.brokerFees ?? 0,          // broker fees
+        q.rateLockCost ?? 0,        // rate lock cost
+        resolvePrepayPenaltyAtExit(q.pppAllowed, q.prepayPenaltyAtExit),
+        q.parRate,
+      );
+      trueCost.lenderId = q.lender.id;
+      trueCost.lenderName = q.lender.name;
+      trueCost.provenance = q.lender.sourceType;
+      trueCost.confidenceScore = q.lender.confidenceScore;
+      return { quote: q, aey: trueCost.aey, trueCost };
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Invalid true-cost quote inputs.';
+      return {
+        quote: {
+          ...q,
+          eligible: false,
+          ineligibleReasons: [...q.ineligibleReasons, `True-cost unavailable: ${reason}`],
+        },
+        aey: Infinity,
+        trueCost: null as TrueCostResult | null,
+      };
+    }
   });
 
   // Sort: eligible first by AEY ascending; ineligible at bottom
@@ -415,7 +484,7 @@ export function rankLendersByAEY(
       eligible: entry.quote.eligible,
       ineligibleReasons: entry.quote.ineligibleReasons,
       estimatedRate: entry.quote.estimatedRate,
-      aey: entry.aey === Infinity ? 0 : entry.aey,
+      aey: entry.aey,
       totalCost60mo: entry.trueCost?.totalCost60mo ?? 0,
       confidenceScore: entry.quote.lender.confidenceScore,
       counterpartyRisk: counterparty,

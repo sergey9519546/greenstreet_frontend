@@ -84,6 +84,22 @@ describe("v11Runner - Integrated Analysis Pipeline", () => {
     expect(result).toBeDefined();
   });
 
+  it("applies the reassessment delta to seller-tax PITIA exactly once", () => {
+    const result = runV11Analysis({
+      property,
+      loan,
+      borrower,
+      rate: 7.25,
+      strategy: "LTR",
+    });
+
+    // The DSCR solve already uses reassessed tax. The reported before/after
+    // impact must therefore end at that same PITIA, not add the tax delta again.
+    // The reassessment report rounds to cents while the DSCR solver retains
+    // fractional cents; a tax delta would be dollars larger, not this rounding.
+    expect(result.reassessment.pitiaAfter).toBeCloseTo(result.dscr.monthlyPITIA.total, 2);
+  });
+
   it("handles ARM loan structure", () => {
     const armLoan: LoanStructure = {
       ...loan,
