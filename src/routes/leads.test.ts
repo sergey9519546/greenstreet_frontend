@@ -48,6 +48,7 @@ async function postLead(
   options: Parameters<typeof createLeadsRouter>[0],
   body: unknown,
   headers: Record<string, string> = {},
+  path = "/",
 ) {
   const app = express();
   app.use(express.json({ limit: "8kb" }));
@@ -57,7 +58,7 @@ async function postLead(
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address() as AddressInfo;
 
-  return fetch(`http://127.0.0.1:${address.port}/`, {
+  return fetch(`http://127.0.0.1:${address.port}${path}`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -203,6 +204,24 @@ describe("anonymous lead intake route", () => {
       submissionId: VALID.submissionId,
     }));
     expect(persistLead.mock.calls[0][0]).not.toHaveProperty("website");
+  });
+
+  it("never caches intake responses or accepts query-string lead data", async () => {
+    const persistLead = vi.fn().mockResolvedValue(undefined);
+    const accepted = await postLead(trustedOptions(persistLead), VALID);
+    const queryBearing = await postLead(
+      trustedOptions(persistLead),
+      VALID,
+      {},
+      "/?email=leaked%40example.com",
+    );
+
+    expect(accepted.status).toBe(202);
+    expect(accepted.headers.get("cache-control")).toBe("no-store");
+    expect(queryBearing.status).toBe(400);
+    expect(queryBearing.headers.get("cache-control")).toBe("no-store");
+    expect(await queryBearing.json()).toEqual({ error: "Invalid lead submission" });
+    expect(persistLead).toHaveBeenCalledTimes(1);
   });
 
   it("attempts optional delivery only after the intake is stored", async () => {

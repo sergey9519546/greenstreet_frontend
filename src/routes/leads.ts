@@ -191,6 +191,10 @@ export function createLeadsRouter({
   const router = Router();
 
   router.post("/", async (req, res) => {
+    // Intake payloads include contact and financial context. Prevent caches
+    // from retaining either success or failure responses.
+    res.set("Cache-Control", "no-store");
+
     if (allowedOrigins.length === 0) {
       res.status(503).json({ error: "Lead intake is temporarily unavailable" });
       return;
@@ -198,6 +202,13 @@ export function createLeadsRouter({
 
     if (!hasTrustedOrigin(req, allowedOrigins)) {
       res.status(403).json({ error: "Request origin is not allowed" });
+      return;
+    }
+
+    // Query strings routinely end up in proxy/browser history and logs. This
+    // endpoint accepts its bounded payload only in the JSON body.
+    if (req.originalUrl.includes("?")) {
+      invalidRequest(res);
       return;
     }
 
