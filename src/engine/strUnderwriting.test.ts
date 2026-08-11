@@ -39,6 +39,36 @@ describe("computeSTRMonthlySeasonality", () => {
     const peak = Math.max(...US_NATIONAL_STR_SEASONALITY.map((m) => m.index));
     expect(US_NATIONAL_STR_SEASONALITY.find((m) => m.index === peak)!.month).toBe("Jul");
   });
+
+  it("falls back to the national baseline for empty or malformed seasonality", () => {
+    const empty = computeSTRMonthlySeasonality(120_000, 3_000, 20, []);
+    const malformed = computeSTRMonthlySeasonality(
+      120_000,
+      3_000,
+      20,
+      [{ month: "Jan", index: Number.NaN }] as any,
+    );
+
+    expect(empty.months).toHaveLength(12);
+    expect(malformed.months).toHaveLength(12);
+    expect(empty.warningMessage).toMatch(/national baseline/i);
+    expect(malformed.warningMessage).toMatch(/national baseline/i);
+  });
+
+  it("reports incomplete seasonality with only finite metrics for invalid numeric inputs", () => {
+    const result = computeSTRMonthlySeasonality(Number.POSITIVE_INFINITY, Number.NaN, 250);
+    const numericValues: number[] = [];
+    const collectNumbers = (value: unknown) => {
+      if (typeof value === "number") numericValues.push(value);
+      else if (Array.isArray(value)) value.forEach(collectNumbers);
+      else if (value && typeof value === "object") Object.values(value).forEach(collectNumbers);
+    };
+
+    collectNumbers(result);
+    expect(numericValues.every(Number.isFinite)).toBe(true);
+    expect(result.warningMessage).toMatch(/0% to 100%/i);
+    expect(result.warningMessage).toMatch(/incomplete|unknown/i);
+  });
 });
 
 describe("checkSTRLegality", () => {
@@ -106,10 +136,78 @@ describe("evaluateSTRUnderwriting", () => {
     expect(r.bestQualifyingRent).toBe(min);
   });
 
+  it("uses the 1007 market rent for a vacant property when no STR income is available", () => {
+    const r = evaluateSTRUnderwriting(
+      {
+        ...property,
+        leaseRent: 0,
+        marketRent: 3_000,
+        strProjectedRent: 0,
+        strDocumentedRent: 0,
+      },
+      350_000,
+      7,
+      30,
+      "NONE",
+      6_000,
+      2_500,
+      0,
+      0,
+    );
+
+    expect(r.world1_LTR.qualifyingRent).toBe(3_000);
+    expect(r.bestQualifyingRent).toBe(3_000);
+    expect(r.bestWorld).toBe(r.world1_LTR.name);
+  });
+
   it("includes the legality gate, checklist, and monthly seasonality", () => {
     const r = evaluateSTRUnderwriting(property, 350_000, 7, 30, "NONE", 6_000, 2_500, 0, 0);
     expect(r.legalityGate).toBeDefined();
     expect(r.documentationChecklist.length).toBeGreaterThan(0);
     expect(r.monthlySeasonality.months).toHaveLength(12);
+  });
+
+  it("excludes missing documented history instead of letting zero govern", () => {
+    const r = evaluateSTRUnderwriting(
+      { ...property, strDocumentedRent: 0 },
+      350_000,
+      7,
+      30,
+      "NONE",
+      6_000,
+      2_500,
+      0,
+      0,
+    );
+
+    expect(r.world3_Documented.qualifyingRent).toBe(0);
+    expect(r.world3_Documented.method).toMatch(/excluded rather than treated as \$0/i);
+    expect(r.bestQualifyingRent).toBeGreaterThan(0);
+    expect(r.bestWorld).not.toBe(r.world3_Documented.name);
+  });
+
+  it("returns an incomplete, finite result for impossible payment inputs", () => {
+    const r = evaluateSTRUnderwriting(
+      property,
+      Number.POSITIVE_INFINITY,
+      Number.NaN,
+      0,
+      "NONE",
+      Number.NaN,
+      2_500,
+      0,
+      0,
+    );
+    const numericValues: number[] = [];
+    const collectNumbers = (value: unknown) => {
+      if (typeof value === "number") numericValues.push(value);
+      else if (Array.isArray(value)) value.forEach(collectNumbers);
+      else if (value && typeof value === "object") Object.values(value).forEach(collectNumbers);
+    };
+
+    collectNumbers(r);
+    expect(numericValues.every(Number.isFinite)).toBe(true);
+    expect(r.bestQualifyingRent).toBe(0);
+    expect(r.bestWorld).toMatch(/^Incomplete/);
   });
 });

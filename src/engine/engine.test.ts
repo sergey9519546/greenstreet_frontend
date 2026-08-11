@@ -13,6 +13,10 @@ import {
   calculatePI,
   calculateIOPayment,
   calculatePITIA,
+  calculateCashToClose,
+  solveDealBreakRate,
+  solveMaxPurchasePrice,
+  solveRequiredRent,
   solveDSCR,
   quickDscrEstimate,
 } from './engine';
@@ -48,6 +52,14 @@ describe('calculatePaymentFactor', () => {
     const f40 = calculatePaymentFactor(7.0, 480);
     const f30 = calculatePaymentFactor(7.0, 360);
     expect(f40).toBeLessThan(f30);
+  });
+
+  it('rejects non-finite and negative payment inputs without emitting a payment', () => {
+    expect(calculatePaymentFactor(Number.NaN, 360)).toBe(0);
+    expect(calculatePaymentFactor(-1, 360)).toBe(0);
+    expect(calculatePaymentFactor(7, 0)).toBe(0);
+    expect(calculatePI(300_000, 7, Number.POSITIVE_INFINITY)).toBe(0);
+    expect(calculateIOPayment(300_000, -7)).toBe(0);
   });
 });
 
@@ -111,6 +123,68 @@ describe('calculatePITIA — interest-only enum safety', () => {
   it('rejects malformed IO values instead of treating them as 10-year IO', () => {
     expect(() => calculatePITIA(300_000, 7.0, 30, '0' as never, 6_000, 1_800, 100))
       .toThrow('Unsupported interest-only period');
+  });
+
+  it('returns only finite, non-negative costs for malformed expense inputs', () => {
+    const pitia = calculatePITIA(
+      300_000,
+      7,
+      30,
+      'NONE',
+      -1,
+      Number.POSITIVE_INFINITY,
+      Number.NaN,
+      -4,
+      Number.NaN,
+    );
+
+    expect(Object.values(pitia).filter((value): value is number => typeof value === 'number').every(
+      (value) => Number.isFinite(value) && value >= 0,
+    )).toBe(true);
+    expect(pitia.taxes).toBe(0);
+    expect(pitia.insurance).toBe(0);
+    expect(pitia.hoa).toBe(0);
+    expect(pitia.floodInsurance).toBe(0);
+    expect(pitia.mortgageInsurance).toBe(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3c. REVERSE CALCULATOR DOMAIN SAFETY
+// ─────────────────────────────────────────────────────────────────────────────
+describe('reverse calculator domain safety', () => {
+  it('returns zero for impossible or zero-denominator reverse calculations', () => {
+    expect(solveMaxPurchasePrice(2_000, 0, 7, 30, 'NONE', 0, 0, 0)).toBe(0);
+    expect(solveMaxPurchasePrice(2_000, 75, 7, 30, 'NONE', 0, 0, 0, 0, 0)).toBe(0);
+    expect(solveDealBreakRate(2_000, 0, 30, 'NONE', 0, 0, 0)).toBe(0);
+    expect(solveRequiredRent(1.1, 2_000, 0)).toBe(0);
+  });
+
+  it('returns zero when a deal-break rate cannot be bracketed instead of returning the search ceiling', () => {
+    expect(solveDealBreakRate(1_000_000, 100_000, 30, 'NONE', 0, 0, 0)).toBe(0);
+  });
+
+  it('returns zero when even the 0% payment exceeds the deal-break target', () => {
+    expect(solveDealBreakRate(2_000, 300_000, 30, 'NONE', 14_400, 0, 0)).toBe(0);
+  });
+
+  it('fails closed instead of emitting non-finite cash-to-close values', () => {
+    const { loan } = buildEngineInputs({
+      purchasePrice: 400_000,
+      monthlyRent: 3_000,
+      state: 'TX',
+    });
+
+    const result = calculateCashToClose(
+      Number.NaN,
+      300_000,
+      loan,
+      6,
+      9,
+      2_500,
+    );
+
+    expect(Object.values(result).every((value) => Number.isFinite(value) && value === 0)).toBe(true);
   });
 });
 
@@ -304,6 +378,42 @@ describe('buildEngineInputs', () => {
     const { strategy } = buildEngineInputs({ purchasePrice: 400_000, monthlyRent: 3_000, state: 'TX' });
     expect(strategy).toBe('LTR');
   });
+
+  it('sanitizes non-finite and out-of-domain numeric request fields at the input boundary', () => {
+    const { property, borrower, loan } = buildEngineInputs({
+      purchasePrice: 100_000_001,
+      monthlyRent: Number.NaN,
+      state: 'TX',
+      ltv: Number.POSITIVE_INFINITY,
+      loanAmount: Number.POSITIVE_INFINITY,
+      marketRent: Number.NEGATIVE_INFINITY,
+      strProjectedRent: Number.POSITIVE_INFINITY,
+      strDocumentedRent: -1,
+      annualTaxes: Number.NaN,
+      annualInsurance: -1,
+      hoa: Number.NaN,
+      floodInsurance: Number.POSITIVE_INFINITY,
+      unitCount: 0,
+      ficoScore: Number.POSITIVE_INFINITY,
+      points: Number.POSITIVE_INFINITY,
+      lenderFees: -1,
+      brokerFees: Number.NaN,
+      rateLockCost: Number.POSITIVE_INFINITY,
+    });
+
+    const numericInputs = [
+      property.purchasePrice, property.leaseRent, property.marketRent,
+      property.strProjectedRent, property.strDocumentedRent, property.annualTaxes,
+      property.annualInsurance, property.hoa, property.floodInsurance, property.unitCount,
+      borrower.ficoScore, loan.ltv, loan.points, loan.lenderFees, loan.brokerFees, loan.rateLockCost,
+    ];
+    expect(numericInputs.every(Number.isFinite)).toBe(true);
+    expect(property.purchasePrice).toBe(0);
+    expect(property.leaseRent).toBe(0);
+    expect(property.unitCount).toBe(1);
+    expect(borrower.ficoScore).toBe(740);
+    expect(loan.ltv).toBe(75);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -395,6 +505,43 @@ describe('quickDscrEstimate', () => {
     expect(result.needsReview).toBe(true);
   });
 
+  it('marks malformed optional calculator parameters for review without non-finite output', () => {
+    const results = [
+      quickDscrEstimate(400_000, 3_000, 6.5, Number.POSITIVE_INFINITY),
+      quickDscrEstimate(400_000, 3_000, 6.5, 0.75, Number.NaN),
+      quickDscrEstimate(400_000, 3_000, 6.5, 0.75, 0.012, -0.005),
+      quickDscrEstimate(400_000, 3_000, 6.5, 0.75, 0.012, 0.005, 0),
+    ];
+
+    for (const result of results) {
+      expect(result.needsReview).toBe(true);
+      expect(result.dscr).toBe(0);
+      expect(result.pitia).toBe(0);
+    }
+  });
+
+  it('marks an extreme but finite rate for review instead of treating a failed payment factor as qualification', () => {
+    const result = quickDscrEstimate(400_000, 3_000, Number.MAX_VALUE);
+
+    expect(result.needsReview).toBe(true);
+    expect(result.dscr).toBe(0);
+    expect(result.pitia).toBe(0);
+  });
+
+  it('marks finite but out-of-domain quick-calculator inputs for review', () => {
+    const invalidResults = [
+      quickDscrEstimate(400_000, Number.MAX_VALUE, 7),
+      quickDscrEstimate(400_000, 3_000, 7, Number.MIN_VALUE),
+      quickDscrEstimate(400_000, 3_000, 7, 0.75, 0.012, 0.005, Number.MAX_VALUE),
+    ];
+
+    for (const result of invalidResults) {
+      expect(result.needsReview).toBe(true);
+      expect(result.dscr).toBe(0);
+      expect(result.pitia).toBe(0);
+    }
+  });
+
   it('always includes a disclaimer string', () => {
     const result = quickDscrEstimate(400_000, 3_000, 6.5);
     expect(result.disclaimer).toContain('PRELIMINARY ESTIMATE');
@@ -432,6 +579,26 @@ describe('quickDscrEstimate', () => {
     const result = solveDSCR(property, borrower, loan, strategy);
     expect(result.dscr).toBe(0);
     expect(result.dualTrackDSCR.verdict.summary).toContain('NEEDS_REVIEW');
+  });
+
+  it('fails closed with finite values when direct engine inputs bypass request validation', () => {
+    const { property, borrower, loan, strategy } = buildEngineInputs({
+      purchasePrice: 400_000,
+      monthlyRent: 3_000,
+      state: 'TX',
+    });
+    property.marketRent = Number.NaN;
+    borrower.ficoScore = Number.POSITIVE_INFINITY;
+    loan.lenderFees = -1;
+
+    const result = solveDSCR(property, borrower, loan, strategy);
+    const numericResult = JSON.stringify(result, (_key, value) =>
+      typeof value === 'number' && !Number.isFinite(value) ? 'NON_FINITE' : value,
+    );
+
+    expect(result.dscr).toBe(0);
+    expect(result.dualTrackDSCR.verdict.summary).toContain('NEEDS_REVIEW');
+    expect(numericResult).not.toContain('NON_FINITE');
   });
 });
 
