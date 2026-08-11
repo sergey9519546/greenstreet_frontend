@@ -188,7 +188,7 @@ const PAGE_CSS = `
   color: ${dc.cream};
   background:
     linear-gradient(90deg, rgba(0,55,56,0.94) 0%, rgba(0,55,56,0.82) 38%, rgba(0,55,56,0.26) 74%, rgba(0,55,56,0.12) 100%),
-    url("/img/generated/scenes/advisors-laptop-charts.png") center / cover no-repeat;
+    url("/img/resources/financial_dashboard.png") center / cover no-repeat;
   display: grid;
   align-items: end;
   overflow: hidden;
@@ -495,7 +495,7 @@ const PAGE_CSS = `
   .bp-hero {
     background:
       linear-gradient(180deg, rgba(0,55,56,0.96) 0%, rgba(0,55,56,0.86) 55%, rgba(0,55,56,0.60) 100%),
-      url("/img/generated/scenes/advisors-laptop-charts.png") 56% center / cover no-repeat;
+      url("/img/resources/financial_dashboard.png") 56% center / cover no-repeat;
   }
   .bp-hero h1 { font-size: clamp(46px, 13.8vw, 62px); max-width: 8.5ch; }
   .bp-hero-lead { font-size: 16px; }

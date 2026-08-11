@@ -330,7 +330,7 @@ export default function CareersPage({
       </section>
 
       <ScenePhoto
-        src="/img/generated/scenes/two-person-meeting.png"
+        src="/img/resources/commercial_building.png"
         alt="Greenstreet team members working through a deal together"
         eyebrow="Life at Greenstreet"
         caption="Small team, high ownership — you touch the engine, not a backlog ticket."
