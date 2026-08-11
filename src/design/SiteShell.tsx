@@ -81,7 +81,6 @@ const NAV_DD_CSS = `
 `;
 
 export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
-  const [announcementVisible, setAnnouncementVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuViewportTop, setMenuViewportTop] = useState(120);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -298,29 +297,6 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
           (real fix lives in index.css, since that's genuinely loaded here —
           this restores the rest of what this constant was meant to do). */}
       <style>{NAV_DD_CSS}</style>
-      {announcementVisible && (
-        <div className="announcement gs-site-announcement u-container u-theme-light">
-          <a
-            className="link-block w-inline-block"
-            href="/blog/greenstreet-go-launch"
-            aria-label="Read the InvestGO announcement"
-          />
-          <div className="announcement-txt w-richtext">
-            <p><strong>⎋</strong> Explore <strong>InvestGO</strong> — an educational DSCR workflow concept</p>
-          </div>
-          <button
-            type="button"
-            className="announcement-close"
-            aria-label="Dismiss announcement"
-            onClick={() => setAnnouncementVisible(false)}
-          >
-            <svg className="svg" fill="none" viewBox="0 0 11 11" width="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <line stroke="currentColor" strokeWidth="1.3" x1="0.664698" x2="9.95041" y1="0.458349" y2="9.74406" />
-              <line stroke="currentColor" strokeWidth="1.3" x1="0.459814" x2="9.74553" y1="9.74741" y2="0.461698" />
-            </svg>
-          </button>
-        </div>
-      )}
       <nav ref={navRef} className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" aria-label="Primary navigation" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
       <div className="nav-contain u-container">
         <div className="nav-wrap">
@@ -356,7 +332,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               </a>
             </div>
           </div>
-          <button ref={mobileToggleRef} type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={toggleMobileMenu} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: 44, minWidth: 44, flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <button ref={mobileToggleRef} type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={toggleMobileMenu} style={{ background: "none", border: "none", cursor: "pointer" }}>
             <div className="burger-line top" aria-hidden="true"></div>
             <div className="burger-line middle" aria-hidden="true"></div>
             <div className="burger-line bottom" aria-hidden="true"></div>
@@ -369,7 +345,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
           {NAV_MENUS.map((m) => (
             <React.Fragment key={m.label}>
               <a href={m.path} className="gs-mnav-section" onClick={go(m.view)} style={{ textDecoration: "none", padding: "12px 0 2px", display: "block" }}>{m.label}</a>
-              {m.items.map((it, i) => (
+              {m.items.filter((it) => !it.feature).map((it, i) => (
                 <a key={i} href={it.path} className="nav-link" onClick={nav(it)} aria-current={itemActive(it) ? "page" : undefined} style={{ paddingLeft: 8 }}>{renderNavLabel(it.label)}</a>
               ))}
             </React.Fragment>
