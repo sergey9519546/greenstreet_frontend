@@ -88,6 +88,7 @@ function logRequest(method, path2, statusCode, durationMs, extra) {
 // src/middleware/error.ts
 function errorHandler(err, req, res, _next) {
   if (req.path.startsWith("/api/leads") && (err?.type === "entity.parse.failed" || err?.type === "entity.too.large")) {
+    res.set("Cache-Control", "no-store");
     res.status(400).json({ error: "Invalid lead submission" });
     return;
   }
@@ -307,6 +308,149 @@ function mapToTcoType(unitCount, isShortTerm) {
   return "SFR";
 }
 
+// src/engine/inputs.ts
+var MAX_PURCHASE_PRICE = 1e8;
+var MAX_LOAN_AMOUNT = 1e8;
+var MAX_MONTHLY_RENT = 5e5;
+var MAX_ANNUAL_PROPERTY_EXPENSE = 1e7;
+var MAX_MONTHLY_PROPERTY_EXPENSE = 1e6;
+var MAX_CURRENCY_INPUT = 1e8;
+var MODEL_AUTO_DECISION_FLOOR = 5e4;
+var DECLINING_MARKET_STATES = /* @__PURE__ */ new Set(["CT", "FL", "IL", "NJ", "NY"]);
+function abbrevState(state) {
+  return (state || "").trim().toUpperCase().slice(0, 2);
+}
+function nonNegative(value, fallback = 0, max = Number.MAX_SAFE_INTEGER) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= max ? parsed : fallback;
+}
+function positive(value, fallback, max = Number.MAX_SAFE_INTEGER) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 && parsed <= max ? parsed : fallback;
+}
+function isExplicitlyProvided(req, field) {
+  return Object.prototype.hasOwnProperty.call(req, field) && req[field] !== void 0;
+}
+function isFiniteWithin(value, min, max) {
+  return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
+}
+function addIssue(issues, field) {
+  if (!issues.includes(field)) issues.push(field);
+}
+function collectExplicitNumericIssues(req) {
+  const issues = [];
+  const validate = (field, min, max) => {
+    if (isExplicitlyProvided(req, field) && !isFiniteWithin(req[field], min, max)) {
+      addIssue(issues, field);
+    }
+  };
+  validate("purchasePrice", MODEL_AUTO_DECISION_FLOOR, MAX_PURCHASE_PRICE);
+  validate("loanAmount", MODEL_AUTO_DECISION_FLOOR, MAX_LOAN_AMOUNT);
+  validate("ltv", Number.MIN_VALUE, 100);
+  validate("monthlyRent", 0, MAX_MONTHLY_RENT);
+  validate("marketRent", 0, MAX_MONTHLY_RENT);
+  validate("strProjectedRent", 0, MAX_MONTHLY_RENT);
+  validate("strDocumentedRent", 0, MAX_MONTHLY_RENT);
+  validate("annualTaxes", 0, MAX_ANNUAL_PROPERTY_EXPENSE);
+  validate("annualInsurance", 0, MAX_ANNUAL_PROPERTY_EXPENSE);
+  validate("hoa", 0, MAX_MONTHLY_PROPERTY_EXPENSE);
+  validate("floodInsurance", 0, MAX_MONTHLY_PROPERTY_EXPENSE);
+  validate("unitCount", 1, Number.MAX_SAFE_INTEGER);
+  validate("sqft", Number.MIN_VALUE, Number.MAX_SAFE_INTEGER);
+  validate("yearBuilt", Number.MIN_VALUE, Number.MAX_SAFE_INTEGER);
+  validate("ficoScore", 300, 850);
+  validate("existingFinancedProperties", 0, Number.MAX_SAFE_INTEGER);
+  validate("availableReserves", 0, MAX_CURRENCY_INPUT);
+  validate("expectedHoldYears", Number.MIN_VALUE, Number.MAX_SAFE_INTEGER);
+  validate("points", 0, 100);
+  validate("lenderFees", 0, MAX_CURRENCY_INPUT);
+  validate("brokerFees", 0, MAX_CURRENCY_INPUT);
+  validate("rateLockCost", 0, MAX_CURRENCY_INPUT);
+  return issues;
+}
+function buildEngineInputs(req) {
+  const purchasePrice = nonNegative(req.purchasePrice, 0, MAX_PURCHASE_PRICE);
+  const monthlyRent = nonNegative(req.monthlyRent, 0, MAX_MONTHLY_RENT);
+  const inputValidationIssues = collectExplicitNumericIssues(req);
+  const hasExplicitLtv = isExplicitlyProvided(req, "ltv");
+  const hasExplicitLoanAmount = isExplicitlyProvided(req, "loanAmount");
+  const hasValidLtv = isFiniteWithin(req.ltv, Number.MIN_VALUE, 100);
+  const hasValidLoanAmount = isFiniteWithin(req.loanAmount, MODEL_AUTO_DECISION_FLOOR, MAX_LOAN_AMOUNT);
+  let ltv = 75;
+  if (hasExplicitLtv) {
+    if (hasValidLtv) {
+      ltv = req.ltv;
+    } else {
+      ltv = 0;
+    }
+  } else if (hasExplicitLoanAmount) {
+    if (hasValidLoanAmount && purchasePrice > 0) {
+      const derivedLtv = req.loanAmount / purchasePrice * 100;
+      if (isFiniteWithin(derivedLtv, Number.MIN_VALUE, 100)) {
+        ltv = derivedLtv;
+      } else {
+        ltv = 0;
+        addIssue(inputValidationIssues, "loanAmount");
+      }
+    } else {
+      ltv = 0;
+    }
+  }
+  const modeledLoanAmount = purchasePrice * (ltv / 100);
+  if (hasExplicitLtv && (!Number.isFinite(modeledLoanAmount) || modeledLoanAmount < MODEL_AUTO_DECISION_FLOOR)) {
+    addIssue(inputValidationIssues, "ltv");
+  }
+  const stateAbbrev = abbrevState(req.state);
+  const strategy = req.strategy ?? "LTR";
+  const property = {
+    purchasePrice,
+    leaseRent: monthlyRent,
+    marketRent: nonNegative(req.marketRent, monthlyRent, MAX_MONTHLY_RENT),
+    strProjectedRent: nonNegative(req.strProjectedRent, strategy === "STR" ? monthlyRent : 0, MAX_MONTHLY_RENT),
+    strDocumentedRent: nonNegative(req.strDocumentedRent, 0, MAX_MONTHLY_RENT),
+    hoa: nonNegative(req.hoa, 0, MAX_MONTHLY_PROPERTY_EXPENSE),
+    annualTaxes: nonNegative(req.annualTaxes, Math.round(purchasePrice * 0.012), MAX_ANNUAL_PROPERTY_EXPENSE),
+    annualInsurance: nonNegative(req.annualInsurance, Math.round(purchasePrice * 5e-3), MAX_ANNUAL_PROPERTY_EXPENSE),
+    floodInsurance: nonNegative(req.floodInsurance, 0, MAX_MONTHLY_PROPERTY_EXPENSE),
+    propertyType: req.propertyType ?? "SFR",
+    state: stateAbbrev,
+    unitCount: Math.max(1, Math.round(positive(req.unitCount, 1))),
+    sqft: positive(req.sqft, 1500),
+    yearBuilt: Math.round(positive(req.yearBuilt, 2e3)),
+    isCondotel: req.isCondotel ?? false,
+    isNonWarrantable: req.isNonWarrantable ?? false,
+    isRural: req.isRural ?? false,
+    isDecliningMarket: DECLINING_MARKET_STATES.has(stateAbbrev),
+    hoaSTRPolicy: req.hoaSTRPolicy ?? "UNKNOWN",
+    ...inputValidationIssues.length > 0 ? { inputValidationIssues } : {}
+  };
+  const borrower = {
+    ficoScore: Math.min(850, Math.max(300, positive(req.ficoScore, 740))),
+    experience: req.experience ?? "EXPERIENCED",
+    existingFinancedProperties: Math.round(nonNegative(req.existingFinancedProperties, 1)),
+    entityType: req.entityType ?? "LLC",
+    isUSCitizenOrPR: req.isUSCitizenOrPR ?? !(req.isNonUsInvestor ?? false),
+    availableReserves: nonNegative(req.availableReserves, 0, MAX_CURRENCY_INPUT),
+    reserveAssets: [],
+    isFirstResponder: req.isFirstResponder ?? false,
+    isNonUsInvestor: req.isNonUsInvestor ?? false
+  };
+  const loan = {
+    ltv,
+    term: req.term ?? "30_YR",
+    ioPeriod: req.ioPeriod ?? "NONE",
+    armType: req.armType ?? "FIXED",
+    prepayPreference: req.prepayPreference ?? "NONE",
+    purpose: req.loanPurpose ?? "PURCHASE",
+    expectedHoldYears: positive(req.expectedHoldYears, 5),
+    points: nonNegative(req.points, 0, 100),
+    lenderFees: nonNegative(req.lenderFees, 0, MAX_CURRENCY_INPUT),
+    brokerFees: nonNegative(req.brokerFees, 0, MAX_CURRENCY_INPUT),
+    rateLockCost: nonNegative(req.rateLockCost, 0, MAX_CURRENCY_INPUT)
+  };
+  return { property, borrower, loan, strategy };
+}
+
 // src/engine/dataVintage.ts
 var MONTHLY = 30;
 var QUARTERLY = 90;
@@ -434,17 +578,23 @@ var DATA_VINTAGE_DISCLOSURE = `Market data as of ${marketDataAsOfLabel()}. Rates
 // src/engine/engine.ts
 var RATE_DATE_STAMP = vintageLabel("rateAnchor");
 function calculatePaymentFactor(annualRate, termMonths) {
+  if (!isFiniteNonNegative(annualRate) || !isFinitePositive(termMonths)) return 0;
   const r = annualRate / 100 / 12;
   if (r === 0) return 1 / termMonths;
-  const compoundFactor = Math.pow(1 + r, termMonths);
-  return r * compoundFactor / (compoundFactor - 1);
+  const denominator = 1 - Math.pow(1 + r, -termMonths);
+  const factor = denominator > 0 ? r / denominator : 0;
+  return isFinitePositive(factor) ? factor : 0;
 }
 function calculatePI(loanAmount, annualRate, termMonths) {
+  if (!isFinitePositive(loanAmount)) return 0;
   const factor = calculatePaymentFactor(annualRate, termMonths);
-  return loanAmount * factor;
+  const payment = loanAmount * factor;
+  return isFiniteNonNegative(payment) ? payment : 0;
 }
 function calculateIOPayment(loanAmount, annualRate) {
-  return loanAmount * (annualRate / 100 / 12);
+  if (!isFinitePositive(loanAmount) || !isFiniteNonNegative(annualRate)) return 0;
+  const payment = loanAmount * (annualRate / 100 / 12);
+  return isFiniteNonNegative(payment) ? payment : 0;
 }
 function ioPeriodYears(ioPeriod) {
   switch (ioPeriod) {
@@ -464,6 +614,21 @@ var BASE_RATE_ANCHOR = 6.125;
 var FULL_MARKET_SPREAD = 4.625;
 var RATE_FLOOR_PCT = 5;
 var RATE_CEILING_PCT = 12;
+function isFiniteNonNegative(value) {
+  return Number.isFinite(value) && value >= 0;
+}
+function isFinitePositive(value) {
+  return Number.isFinite(value) && value > 0;
+}
+function hasOnlyNonNegativeFiniteValues(...values) {
+  return values.every(isFiniteNonNegative);
+}
+function isFiniteAtMost(value, max) {
+  return Number.isFinite(value) && value >= 0 && value <= max;
+}
+function roundFinite(value, decimals) {
+  return Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+}
 function ficoAdjustment(fico) {
   if (fico >= 760) return -12.5;
   if (fico >= 740) return 0;
@@ -713,7 +878,7 @@ function buildVerdict(track1, track2) {
   return { track1Passes, track2Passes, summary, warningRequired };
 }
 function calculatePITIA(loanAmount, rate, termYears, ioPeriod, annualTaxes, annualInsurance, hoa, floodInsurance = 0, mortgageInsurance = 0) {
-  const termMonths = termYears * 12;
+  const termMonths = isFinitePositive(termYears) ? termYears * 12 : 0;
   const ioYears = ioPeriodYears(ioPeriod);
   const isInterestOnly = ioYears > 0;
   let pi;
@@ -724,17 +889,19 @@ function calculatePITIA(loanAmount, rate, termYears, ioPeriod, annualTaxes, annu
   } else {
     pi = calculatePI(loanAmount, rate, termMonths);
   }
-  const taxes = annualTaxes / 12;
-  const insurance = annualInsurance / 12;
-  const flood = floodInsurance;
-  const mi = mortgageInsurance;
-  const total = pi + taxes + insurance + hoa + flood + mi;
-  const itia = isInterestOnly ? pi + taxes + insurance + hoa + flood + mi : void 0;
+  const taxes = isFiniteNonNegative(annualTaxes) ? annualTaxes / 12 : 0;
+  const insurance = isFiniteNonNegative(annualInsurance) ? annualInsurance / 12 : 0;
+  const hoaMonthly = isFiniteNonNegative(hoa) ? hoa : 0;
+  const flood = isFiniteNonNegative(floodInsurance) ? floodInsurance : 0;
+  const mi = isFiniteNonNegative(mortgageInsurance) ? mortgageInsurance : 0;
+  const totalCandidate = pi + taxes + insurance + hoaMonthly + flood + mi;
+  const total = isFiniteNonNegative(totalCandidate) ? totalCandidate : 0;
+  const itia = isInterestOnly ? total : void 0;
   return {
     principalAndInterest: pi,
     taxes,
     insurance,
-    hoa,
+    hoa: hoaMonthly,
     floodInsurance: flood,
     mortgageInsurance: mi,
     total,
@@ -744,16 +911,23 @@ function calculatePITIA(loanAmount, rate, termYears, ioPeriod, annualTaxes, annu
   };
 }
 function solveDealBreakRate(qualifyingRent, loanAmount, termYears, ioPeriod, annualTaxes, annualInsurance, hoa, floodInsurance = 0) {
+  if (!isFinitePositive(qualifyingRent) || !isFinitePositive(loanAmount) || !isFinitePositive(termYears) || !hasOnlyNonNegativeFiniteValues(annualTaxes, annualInsurance, hoa, floodInsurance)) return 0;
   const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
   const targetPI = qualifyingRent - fixedExpenses;
-  if (targetPI <= 0) return 0;
+  if (!isFinitePositive(targetPI)) return 0;
   const termMonths = termYears * 12;
   const ioYears = ioPeriodYears(ioPeriod);
   if (ioYears > 0) {
-    return targetPI * 12 / loanAmount * 100;
+    const solvedRate = targetPI * 12 / loanAmount * 100;
+    return isFinitePositive(solvedRate) ? solvedRate : 0;
   }
-  let lowRate = 2;
+  let lowRate = 0;
   let highRate = 15;
+  if (calculatePI(loanAmount, lowRate, termMonths) > targetPI) return 0;
+  for (let i = 0; i < 8 && calculatePI(loanAmount, highRate, termMonths) < targetPI; i++) {
+    highRate *= 2;
+  }
+  if (calculatePI(loanAmount, highRate, termMonths) < targetPI) return 0;
   for (let i = 0; i < 50; i++) {
     const midRate = (lowRate + highRate) / 2;
     const pi = calculatePI(loanAmount, midRate, termMonths);
@@ -763,20 +937,24 @@ function solveDealBreakRate(qualifyingRent, loanAmount, termYears, ioPeriod, ann
       lowRate = midRate;
     }
   }
-  return Math.round((lowRate + highRate) / 2 * 100) / 100;
+  return roundFinite((lowRate + highRate) / 2, 2);
 }
 function solveMaxPurchasePrice(qualifyingRent, ltv, rate, termYears, ioPeriod, annualTaxes, annualInsurance, hoa, floodInsurance = 0, targetDSCR = 1) {
+  if (!isFinitePositive(qualifyingRent) || !isFinitePositive(ltv) || ltv > 100 || !isFiniteNonNegative(rate) || !isFinitePositive(termYears) || !isFinitePositive(targetDSCR) || !hasOnlyNonNegativeFiniteValues(annualTaxes, annualInsurance, hoa, floodInsurance)) return 0;
   const maxPITIA = qualifyingRent / targetDSCR;
   const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
   const maxPI = maxPITIA - fixedExpenses;
-  if (maxPI <= 0) return 0;
+  if (!isFinitePositive(maxPI)) return 0;
   const termMonths = termYears * 12;
   const ioYears = ioPeriodYears(ioPeriod);
-  const maxLoan = ioYears > 0 && rate > 0 ? maxPI * 12 / (rate / 100) : maxPI / calculatePaymentFactor(rate, termMonths);
+  const factor = ioYears > 0 ? rate / 100 / 12 : calculatePaymentFactor(rate, termMonths);
+  if (!isFinitePositive(factor)) return 0;
+  const maxLoan = maxPI / factor;
   const maxPrice = maxLoan / (ltv / 100);
-  return Math.round(maxPrice);
+  return isFinitePositive(maxPrice) ? Math.round(maxPrice) : 0;
 }
 function solveMinDownPayment(purchasePrice, qualifyingRent, ltv, rate, termYears, ioPeriod, annualTaxes, annualInsurance, hoa, floodInsurance = 0, targetDSCR = 1) {
+  if (!isFinitePositive(purchasePrice) || !isFinitePositive(qualifyingRent) || !isFinitePositive(ltv) || ltv > 100 || !isFiniteNonNegative(rate) || !isFinitePositive(termYears) || !isFinitePositive(targetDSCR) || !hasOnlyNonNegativeFiniteValues(annualTaxes, annualInsurance, hoa, floodInsurance)) return { minDown: 0, additionalDown: 0 };
   const maxPrice = solveMaxPurchasePrice(
     qualifyingRent,
     ltv,
@@ -807,6 +985,37 @@ function calculateCashToClose(purchasePrice, loanAmount, loan, reserveMonthsLike
   const total = base + reservesLikely + furnishingBudget - sellerCredits;
   const totalConservative = base + reservesConservative + furnishingBudget - sellerCredits;
   const totalStress = base + Math.min(reserveMonthsConservative * 1.5, 12) * monthlyPITIA + furnishingBudget - sellerCredits;
+  if (![
+    downPayment,
+    closingCosts,
+    points,
+    lenderFees,
+    brokerFees,
+    rateLockCost,
+    reservesLikely,
+    reservesConservative,
+    furnishingBudget,
+    sellerCredits,
+    total,
+    totalConservative,
+    totalStress
+  ].every(Number.isFinite)) {
+    return {
+      downPayment: 0,
+      closingCosts: 0,
+      points: 0,
+      lenderFees: 0,
+      brokerFees: 0,
+      rateLockCost: 0,
+      reserveRequirement: 0,
+      reserveConservative: 0,
+      furnishingBudget: 0,
+      credits: 0,
+      total: 0,
+      totalConservative: 0,
+      totalStress: 0
+    };
+  }
   return {
     downPayment,
     closingCosts,
@@ -843,7 +1052,8 @@ function computeAppraisalBreakpoint(qualifyingRent, pitia) {
   return { rent: Math.round(breakpointRent), percentBelow: Math.round(percentBelow * 10) / 10 };
 }
 function solveDSCR(property, borrower, loan, strategy, vacancyHaircutEnabled = false, vacancyHaircutPct = 0, formulaMethod = "GROSS_PITIA", reassessedAnnualTaxOverride) {
-  if (!Number.isFinite(property.purchasePrice) || property.purchasePrice <= 0 || !Number.isFinite(property.leaseRent) || property.leaseRent < 0 || !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100 || !Number.isFinite(property.strProjectedRent) || !Number.isFinite(property.annualTaxes) || property.annualTaxes < 0 || !Number.isFinite(property.annualInsurance) || property.annualInsurance < 0 || !Number.isFinite(property.hoa) || property.hoa < 0 || !Number.isFinite(property.floodInsurance) || property.floodInsurance < 0 || reassessedAnnualTaxOverride !== void 0 && (!Number.isFinite(reassessedAnnualTaxOverride) || reassessedAnnualTaxOverride < 0)) {
+  const modeledLoanAmount = property.purchasePrice * (loan.ltv / 100);
+  if ((property.inputValidationIssues?.length ?? 0) > 0 || !isFiniteAtMost(property.purchasePrice, MAX_PURCHASE_PRICE) || property.purchasePrice <= 0 || property.purchasePrice < MODEL_AUTO_DECISION_FLOOR || !isFiniteAtMost(property.leaseRent, MAX_MONTHLY_RENT) || !isFiniteAtMost(property.marketRent, MAX_MONTHLY_RENT) || !isFiniteAtMost(property.strProjectedRent, MAX_MONTHLY_RENT) || !isFiniteAtMost(property.strDocumentedRent, MAX_MONTHLY_RENT) || !isFiniteAtMost(property.annualTaxes, MAX_ANNUAL_PROPERTY_EXPENSE) || !isFiniteAtMost(property.annualInsurance, MAX_ANNUAL_PROPERTY_EXPENSE) || !isFiniteAtMost(property.hoa, MAX_MONTHLY_PROPERTY_EXPENSE) || !isFiniteAtMost(property.floodInsurance, MAX_MONTHLY_PROPERTY_EXPENSE) || !Number.isFinite(property.unitCount) || property.unitCount <= 0 || !Number.isFinite(borrower.ficoScore) || borrower.ficoScore < 300 || borrower.ficoScore > 850 || !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100 || !Number.isFinite(modeledLoanAmount) || modeledLoanAmount < MODEL_AUTO_DECISION_FLOOR || modeledLoanAmount > MAX_CURRENCY_INPUT || !isFiniteAtMost(loan.lenderFees, MAX_CURRENCY_INPUT) || !isFiniteAtMost(loan.brokerFees, MAX_CURRENCY_INPUT) || !isFiniteAtMost(loan.rateLockCost, MAX_CURRENCY_INPUT) || !Number.isFinite(loan.points) || loan.points < 0 || loan.points > 100 || !Number.isFinite(vacancyHaircutPct) || vacancyHaircutPct < 0 || vacancyHaircutPct > 100 || reassessedAnnualTaxOverride !== void 0 && !isFiniteAtMost(reassessedAnnualTaxOverride, MAX_ANNUAL_PROPERTY_EXPENSE)) {
     const zeroPITIA = {
       principalAndInterest: 0,
       taxes: 0,
@@ -877,7 +1087,7 @@ function solveDSCR(property, borrower, loan, strategy, vacancyHaircutEnabled = f
         verdict: {
           track1Passes: false,
           track2Passes: false,
-          summary: "NEEDS_REVIEW \u2014 one or more required inputs are missing or invalid. Provide purchase price, rent, and LTV before qualifying.",
+          summary: "NEEDS_REVIEW \u2014 one or more required inputs are missing, invalid, or outside the automatic-analysis domain. Provide purchase price, rent, and LTV before qualifying.",
           warningRequired: true
         }
       },
@@ -901,7 +1111,7 @@ function solveDSCR(property, borrower, loan, strategy, vacancyHaircutEnabled = f
     };
   }
   const annualTaxes = reassessedAnnualTaxOverride ?? property.annualTaxes;
-  const loanAmount = property.purchasePrice * (loan.ltv / 100);
+  const loanAmount = modeledLoanAmount;
   const termYears = loan.term === "30_YR" ? 30 : loan.term === "40_YR" ? 40 : 15;
   let assumedDSCR = 1.25;
   let solvedRate = 0;
@@ -2937,72 +3147,6 @@ function computeFiveYearCost(loanAmount, rate, monthlyPayment, closingCosts, ppp
   return totalInterest + pointsCost + lenderFees + brokerFees + rateLockCost + closingCosts + pppPremiumFee + pppExitCost;
 }
 
-// src/engine/inputs.ts
-var DECLINING_MARKET_STATES = /* @__PURE__ */ new Set(["CT", "FL", "IL", "NJ", "NY"]);
-function abbrevState(state) {
-  return (state || "").trim().toUpperCase().slice(0, 2);
-}
-function buildEngineInputs(req) {
-  const purchasePrice = Number(req.purchasePrice);
-  const monthlyRent = Number(req.monthlyRent);
-  let ltv;
-  if (typeof req.ltv === "number") {
-    ltv = req.ltv;
-  } else if (typeof req.loanAmount === "number" && purchasePrice > 0) {
-    ltv = req.loanAmount / purchasePrice * 100;
-  } else {
-    ltv = 75;
-  }
-  const stateAbbrev = abbrevState(req.state);
-  const strategy = req.strategy ?? "LTR";
-  const property = {
-    purchasePrice,
-    leaseRent: monthlyRent,
-    marketRent: req.marketRent ?? monthlyRent,
-    strProjectedRent: req.strProjectedRent ?? (strategy === "STR" ? monthlyRent : 0),
-    strDocumentedRent: req.strDocumentedRent ?? 0,
-    hoa: req.hoa ?? 0,
-    annualTaxes: req.annualTaxes ?? Math.round(purchasePrice * 0.012),
-    annualInsurance: req.annualInsurance ?? Math.round(purchasePrice * 5e-3),
-    floodInsurance: req.floodInsurance ?? 0,
-    propertyType: req.propertyType ?? "SFR",
-    state: stateAbbrev,
-    unitCount: req.unitCount ?? 1,
-    sqft: req.sqft ?? 1500,
-    yearBuilt: req.yearBuilt ?? 2e3,
-    isCondotel: req.isCondotel ?? false,
-    isNonWarrantable: req.isNonWarrantable ?? false,
-    isRural: req.isRural ?? false,
-    isDecliningMarket: DECLINING_MARKET_STATES.has(stateAbbrev),
-    hoaSTRPolicy: req.hoaSTRPolicy ?? "UNKNOWN"
-  };
-  const borrower = {
-    ficoScore: req.ficoScore ?? 740,
-    experience: req.experience ?? "EXPERIENCED",
-    existingFinancedProperties: req.existingFinancedProperties ?? 1,
-    entityType: req.entityType ?? "LLC",
-    isUSCitizenOrPR: req.isUSCitizenOrPR ?? !(req.isNonUsInvestor ?? false),
-    availableReserves: req.availableReserves ?? 0,
-    reserveAssets: [],
-    isFirstResponder: req.isFirstResponder ?? false,
-    isNonUsInvestor: req.isNonUsInvestor ?? false
-  };
-  const loan = {
-    ltv,
-    term: req.term ?? "30_YR",
-    ioPeriod: req.ioPeriod ?? "NONE",
-    armType: req.armType ?? "FIXED",
-    prepayPreference: req.prepayPreference ?? "NONE",
-    purpose: req.loanPurpose ?? "PURCHASE",
-    expectedHoldYears: req.expectedHoldYears ?? 5,
-    points: req.points ?? 0,
-    lenderFees: req.lenderFees ?? 0,
-    brokerFees: req.brokerFees ?? 0,
-    rateLockCost: req.rateLockCost ?? 0
-  };
-  return { property, borrower, loan, strategy };
-}
-
 // src/engineService.ts
 var isProd = process.env.NODE_ENV === "production";
 var workerPath = isProd ? import_path.default.join(process.cwd(), "dist", "engineWorker.cjs") : import_path.default.resolve("src", "engineWorker.ts");
@@ -3231,13 +3375,43 @@ function runSensitivity(payload) {
 // src/routes/dscr.ts
 var dscrRouter = (0, import_express.Router)();
 var TOOL_RELIABILITY_HOLD_CODE = "TOOL_RELIABILITY_HOLD";
+var ANALYSIS_RESULT_INVALID_CODE = "DSCR_RESULT_INVALID";
+var PRELIMINARY_ANALYSIS_NOTICE = "This is a preliminary analysis, not a loan approval or commitment.";
+function isSafeAnalysisResult(value, depth = 0, seen = { count: 0 }) {
+  if (depth > 16 || seen.count++ > 1e4) return false;
+  if (value === null) return true;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value === "string" || typeof value === "boolean") return true;
+  if (Array.isArray(value)) {
+    return value.length <= 1e3 && value.every((entry) => isSafeAnalysisResult(entry, depth + 1, seen));
+  }
+  if (typeof value !== "object") return false;
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) return false;
+  return Object.values(value).every((entry) => isSafeAnalysisResult(entry, depth + 1, seen));
+}
+function sendPreliminaryAnalysis(res, result) {
+  res.set("Cache-Control", "no-store");
+  if (!result || Array.isArray(result) || !isSafeAnalysisResult(result)) {
+    return res.status(503).json({
+      error: "Analysis result unavailable.",
+      code: ANALYSIS_RESULT_INVALID_CODE
+    });
+  }
+  return res.json({
+    ...result,
+    analysisStatus: "preliminary",
+    isLoanApproval: false,
+    notice: PRELIMINARY_ANALYSIS_NOTICE
+  });
+}
 function sendToolReliabilityHold(res, error) {
   return res.status(503).json({ error, code: TOOL_RELIABILITY_HOLD_CODE });
 }
 dscrRouter.post("/solve", validateBody(DealRequestSchema), async (req, res, next) => {
   try {
     const result = await runSolveDSCR(req.body);
-    res.json(result);
+    sendPreliminaryAnalysis(res, result);
   } catch (err) {
     next(err);
   }
@@ -3245,7 +3419,7 @@ dscrRouter.post("/solve", validateBody(DealRequestSchema), async (req, res, next
 dscrRouter.post("/sensitivity", validateBody(DealRequestSchema), async (req, res, next) => {
   try {
     const result = await runSensitivity(req.body);
-    res.json(result);
+    sendPreliminaryAnalysis(res, result);
   } catch (err) {
     next(err);
   }
@@ -3267,8 +3441,95 @@ dscrRouter.post("/state", (_req, res) => {
 var import_express2 = require("express");
 var import_sdk = __toESM(require("@anthropic-ai/sdk"), 1);
 var narrateRouter = (0, import_express2.Router)();
+narrateRouter.use((_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
+var SAFE_NARRATION_FALLBACK = "This is a preliminary educational summary of the figures you provided. Review the complete analysis with an independent professional before making a financing decision.";
+function isSafeNarration(text) {
+  if (typeof text !== "string" || text.trim().length === 0 || text.length > 800) return false;
+  return !(/\d/.test(text) || /(?:https?:\/\/|www\.)/i.test(text) || /\b(?:anthropic|claude|openai|gemini|z\.ai)\b/i.test(text) || /\b(?:approv(?:e(?:d)?|als?)|qualif(?:y|ies|ied|ications?)|guarantee(?:d|s)?|commitment)\b/i.test(text));
+}
+function sendNarration(res, narrative, generated = narrative !== SAFE_NARRATION_FALLBACK) {
+  res.json({
+    narrative,
+    generated,
+    preliminary: true,
+    analysisStatus: "preliminary"
+  });
+}
+function isFiniteInRange(value, minimum, maximum) {
+  return typeof value === "number" && Number.isFinite(value) && value >= minimum && value <= maximum;
+}
+function hasBoundedNarrationNumbers(deal) {
+  if (!isFiniteInRange(deal.dscr, 0, 20) || !isFiniteInRange(deal.solvedRate, 0, 100)) {
+    return false;
+  }
+  if (deal.dealBreakRate != null && !isFiniteInRange(deal.dealBreakRate, 0, 100)) {
+    return false;
+  }
+  return deal.rateHeadroomBps == null || isFiniteInRange(deal.rateHeadroomBps, -1e4, 1e4);
+}
+function sanitizePromptText(value, maximumLength) {
+  if (typeof value !== "string") return "";
+  return value.replace(/[\u0000-\u001F\u007F]/g, " ").replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, maximumLength);
+}
+function isPlainRecord(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+function isBoundedPlainData(value) {
+  let nodeCount = 0;
+  const visit = (entry, depth) => {
+    nodeCount += 1;
+    if (nodeCount > 64 || depth > 6) return false;
+    if (entry == null || typeof entry === "boolean") return true;
+    if (typeof entry === "string") return entry.length <= 1e3;
+    if (typeof entry === "number") return Number.isFinite(entry) && Math.abs(entry) <= 1e8;
+    if (!isPlainRecord(entry)) return false;
+    return Object.values(entry).every((child) => visit(child, depth + 1));
+  };
+  return visit(value, 0);
+}
+function validateNarrationShape(req, res, next) {
+  if (!isBoundedPlainData(req.body)) {
+    res.status(400).json({ error: "Invalid narration request." });
+    return;
+  }
+  next();
+}
 var isProd2 = process.env.NODE_ENV === "production";
 var CONFIGURED_BASE_URL = process.env.ANTHROPIC_BASE_URL;
+var OFFICIAL_ANTHROPIC_ORIGIN = "https://api.anthropic.com";
+function parseAllowedProviderOrigins(value) {
+  const allowed = /* @__PURE__ */ new Set([OFFICIAL_ANTHROPIC_ORIGIN]);
+  for (const candidate of value?.split(",") ?? []) {
+    try {
+      const parsed = new URL(candidate.trim());
+      if (parsed.protocol === "https:" && parsed.origin === candidate.trim() && !parsed.username && !parsed.password) {
+        allowed.add(parsed.origin);
+      }
+    } catch {
+    }
+  }
+  return allowed;
+}
+var ALLOWED_PROVIDER_ORIGINS = parseAllowedProviderOrigins(
+  [
+    process.env.ANTHROPIC_BASE_URL_ALLOWLIST,
+    process.env.ANTHROPIC_ALLOWED_ORIGINS
+  ].filter((value) => Boolean(value?.trim())).join(",")
+);
+function hasAllowedConfiguredProviderUrl() {
+  if (!CONFIGURED_BASE_URL) return !isProd2;
+  try {
+    const parsed = new URL(CONFIGURED_BASE_URL);
+    return parsed.protocol === "https:" && !parsed.username && !parsed.password && !parsed.search && !parsed.hash && ALLOWED_PROVIDER_ORIGINS.has(parsed.origin);
+  } catch {
+    return false;
+  }
+}
 var aiClient = null;
 function getClaudeClient() {
   if (!aiClient) {
@@ -3285,7 +3546,7 @@ function getClaudeClient() {
   return aiClient;
 }
 var MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
-narrateRouter.post("/", validateBody(NarrateRequestSchema), async (req, res, next) => {
+narrateRouter.post("/", validateNarrationShape, validateBody(NarrateRequestSchema), async (req, res) => {
   if (!process.env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_AUTH_TOKEN.startsWith("MY_")) {
     res.status(503).json({ error: "ANTHROPIC_AUTH_TOKEN not configured." });
     return;
@@ -3297,10 +3558,23 @@ narrateRouter.post("/", validateBody(NarrateRequestSchema), async (req, res, nex
     res.status(503).json({ error: "Narration is temporarily unavailable." });
     return;
   }
+  if (!hasAllowedConfiguredProviderUrl()) {
+    logger.error(
+      "ANTHROPIC_BASE_URL is not an approved HTTPS provider origin; disabling /api/narrate."
+    );
+    res.status(503).json({ error: "Narration is temporarily unavailable." });
+    return;
+  }
   try {
     const { deal, context } = req.body;
+    if (!hasBoundedNarrationNumbers(deal) || typeof context === "string" && Array.from(context).length > 500) {
+      res.status(400).json({ error: "Invalid narration request." });
+      return;
+    }
     const ai = getClaudeClient();
     const { dscr, solvedRate, dealBreakRate, rateHeadroomBps, dualTrackDSCR } = deal;
+    const summary = sanitizePromptText(dualTrackDSCR?.verdict?.summary, 500);
+    const safeContext = sanitizePromptText(context, 500);
     const safeNum = (v, decimals) => {
       const n = Number(v);
       return Number.isFinite(n) ? n.toFixed(decimals) : "N/A";
@@ -3312,9 +3586,9 @@ DSCR underwriting result for a real estate investor evaluating this deal:
 - Deal-Break Rate: ${typeof dealBreakRate === "number" && Number.isFinite(dealBreakRate) ? dealBreakRate.toFixed(3) : "N/A"}% (${typeof rateHeadroomBps === "number" && Number.isFinite(rateHeadroomBps) ? rateHeadroomBps : "N/A"} bps headroom)
 - Track 1 (Lender Qualification): ${dualTrackDSCR?.track1?.passes ? "PASSES" : "FAILS"}
 - Track 2 (Investor Survival): ${dualTrackDSCR?.track2?.passes ? "PASSES" : "FAILS"}
-- Summary: ${dualTrackDSCR?.verdict?.summary ?? ""}
-${context ? `
-Additional context: ${String(context).slice(0, 500)}` : ""}
+- Summary: ${summary}
+${safeContext ? `
+Additional context: ${safeContext}` : ""}
 </untrusted-deal-data>
 
 Write 2-3 sentences in plain English directly to the real estate investor who owns this deal. They are NOT a finance expert. Focus on what this means for their deal. Do NOT recite the numbers back verbatim \u2014 interpret them. Do NOT mention Claude or AI.`;
@@ -3325,9 +3599,12 @@ Write 2-3 sentences in plain English directly to the real estate investor who ow
       messages: [{ role: "user", content: prompt }]
     });
     const text = response.content[0].type === "text" ? response.content[0].text : "";
-    res.json({ narrative: text });
-  } catch (err) {
-    next(err);
+    sendNarration(res, isSafeNarration(text) ? text.trim() : SAFE_NARRATION_FALLBACK);
+  } catch {
+    logger.warn(
+      "Narration provider unavailable; returned deterministic preliminary fallback"
+    );
+    sendNarration(res, SAFE_NARRATION_FALLBACK);
   }
 });
 
@@ -3511,12 +3788,17 @@ function createLeadsRouter({
 }) {
   const router = (0, import_express3.Router)();
   router.post("/", async (req, res) => {
+    res.set("Cache-Control", "no-store");
     if (allowedOrigins2.length === 0) {
       res.status(503).json({ error: "Lead intake is temporarily unavailable" });
       return;
     }
     if (!hasTrustedOrigin(req, allowedOrigins2)) {
       res.status(403).json({ error: "Request origin is not allowed" });
+      return;
+    }
+    if (req.originalUrl.includes("?")) {
+      invalidRequest(res);
       return;
     }
     const contentLengthHeader = req.get("content-length");
@@ -3681,22 +3963,121 @@ function requireAuth(req, res, next) {
   next();
 }
 
+// src/middleware/narrationQuota.ts
+var import_node_crypto = require("node:crypto");
+var DEFAULT_NARRATION_QUOTA_MAX = 20;
+var DEFAULT_NARRATION_QUOTA_WINDOW_MS = 60 * 60 * 1e3;
+function positiveInteger(value, maximum) {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0 && value <= maximum ? value : void 0;
+}
+function configuredPositiveInteger(name, fallback, maximum) {
+  const raw = process.env[name]?.trim();
+  if (!raw) return fallback;
+  if (!/^\d+$/.test(raw)) return void 0;
+  return positiveInteger(Number(raw), maximum);
+}
+function hashedUid(uid) {
+  return (0, import_node_crypto.createHash)("sha256").update(uid, "utf8").digest("hex");
+}
+function finiteStoredNumber(value) {
+  return typeof value === "number" && Number.isFinite(value) ? value : void 0;
+}
+async function consumeQuota(firestore, uid, now, maximum, windowMs) {
+  const reference = firestore.collection("narrationQuota").doc(hashedUid(uid));
+  return firestore.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(reference);
+    const stored = snapshot.exists ? snapshot.data() : void 0;
+    const storedExpiresAtMs = finiteStoredNumber(stored?.expiresAtMs);
+    const storedCount = finiteStoredNumber(stored?.count);
+    const storedWindowStartedAtMs = finiteStoredNumber(stored?.windowStartedAtMs);
+    const isCurrentWindow = storedExpiresAtMs !== void 0 && storedCount !== void 0 && storedWindowStartedAtMs !== void 0 && storedExpiresAtMs > now && storedCount >= 0;
+    const expiresAtMs = isCurrentWindow ? storedExpiresAtMs : now + windowMs;
+    const windowStartedAtMs = isCurrentWindow ? storedWindowStartedAtMs : now;
+    const count = isCurrentWindow ? storedCount : 0;
+    if (count >= maximum) {
+      return {
+        allowed: false,
+        retryAfterSeconds: Math.max(1, Math.ceil((expiresAtMs - now) / 1e3))
+      };
+    }
+    transaction.set(reference, {
+      count: count + 1,
+      windowStartedAtMs,
+      expiresAtMs,
+      updatedAtMs: now
+    });
+    return { allowed: true, retryAfterSeconds: 0 };
+  });
+}
+function createNarrationQuota(options = {}) {
+  const maximum = options.maximum === void 0 ? configuredPositiveInteger(
+    "NARRATION_QUOTA_MAX_REQUESTS",
+    DEFAULT_NARRATION_QUOTA_MAX,
+    1e4
+  ) : positiveInteger(options.maximum, 1e4);
+  const windowSeconds = options.windowMs === void 0 ? configuredPositiveInteger(
+    "NARRATION_QUOTA_WINDOW_SECONDS",
+    DEFAULT_NARRATION_QUOTA_WINDOW_MS / 1e3,
+    30 * 24 * 60 * 60
+  ) : void 0;
+  const windowMs = options.windowMs === void 0 ? windowSeconds === void 0 ? void 0 : windowSeconds * 1e3 : positiveInteger(options.windowMs, 30 * 24 * 60 * 60 * 1e3);
+  const now = options.now ?? Date.now;
+  return async (req, res, next) => {
+    res.setHeader("Cache-Control", "no-store");
+    const uid = req.user?.uid;
+    if (!uid) {
+      res.status(401).json({ error: "Unauthorized: authentication required" });
+      return;
+    }
+    if (maximum === void 0 || windowMs === void 0) {
+      logger.error("Narration quota configuration is invalid; request rejected fail-closed.");
+      res.status(503).json({ error: "Narration is temporarily unavailable." });
+      return;
+    }
+    try {
+      const firestore = options.firestore ?? getAdminFirestore();
+      const outcome = await consumeQuota(firestore, uid, now(), maximum, windowMs);
+      if (!outcome.allowed) {
+        res.setHeader("Retry-After", String(outcome.retryAfterSeconds));
+        res.status(429).json({ error: "Narration quota exceeded. Please try again later." });
+        return;
+      }
+      next();
+    } catch {
+      logger.error("Narration quota storage is unavailable; request rejected fail-closed.");
+      res.status(503).json({ error: "Narration is temporarily unavailable." });
+    }
+  };
+}
+
 // src/middleware/rateLimitStore.ts
+var import_node_crypto2 = require("node:crypto");
 var import_express_rate_limit = require("express-rate-limit");
 var import_firestore4 = require("firebase-admin/firestore");
 var COLLECTION = process.env.RATE_LIMIT_FIRESTORE_COLLECTION || "apiRateLimits";
-function sanitizeKey(key) {
-  const safe = key.replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 180);
-  return safe.length > 0 ? safe : "unknown";
+var MIN_HMAC_SECRET_BYTES = 32;
+var MAX_CLIENT_KEY_BYTES = 1024;
+function isValidHmacSecret(secret) {
+  return typeof secret === "string" && Buffer.byteLength(secret, "utf8") >= MIN_HMAC_SECRET_BYTES;
+}
+function opaqueDocumentId(bucket, key, secret) {
+  if (typeof key !== "string" || key.length === 0 || Buffer.byteLength(key, "utf8") > MAX_CLIENT_KEY_BYTES) {
+    throw new Error("Invalid rate-limit client key");
+  }
+  return `rl_${(0, import_node_crypto2.createHmac)("sha256", secret).update(`rate-limit-store:v1:${JSON.stringify([bucket, key])}`, "utf8").digest("hex")}`;
 }
 var FirestoreRateLimitStore = class {
-  constructor(bucket) {
+  constructor(bucket, hmacSecret) {
     this.bucket = bucket;
+    this.hmacSecret = hmacSecret;
     /** Counters are shared across instances, so express-rate-limit's double-count check must not treat them as local. */
     this.localKeys = false;
     this.windowMs = 6e4;
     this.fallback = new import_express_rate_limit.MemoryStore();
     this.degradedLogged = false;
+    if (!isValidHmacSecret(hmacSecret)) {
+      throw new Error("RATE_LIMIT_FIRESTORE_HMAC_SECRET must contain at least 32 bytes");
+    }
     this.prefix = `${bucket}:`;
   }
   init(options) {
@@ -3704,18 +4085,18 @@ var FirestoreRateLimitStore = class {
     this.fallback.init(options);
   }
   docId(key) {
-    return `${this.bucket}__${sanitizeKey(key)}`;
+    return opaqueDocumentId(this.bucket, key, this.hmacSecret);
   }
   /**
    * Any Firestore failure (permissions, quota, network) degrades to the
    * in-process counter for that call instead of 500-ing the request. Logged
    * once per store instance so a sustained outage cannot flood the logs.
    */
-  degrade(error, run) {
+  degrade(run) {
     if (!this.degradedLogged) {
       this.degradedLogged = true;
       logger.error(
-        { bucket: this.bucket, error: error instanceof Error ? error.message : String(error) },
+        { code: "RATE_LIMIT_FIRESTORE_UNAVAILABLE" },
         "Firestore rate-limit store unavailable; falling back to per-instance memory counters"
       );
     }
@@ -3747,8 +4128,8 @@ var FirestoreRateLimitStore = class {
         });
         return { totalHits, resetTime: new Date(previousExpiry) };
       });
-    } catch (error) {
-      return this.degrade(error, () => this.fallback.increment(key));
+    } catch {
+      return this.degrade(() => this.fallback.increment(key));
     }
   }
   async decrement(key) {
@@ -3762,15 +4143,15 @@ var FirestoreRateLimitStore = class {
         const totalHits = typeof data?.totalHits === "number" ? data.totalHits : 0;
         tx.set(ref, { ...data, totalHits: Math.max(0, totalHits - 1) });
       });
-    } catch (error) {
-      this.degrade(error, () => this.fallback.decrement(key));
+    } catch {
+      this.degrade(() => this.fallback.decrement(key));
     }
   }
   async resetKey(key) {
     try {
       await getAdminFirestore().collection(COLLECTION).doc(this.docId(key)).delete();
-    } catch (error) {
-      this.degrade(error, () => this.fallback.resetKey(key));
+    } catch {
+      this.degrade(() => this.fallback.resetKey(key));
     }
   }
   shutdown() {
@@ -3788,15 +4169,23 @@ function warnAboutMemoryStoreOnce() {
 }
 function createRateLimitStore(bucket) {
   if (process.env.RATE_LIMIT_FIRESTORE === "true") {
-    try {
-      getAdminApp();
-      logger.info({ bucket, collection: COLLECTION }, "Rate limiting using Firestore-backed store");
-      return new FirestoreRateLimitStore(bucket);
-    } catch (error) {
+    const hmacSecret = process.env.RATE_LIMIT_FIRESTORE_HMAC_SECRET;
+    if (!isValidHmacSecret(hmacSecret)) {
       logger.error(
-        { bucket, error: error instanceof Error ? error.message : String(error) },
-        "RATE_LIMIT_FIRESTORE=true but firebase-admin is not initialized; using in-memory rate limiting"
+        { code: "RATE_LIMIT_FIRESTORE_HMAC_SECRET_INVALID" },
+        "RATE_LIMIT_FIRESTORE=true requires a valid HMAC secret; using in-memory rate limiting"
       );
+    } else {
+      try {
+        getAdminApp();
+        logger.info("Rate limiting using Firestore-backed store");
+        return new FirestoreRateLimitStore(bucket, hmacSecret);
+      } catch {
+        logger.error(
+          { code: "RATE_LIMIT_FIRESTORE_ADMIN_UNAVAILABLE" },
+          "RATE_LIMIT_FIRESTORE=true but firebase-admin is not initialized; using in-memory rate limiting"
+        );
+      }
     }
   }
   warnAboutMemoryStoreOnce();
@@ -3871,6 +4260,7 @@ function createLimiter(bucket, windowMs, max) {
 var narrateLimiter = createLimiter("narrate", 60 * 1e3, 10);
 var apiLimiter = createLimiter("api", 60 * 1e3, 120);
 var leadLimiter = createLimiter("leads", 15 * 60 * 1e3, 5);
+var narrationQuota = createNarrationQuota();
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
@@ -3888,7 +4278,7 @@ app.use(
   })
 );
 app.use("/api/sdr", apiLimiter, sdrRouter);
-app.use("/api/narrate", narrateLimiter, requireAuth, narrateRouter);
+app.use("/api/narrate", narrateLimiter, requireAuth, narrationQuota, narrateRouter);
 app.use(errorHandler);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
