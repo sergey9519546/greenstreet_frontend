@@ -523,12 +523,11 @@ export default function MarketingHome({ onNavigate }: { onNavigate?: (view: stri
     const pSlot = ensureHomepagePropertySlot(root);
     if (pSlot) setPropertySlot(pSlot);
 
-    // Static homepage scripts already ran during document parsing. Only replay
-    // the embedded runtime when MarketingHome owns a dynamically injected copy.
-    if (!dynamicRoot) return;
-
     const runtime = window as MarketingRuntime;
-    runEmbeddedScripts(root);
+    // The static homepage already parsed its embedded scripts; a React-owned
+    // copy has not. In both cases, restart the shared interaction lifecycle
+    // after React has mounted so GSAP binds to the final homepage DOM.
+    if (dynamicRoot) runEmbeddedScripts(root);
     const removeMobileMenuAccessibility =
       installMobileMenuAccessibility(root);
 
