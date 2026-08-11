@@ -1,6 +1,14 @@
 import express from "express";
 import { createServer } from "node:http";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+const engineService = vi.hoisted(() => ({
+  runSolveDSCR: vi.fn(),
+  runSensitivity: vi.fn(),
+}));
+
+vi.mock("../engineService", () => engineService);
+
 import { dscrRouter } from "./dscr";
 
 async function post(path: string, body: unknown) {
@@ -66,4 +74,40 @@ describe("DSCR request validation", () => {
       await expect(response.json()).resolves.toMatchObject({ error: "Validation failed" });
     },
   );
+});
+
+describe("DSCR analysis responses", () => {
+  const validDeal = { purchasePrice: 400_000, monthlyRent: 3_000, state: "TX" };
+
+  it("labels a solved analysis as preliminary and non-approving", async () => {
+    engineService.runSolveDSCR.mockResolvedValueOnce({
+      solvedRate: 7.125,
+      dualTrackDSCR: { track1: { dscr: 1.15 } },
+    });
+
+    const response = await post("/api/dscr/solve", validDeal);
+
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    await expect(response.json()).resolves.toMatchObject({
+      solvedRate: 7.125,
+      analysisStatus: "preliminary",
+      isLoanApproval: false,
+      notice: expect.stringMatching(/not a loan approval/i),
+    });
+  });
+
+  it("fails closed instead of serializing a non-finite solver result", async () => {
+    engineService.runSolveDSCR.mockResolvedValueOnce({
+      solvedRate: Number.POSITIVE_INFINITY,
+    });
+
+    const response = await post("/api/dscr/solve", validDeal);
+
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({
+      error: "Analysis result unavailable.",
+      code: "DSCR_RESULT_INVALID",
+    });
+  });
 });
