@@ -84,36 +84,76 @@ export function compareLoanStructures(input: StructureComparisonInput) {
     tax: { ...DEFAULT_TAX_ASSUMPTIONS, enabled: true },
   });
 
-  return [
-    {
-      id: "fixed" as const,
-      name: "30-Year Fixed",
-      deal: fixed,
-      cashOnCashPct: annualCashOnCash(
-        fixed.dualTrackDSCR.track2.monthlyCashFlow,
-        fixed.cashToClose.total,
-      ),
-      afterTaxIrrPct: fixedSchedule.metrics.afterTaxIrrPct,
+  const returnAssumptions = fixedSchedule.assumptions;
+  const track2 = fixed.dualTrackDSCR.track2;
+
+  return {
+    structures: [
+      {
+        id: "fixed" as const,
+        name: "30-Year Fixed",
+        deal: fixed,
+        cashOnCashPct: annualCashOnCash(
+          fixed.dualTrackDSCR.track2.monthlyCashFlow,
+          fixed.cashToClose.total,
+        ),
+        afterTaxIrrPct: fixedSchedule.metrics.afterTaxIrrPct,
+      },
+      {
+        id: "interest-only" as const,
+        name: "10-Year Interest Only",
+        deal: interestOnly,
+        cashOnCashPct: annualCashOnCash(
+          interestOnly.dualTrackDSCR.track2.monthlyCashFlow,
+          interestOnly.cashToClose.total,
+        ),
+        afterTaxIrrPct: null,
+      },
+      {
+        id: "arm" as const,
+        name: "5/6 ARM",
+        deal: arm,
+        cashOnCashPct: annualCashOnCash(
+          arm.dualTrackDSCR.track2.monthlyCashFlow,
+          arm.cashToClose.total,
+        ),
+        afterTaxIrrPct: null,
+      },
+    ],
+    assumptions: {
+      ...STRUCTURE_COMPARISON_ASSUMPTIONS,
+      annualTaxes: returnAssumptions.annualTaxes,
+      annualInsurance: returnAssumptions.annualInsurance,
+      monthlyHoa: returnAssumptions.hoaMonthly,
+      exitCapRatePct: fixedSchedule.exit.exitCapRatePct,
+      holdYears: fixedSchedule.exit.year,
+      cashOnCash: {
+        vacancyPct: track2.vacancyApplied,
+        managementPct: track2.managementApplied,
+        maintenancePct: track2.maintenanceApplied,
+        capExReservePct: track2.capexApplied ?? 0,
+      },
+      fixedRateIrr: {
+        rentGrowthPct: returnAssumptions.rentGrowthPct,
+        vacancyPct: returnAssumptions.vacancyPct,
+        managementPct: returnAssumptions.managementPct,
+        maintenancePct: returnAssumptions.maintenancePct,
+        turnoverPct: returnAssumptions.turnoverPct,
+        capExReservePct: returnAssumptions.capExReservePct,
+        expenseGrowthPct: returnAssumptions.expenseGrowthPct,
+        sellingCostsPct: returnAssumptions.sellingCostsPct,
+        tax: {
+          ordinaryRatePct: returnAssumptions.tax.ordinaryRatePct,
+          stateRatePct: returnAssumptions.tax.stateRatePct,
+          filingStatus: returnAssumptions.tax.filingStatus,
+          magi: returnAssumptions.tax.magi,
+          landAllocationPct: returnAssumptions.tax.landAllocationPct,
+          costSegStudyCompleted: returnAssumptions.tax.costSegStudyCompleted,
+          section1031Exchange: returnAssumptions.tax.section1031Exchange,
+          isRealEstateProfessional:
+            returnAssumptions.tax.isRealEstateProfessional,
+        },
+      },
     },
-    {
-      id: "interest-only" as const,
-      name: "10-Year Interest Only",
-      deal: interestOnly,
-      cashOnCashPct: annualCashOnCash(
-        interestOnly.dualTrackDSCR.track2.monthlyCashFlow,
-        interestOnly.cashToClose.total,
-      ),
-      afterTaxIrrPct: null,
-    },
-    {
-      id: "arm" as const,
-      name: "5/6 ARM",
-      deal: arm,
-      cashOnCashPct: annualCashOnCash(
-        arm.dualTrackDSCR.track2.monthlyCashFlow,
-        arm.cashToClose.total,
-      ),
-      afterTaxIrrPct: null,
-    },
-  ];
+  };
 }

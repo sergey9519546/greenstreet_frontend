@@ -2,10 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { swatch, radius, font } from "../theme";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
-import {
-  compareLoanStructures,
-  STRUCTURE_COMPARISON_ASSUMPTIONS,
-} from "./structureComparison";
+import { compareLoanStructures } from "./structureComparison";
 
 const BAND = dc.dark;
 const CARD = swatch.darkTeal;
@@ -51,7 +48,7 @@ export default function StructureOptimizerPage({ onNavigate }: { onBack?: () => 
   const [monthlyRent, setMonthlyRent] = useState(3500);
   const [fico, setFico] = useState(740);
 
-  const result = useMemo(
+  const comparison = useMemo(
     () => compareLoanStructures({
       purchasePrice,
       downPaymentPct: downPct,
@@ -60,6 +57,7 @@ export default function StructureOptimizerPage({ onNavigate }: { onBack?: () => 
     }),
     [purchasePrice, downPct, monthlyRent, fico],
   );
+  const { structures: result, assumptions } = comparison;
 
   return (
     <DcShell
@@ -143,7 +141,7 @@ export default function StructureOptimizerPage({ onNavigate }: { onBack?: () => 
             }}
           >
             <strong style={{ color: INK }}>Illustrative assumptions:</strong>{" "}
-            Texas single-family rental; property tax {STRUCTURE_COMPARISON_ASSUMPTIONS.annualPropertyTaxRatePct}% of purchase price annually; insurance {money(STRUCTURE_COMPARISON_ASSUMPTIONS.annualInsurance)} annually; {money(STRUCTURE_COMPARISON_ASSUMPTIONS.monthlyHoa)} monthly HOA; {STRUCTURE_COMPARISON_ASSUMPTIONS.exitCapRatePct}% exit cap; {STRUCTURE_COMPARISON_ASSUMPTIONS.holdYears}-year hold; and the returns engine&apos;s default tax profile. Cash-on-cash uses expense-aware modeled cash flow. Results are educational estimates, not a rate quote, approval, tax advice, or provider commitment.
+            Texas single-family rental; property tax {assumptions.annualPropertyTaxRatePct}% of purchase price annually; insurance {money(assumptions.annualInsurance)} annually; {money(assumptions.monthlyHoa)} monthly HOA; {assumptions.exitCapRatePct}% exit cap; and a {assumptions.holdYears}-year hold. Cash-on-cash uses Track 2&apos;s expense model: {assumptions.cashOnCash.vacancyPct}% vacancy, {assumptions.cashOnCash.managementPct}% management, {assumptions.cashOnCash.maintenancePct}% maintenance, and {assumptions.cashOnCash.capExReservePct}% CapEx. Fixed-rate after-tax IRR uses a separate five-year schedule: {assumptions.fixedRateIrr.rentGrowthPct}% annual rent growth; {assumptions.fixedRateIrr.vacancyPct}% vacancy; {assumptions.fixedRateIrr.managementPct}% management; {assumptions.fixedRateIrr.maintenancePct}% maintenance; {assumptions.fixedRateIrr.turnoverPct}% turnover; {assumptions.fixedRateIrr.capExReservePct}%-of-EGI CapEx reserve; {assumptions.fixedRateIrr.expenseGrowthPct}% fixed-expense growth; and {assumptions.fixedRateIrr.sellingCostsPct}% selling costs. Its default tax profile uses {assumptions.fixedRateIrr.tax.ordinaryRatePct}% federal and {assumptions.fixedRateIrr.tax.stateRatePct}% state tax rates; {assumptions.fixedRateIrr.tax.filingStatus} filing; {money(assumptions.fixedRateIrr.tax.magi)} MAGI; {assumptions.fixedRateIrr.tax.landAllocationPct}% land allocation; {assumptions.fixedRateIrr.tax.costSegStudyCompleted ? "cost segregation" : "no cost segregation"}; {assumptions.fixedRateIrr.tax.section1031Exchange ? "a 1031 exchange" : "no 1031 exchange"}; and {assumptions.fixedRateIrr.tax.isRealEstateProfessional ? "real-estate-professional treatment" : "no real-estate-professional treatment"}. Results are educational estimates, not a rate quote, approval, tax advice, or provider commitment.
           </aside>
         </div>
       </section>

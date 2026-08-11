@@ -6,12 +6,13 @@ import {
 
 describe("compareLoanStructures", () => {
   it("does not invent five-year IRR for structures the returns engine does not model", () => {
-    const results = compareLoanStructures({
+    const comparison = compareLoanStructures({
       purchasePrice: 500_000,
       downPaymentPct: 25,
       monthlyRent: 3_500,
       ficoScore: 740,
     });
+    const { structures: results } = comparison;
 
     expect(results).toHaveLength(3);
     expect(results.find((result) => result.id === "fixed")?.afterTaxIrrPct).toEqual(
@@ -29,12 +30,13 @@ describe("compareLoanStructures", () => {
   });
 
   it("derives cash-on-cash from expense-aware cash flow", () => {
-    const results = compareLoanStructures({
+    const comparison = compareLoanStructures({
       purchasePrice: 500_000,
       downPaymentPct: 25,
       monthlyRent: 3_500,
       ficoScore: 740,
     });
+    const { structures: results } = comparison;
 
     for (const result of results) {
       const expenseAwareMonthlyCashFlow =
@@ -62,6 +64,44 @@ describe("compareLoanStructures", () => {
       exitCapRatePct: 6.5,
       holdYears: 5,
       taxProfile: "returns-engine-default",
+    });
+  });
+
+  it("exposes the actual Track 2 and fixed-rate schedule inputs for disclosure", () => {
+    const comparison = compareLoanStructures({
+      purchasePrice: 500_000,
+      downPaymentPct: 25,
+      monthlyRent: 3_500,
+      ficoScore: 740,
+    });
+
+    const fixed = comparison.structures.find((result) => result.id === "fixed")!;
+
+    expect(comparison.assumptions.cashOnCash).toEqual({
+      vacancyPct: fixed.deal.dualTrackDSCR.track2.vacancyApplied,
+      managementPct: fixed.deal.dualTrackDSCR.track2.managementApplied,
+      maintenancePct: fixed.deal.dualTrackDSCR.track2.maintenanceApplied,
+      capExReservePct: fixed.deal.dualTrackDSCR.track2.capexApplied,
+    });
+    expect(comparison.assumptions.fixedRateIrr).toMatchObject({
+      rentGrowthPct: 2,
+      vacancyPct: 8,
+      managementPct: 8,
+      maintenancePct: 5,
+      turnoverPct: 2,
+      capExReservePct: 5,
+      expenseGrowthPct: 0,
+      sellingCostsPct: 6,
+      tax: {
+        ordinaryRatePct: 32,
+        stateRatePct: 5,
+        filingStatus: "MFJ",
+        magi: 250_000,
+        landAllocationPct: 20,
+        costSegStudyCompleted: false,
+        section1031Exchange: false,
+        isRealEstateProfessional: false,
+      },
     });
   });
 });
