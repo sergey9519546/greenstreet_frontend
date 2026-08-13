@@ -539,6 +539,30 @@ export default function App() {
   const depthFirstPaint = useRef(true);
 
   useEffect(() => {
+    // `index.html` retains the exported Webflow tree in the document and only
+    // hides it on SPA routes. Some of its legacy handlers call `anchor.click()`;
+    // without this capture-phase stop, those synthetic events bubble into the
+    // SPA interceptor below and push whichever marketing href was targeted.
+    //
+    // Block only anchors in the inactive marketing tree. Keeping this separate
+    // from the normal (bubble-phase) interceptor means React route controls
+    // still get their own target handlers before App navigates, while the
+    // legacy jQuery handlers cannot run on non-marketing pages.
+    const blockInactiveMarketingAnchor = (event: MouseEvent) => {
+      if (viewRef.current === "marketing") return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (!target.closest("#webflow-root a")) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+
+    document.addEventListener("click", blockInactiveMarketingAnchor, true);
+    return () => document.removeEventListener("click", blockInactiveMarketingAnchor, true);
+  }, []);
+
+  useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented) return;
       if (e.button !== 0) return;

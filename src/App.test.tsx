@@ -8,7 +8,7 @@
  * The tool pages themselves are replaced with sentinels: this test is about
  * routing, and their own render coverage lives in toolPages.smoke.test.tsx.
  */
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -125,6 +125,52 @@ describe('App routing', () => {
 
     expect(await screen.findByTestId('route-lender-intel')).toBeInTheDocument();
     expect(screen.queryByTestId('route-dscr-calculator')).toBeNull();
+  });
+
+  it('keeps React routes stable when a hidden marketing anchor is clicked', async () => {
+    // The canonical document keeps this static subtree mounted but hidden on
+    // SPA routes. This models a stale Webflow/jQuery callback calling .click()
+    // on one of its anchors after the user has moved into the React app.
+    const staticMarketingRoot = document.createElement('div');
+    staticMarketingRoot.id = 'webflow-root';
+    staticMarketingRoot.innerHTML = '<a href="/book-demo">legacy book demo</a>';
+    document.body.appendChild(staticMarketingRoot);
+    const legacyAnchor = staticMarketingRoot.querySelector('a');
+    expect(legacyAnchor).not.toBeNull();
+
+    try {
+      await renderAt('/dscr-calculator');
+      expect(await screen.findByTestId('route-dscr-calculator')).toBeInTheDocument();
+
+      for (const pathname of ['/dscr-calculator', '/lender-intel', '/state-laws']) {
+        await act(async () => {
+          window.history.replaceState({}, '', pathname);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        });
+
+        expect(fireEvent.click(legacyAnchor!)).toBe(false);
+        expect(window.location.pathname).toBe(pathname);
+      }
+    } finally {
+      staticMarketingRoot.remove();
+    }
+  });
+
+  it('continues to route static marketing anchors on the homepage', async () => {
+    const staticMarketingRoot = document.createElement('div');
+    staticMarketingRoot.id = 'webflow-root';
+    staticMarketingRoot.innerHTML = '<a href="/dscr-calculator">open calculator</a>';
+    document.body.appendChild(staticMarketingRoot);
+
+    try {
+      await renderAt('/');
+      fireEvent.click(staticMarketingRoot.querySelector('a')!);
+
+      expect(window.location.pathname).toBe('/dscr-calculator');
+      expect(await screen.findByTestId('route-dscr-calculator')).toBeInTheDocument();
+    } finally {
+      staticMarketingRoot.remove();
+    }
   });
 
   it('navigates via the onNavigate prop a tool page is given', async () => {
