@@ -1271,6 +1271,13 @@ export type ReturnGrade = 'A' | 'B' | 'C' | 'D' | 'F';
 
 export interface VerdictResult {
   verdict: 'PROCEED' | 'RESTRUCTURE' | 'PASS';
+  /**
+   * True when the modeled verdict is being withheld pending evidence that this
+   * product cannot verify on its own (for example a current insurance quote or
+   * eligible-reserve documentation). A manual-review result must never be
+   * presented as an approval.
+   */
+  manualReviewRequired: boolean;
   bindingConstraint: string;
   killSwitchConditions: string[];
   returnGrade: ReturnGrade;

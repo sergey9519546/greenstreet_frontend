@@ -3,9 +3,13 @@ import {
   computeReturnGrade,
   computeVerdict,
   computeVerdictDetail,
+  assessDecisionSupportEvidence,
   type VerdictInput,
   type ProceedGate,
 } from './decisionSupport';
+import { checkInsuranceGate } from './v11Runner';
+import { computeReserveScenarios } from './reserveEngine';
+import { checkPPPLegal } from './statePppLaws';
 import type {
   ARMResetResult,
   InsuranceGateResult,
@@ -106,6 +110,48 @@ const verdictOf = (overrides: Partial<VerdictInput> = {}) => computeVerdict(with
 const detailOf = (overrides: Partial<VerdictInput> = {}) => computeVerdictDetail(withInput(overrides));
 const gate = (gates: ProceedGate[], id: ProceedGate['id']) => gates.find(g => g.id === id)!;
 
+function evidenceReview(reserveEvidence: 'NOT_PROVIDED' | 'SELF_REPORTED' | 'DOCUMENTED' = 'DOCUMENTED') {
+  const borrower = {
+    ficoScore: 760,
+    experience: 'EXPERIENCED' as const,
+    existingFinancedProperties: 1,
+    entityType: 'LLC' as const,
+    isUSCitizenOrPR: true,
+    availableReserves: 50_000,
+    reserveAssets: [],
+    isFirstResponder: false,
+    isNonUsInvestor: false,
+  };
+  const loan = {
+    ltv: 70,
+    term: '30_YR' as const,
+    ioPeriod: 'NONE' as const,
+    armType: 'FIXED' as const,
+    prepayPreference: 'NONE' as const,
+    purpose: 'PURCHASE' as const,
+    expectedHoldYears: 5,
+    points: 0,
+    lenderFees: 0,
+    brokerFees: 0,
+    rateLockCost: 0,
+  };
+  return assessDecisionSupportEvidence({
+    propertyState: 'TX',
+    pppResult: checkPPPLegal('TX', 'LLC', 300_000, 1, 'FIXED'),
+    insuranceGate: checkInsuranceGate('TX', false, false, true, 2_000),
+    reserveScenarios: computeReserveScenarios(
+      1.45,
+      2_000,
+      'LTR',
+      borrower,
+      loan,
+      'TX',
+      [{ type: 'CHECKING', value: 50_000 }],
+    ),
+    reserveEvidence,
+  });
+}
+
 // ── baseline ────────────────────────────────────────────────────────────────
 
 describe('computeVerdict — the clean baseline', () => {
@@ -129,6 +175,90 @@ describe('computeVerdict — the clean baseline', () => {
     expect(gate(gates, 'TRACK1_CUSHION').requirement).toContain('1.050');
     expect(gate(gates, 'TRACK1_CUSHION').observed).toContain('1.450');
     expect(gate(gates, 'RATE_HEADROOM').observed).toBe('150 bps');
+  });
+});
+
+describe('assessDecisionSupportEvidence — source evidence is not approval evidence', () => {
+  it('requires manual review when state, PPP, insurance, and reserve evidence are absent', () => {
+    const review = assessDecisionSupportEvidence({
+      propertyState: '',
+      pppResult: null,
+      insuranceGate: null,
+      reserveScenarios: null,
+      reserveEvidence: 'NOT_PROVIDED',
+    });
+
+    expect(review.status).toBe('MANUAL_REVIEW_REQUIRED');
+    expect(review.items.map((item) => item.criterion)).toEqual([
+      'Property State Not Selected',
+      'PPP Review Not Established',
+      'Insurance Gate Not Evaluated',
+      'Reserve Scenario Not Evaluated',
+    ]);
+  });
+
+  it('accepts documented, adequate modeled evidence without inventing a lender approval', () => {
+    const review = evidenceReview();
+
+    expect(review.status).toBe('READY_FOR_MODELED_VERDICT');
+    expect(review.items).toEqual([]);
+  });
+
+  it('does not treat a self-reported reserve balance as documented eligible reserves', () => {
+    const review = evidenceReview('SELF_REPORTED');
+
+    expect(review.status).toBe('MANUAL_REVIEW_REQUIRED');
+    expect(review.items.some((item) => item.criterion === 'Eligible Reserve Evidence Not Documented')).toBe(true);
+  });
+
+  it('turns an otherwise clear modeled deal into RESTRUCTURE while evidence review is pending', () => {
+    const review = evidenceReview('SELF_REPORTED');
+    const { verdict, gates } = detailOf({ evidenceReview: review });
+
+    expect(verdict.manualReviewRequired).toBe(true);
+    expect(verdict.verdict).toBe('RESTRUCTURE');
+    expect(gate(gates, 'EVIDENCE_REVIEW').passed).toBe(false);
+  });
+
+  it('fails closed if a caller supplies a contradictory ready evidence review', () => {
+    const { verdict, gates } = detailOf({
+      evidenceReview: {
+        status: 'READY_FOR_MODELED_VERDICT',
+        items: [{
+          criterion: 'Bindable Insurance Quote Not Confirmed',
+          triggered: true,
+          severity: 'WARNING',
+          detail: 'A current quote has not been reviewed.',
+          action: 'Review a current quote.',
+        }],
+      },
+    });
+
+    expect(verdict.manualReviewRequired).toBe(true);
+    expect(verdict.verdict).toBe('RESTRUCTURE');
+    expect(gate(gates, 'EVIDENCE_REVIEW').passed).toBe(false);
+  });
+});
+
+describe('PPP verdict context', () => {
+  it('labels an unknown PPP check as unestablished rather than calling it illegal', () => {
+    const v = verdictOf({
+      pppAllowed: false,
+      pppResult: {
+        allowed: false,
+        status: 'UNKNOWN',
+        reason: 'No jurisdiction selected.',
+        adjustedOptions: ['NONE'],
+        noPPPPremiumRate: 0,
+        noPPPPremiumFee: 0,
+        requiresEntityVesting: false,
+        entityNote: '',
+        legalWarning: 'Verify jurisdiction.',
+      },
+    });
+
+    expect(v.killCriteriaTriggered.some((item) => item.criterion === 'PPP Review Not Established')).toBe(true);
+    expect(v.killCriteriaTriggered.some((item) => item.criterion === 'PPP Illegal for Vesting/Lender')).toBe(false);
   });
 });
 
@@ -503,9 +633,10 @@ describe('fail closed — a missing input never produces a favourable verdict', 
     expect(v.killCriteriaTriggered.some(k => k.criterion === 'Best-Fit Lender Not Confidence-Scored')).toBe(true);
   });
 
-  it('an unevaluated insurance gate is surfaced as a WARNING', () => {
+  it('an unevaluated insurance gate requires manual review instead of PROCEED', () => {
     const v = verdictOf({ insuranceGate: null });
     expect(v.killCriteriaTriggered.some(k => k.criterion === 'Insurance Gate Not Evaluated' && k.severity === 'WARNING')).toBe(true);
+    expect(v.verdict).toBe('RESTRUCTURE');
   });
 
   it('an unevaluated STR legality status is surfaced as a WARNING', () => {

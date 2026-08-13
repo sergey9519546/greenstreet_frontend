@@ -29,6 +29,7 @@ import type {
   InsuranceGateResult,
   InsuranceRiskZone,
   BRRRRSeasoningGate,
+  PPPCheckResult,
 } from './types';
 import { solveDSCR, calculatePI } from './engine';
 import { computeReassessedTax, computeReassessmentDSCRImpact } from './reassessmentEngine';
@@ -36,13 +37,17 @@ import { computeARMReset, DEFAULT_ARM_PROGRAMS, CURRENT_MARKET_SNAPSHOT, compute
 import { computeReturns, computeRemainingBalance } from './returnsEngine';
 import { computeAfterTaxIRR, assessCostSegViability } from './taxEngine';
 import {
+  assessDecisionSupportEvidence,
   computeVerdict,
   buildICMemo,
   type VerdictInput,
   type ICMemoInput,
+  type ReserveEvidenceStatus,
   type Track2Acknowledgment,
 } from './decisionSupport';
 import { evaluateProgramFit } from './programFit';
+import { computeReserveScenarios } from './reserveEngine';
+import { checkPPPLegal } from './statePppLaws';
 
 // ============================================================
 // INTEGRATED V11 ANALYSIS RESULT
@@ -215,6 +220,12 @@ export interface V11AnalysisInput {
   insuranceQuoteConfirmed?: boolean;
   isCoastalProperty?: boolean;
   isWildfireZone?: boolean;
+  /**
+   * Evidence status for the post-close reserve assets. Omitted is deliberately
+   * not treated as documented: the runner cannot inspect bank statements or a
+   * lender's eligibility determination on its own.
+   */
+  reserveEvidence?: ReserveEvidenceStatus;
   // Optional lender ranking (from external lender fit). When absent, the runner
   // evaluates the dated program matrix itself via `evaluateProgramFit` rather
   // than passing an empty array — an empty ranking means "never evaluated" to
@@ -226,7 +237,15 @@ export interface V11AnalysisInput {
    * runner must never manufacture an acknowledgment on the investor's behalf.
    */
   track2Acknowledgment?: Track2Acknowledgment | null;
-  // PPP
+  /**
+   * A caller may supply the exact PPP result used by a lender workflow. When
+   * omitted, the runner derives it from the governed state/entity/loan matrix.
+   */
+  pppResult?: PPPCheckResult | null;
+  /**
+   * Legacy fail-closed override. `true` no longer manufactures a PPP clearance;
+   * only `false` can make a governed result more conservative.
+   */
   pppAllowed?: boolean;
   // Property address (for IC memo)
   propertyAddress?: string;
@@ -429,6 +448,38 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     ? (suppliedRanking[0].confidenceScore > 0 ? suppliedRanking[0].confidenceScore : null)
     : null;
 
+  const governedPppResult = input.pppResult ?? checkPPPLegal(
+    input.property.state,
+    input.borrower.entityType,
+    loanAmount,
+    input.property.unitCount,
+    input.loan.armType === 'FIXED' ? 'FIXED' : 'ARM',
+  );
+  const effectivePppResult = input.pppAllowed === false && governedPppResult.allowed
+    ? {
+        ...governedPppResult,
+        allowed: false,
+        reason: 'PPP is disabled for this modeled scenario. Confirm the lender-specific no-PPP price and fee before relying on the result.',
+      }
+    : governedPppResult;
+
+  const reserveScenarios = computeReserveScenarios(
+    track1DSCR,
+    dscr.monthlyPITIA.total,
+    input.strategy,
+    input.borrower,
+    input.loan,
+    input.property.state,
+    input.borrower.reserveAssets,
+  );
+  const evidenceReview = assessDecisionSupportEvidence({
+    propertyState: input.property.state,
+    pppResult: effectivePppResult,
+    insuranceGate,
+    reserveScenarios,
+    reserveEvidence: input.reserveEvidence ?? 'NOT_PROVIDED',
+  });
+
   const verdictInput: VerdictInput = {
     track1DSCR,
     track2DSCR,
@@ -452,7 +503,9 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     // jurisdiction data at all, and UNCERTAIN is a recognised status that would
     // read as "we looked and could not tell".
     strLegalityStatus: input.strategy === 'STR' ? 'NOT_EVALUATED' : 'NOT_APPLICABLE',
-    pppAllowed: input.pppAllowed ?? true,
+    pppResult: effectivePppResult,
+    pppAllowed: effectivePppResult.allowed,
+    evidenceReview,
     ficoScore: input.borrower.ficoScore,
     ltv: input.loan.ltv,
     ltvCap: programFit.ltvCap,
@@ -507,7 +560,13 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     // `input.lenderRanking ?? []`, so an IC memo could show an empty lender
     // section beneath a verdict reached from a different set of lenders.
     lenderRanking,
-    insuranceStatus: insuranceGate.verdict === 'CLEAR' ? 'CLEAR' : insuranceGate.verdict === 'KILL' ? 'UNCONFIRMED — kill criterion' : 'CONFIRMED',
+    insuranceStatus: !insuranceGate.quoteConfirmed
+      ? 'UNCONFIRMED — manual review required'
+      : insuranceGate.verdict === 'CLEAR'
+        ? 'CLEAR'
+        : insuranceGate.verdict === 'KILL'
+          ? 'UNCONFIRMED — kill criterion'
+          : 'CONFIRMED',
     // An STR memo used to read 'CLEAR' — a jurisdiction clearance stated on a
     // signed document with no jurisdiction ever checked. STR legality is the
     // one gate that can void the income the whole deal rests on.

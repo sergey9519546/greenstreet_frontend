@@ -670,6 +670,119 @@ export interface Track2Acknowledgment {
   thesisStatement: string;
 }
 
+/**
+ * Evidence collected around a modeled deal. This deliberately describes only
+ * whether the model has the evidence it needs; it does not certify a lender's
+ * legal or underwriting decision.
+ */
+export type ReserveEvidenceStatus = 'NOT_PROVIDED' | 'SELF_REPORTED' | 'DOCUMENTED';
+
+export interface DecisionSupportEvidenceInput {
+  /** Selected property state, passed through to the PPP checker. */
+  propertyState: string;
+  /** Result from the governed PPP matrix, or null when it was not run. */
+  pppResult: PPPCheckResult | null;
+  /** Result from the insurance gate, or null when it was not run. */
+  insuranceGate: InsuranceGateResult | null;
+  /** Three-scenario reserve calculation, or null when it was not run. */
+  reserveScenarios: ReserveScenarios | null;
+  /** What is actually known about the assets used in the reserve calculation. */
+  reserveEvidence: ReserveEvidenceStatus;
+}
+
+export interface DecisionSupportEvidenceReview {
+  status: 'READY_FOR_MODELED_VERDICT' | 'MANUAL_REVIEW_REQUIRED';
+  items: KillCriterion[];
+}
+
+/**
+ * Keep the estimate honest when its source evidence is incomplete.
+ *
+ * The tool may model a state, quote, and liquid-reserve scenario, but it cannot
+ * inspect a binder, bank statement, lender exception, or closing file. Any
+ * missing or merely self-reported evidence therefore blocks a PROCEED verdict
+ * on a page that elects to use this review.
+ */
+export function assessDecisionSupportEvidence(
+  input: DecisionSupportEvidenceInput,
+): DecisionSupportEvidenceReview {
+  const items: KillCriterion[] = [];
+  const state = input.propertyState.trim().toUpperCase();
+
+  if (!/^[A-Z]{2}$/.test(state)) {
+    items.push({
+      criterion: 'Property State Not Selected',
+      triggered: true,
+      severity: 'WARNING',
+      detail: 'No two-letter property state is selected, so state-specific tax, market-overlay, and PPP assumptions cannot be reviewed.',
+      action: 'Select the property state before relying on the modeled verdict.',
+    });
+  }
+
+  if (!input.pppResult || input.pppResult.status === 'UNKNOWN') {
+    items.push({
+      criterion: 'PPP Review Not Established',
+      triggered: true,
+      severity: 'WARNING',
+      detail: 'The prepayment-penalty treatment has not been established for this property state, vesting, loan amount, unit count, and rate type.',
+      action: 'Run the governed PPP check and confirm the selected lender product before relying on prepayment economics.',
+    });
+  }
+
+  if (!input.insuranceGate) {
+    items.push({
+      criterion: 'Insurance Gate Not Evaluated',
+      triggered: true,
+      severity: 'WARNING',
+      detail: 'No insurance gate was run, so hazard exposure and a bindable premium are not established.',
+      action: 'Obtain a current bindable insurance quote and run the insurance gate before relying on the modeled verdict.',
+    });
+  } else if (!input.insuranceGate.quoteConfirmed) {
+    items.push({
+      criterion: 'Bindable Insurance Quote Not Confirmed',
+      triggered: true,
+      severity: 'WARNING',
+      detail: 'The annual insurance input is an estimate until a bindable quote or binder is confirmed.',
+      action: 'Obtain and review a current bindable insurance quote before relying on the modeled verdict.',
+    });
+  }
+
+  if (!input.reserveScenarios) {
+    items.push({
+      criterion: 'Reserve Scenario Not Evaluated',
+      triggered: true,
+      severity: 'WARNING',
+      detail: 'No eligible-reserve scenario was supplied, so the model cannot compare post-close liquidity with its conservative reserve requirement.',
+      action: 'Calculate the reserve scenarios from post-close liquid assets before relying on the modeled verdict.',
+    });
+  } else {
+    const conservative = input.reserveScenarios.conservative;
+    if (input.reserveEvidence !== 'DOCUMENTED') {
+      items.push({
+        criterion: 'Eligible Reserve Evidence Not Documented',
+        triggered: true,
+        severity: 'WARNING',
+        detail: 'Reserve assets are not documented as eligible and retained after closing. Self-reported balances are not lender verification.',
+        action: 'Have a human reviewer confirm current asset statements, eligibility, and post-close availability.',
+      });
+    }
+    if (conservative.shortfall > 0 || conservative.totalEligibleReserves < conservative.totalDollars) {
+      items.push({
+        criterion: 'Conservative Reserve Shortfall',
+        triggered: true,
+        severity: 'WARNING',
+        detail: `Modeled eligible reserves are $${Math.round(conservative.totalEligibleReserves).toLocaleString()} against a $${Math.round(conservative.totalDollars).toLocaleString()} conservative requirement.`,
+        action: 'Increase documented liquid reserves or have a lender confirm an exception before relying on the modeled verdict.',
+      });
+    }
+  }
+
+  return {
+    status: items.length === 0 ? 'READY_FOR_MODELED_VERDICT' : 'MANUAL_REVIEW_REQUIRED',
+    items,
+  };
+}
+
 export interface VerdictInput {
   track1DSCR: number;
   track2DSCR: number;
@@ -696,6 +809,12 @@ export interface VerdictInput {
   brrrrGate: BRRRRSeasoningGate | null;
   armReset: ARMResetResult | null;
   strLegalityStatus: string;
+  /**
+   * The governed PPP result, when a caller has run the state/entity/loan
+   * checker. Its status lets the verdict distinguish "not established" from
+   * "not allowed" instead of treating an unknown jurisdiction as illegal.
+   */
+  pppResult?: PPPCheckResult | null;
   pppAllowed: boolean;
   ficoScore: number;
   ltv: number;
@@ -717,6 +836,12 @@ export interface VerdictInput {
   track2MonthlyCashFlow?: number | null;
   /** The investor's acknowledgment, when one has actually been given. */
   track2Acknowledgment?: Track2Acknowledgment | null;
+  /**
+   * Optional evidence review. Legacy callers can omit it; pages that present a
+   * public decision verdict should supply it so missing source evidence cannot
+   * silently read as a PROCEED recommendation.
+   */
+  evidenceReview?: DecisionSupportEvidenceReview | null;
 }
 
 /**
@@ -730,7 +855,8 @@ export interface ProceedGate {
     | 'TRACK1_CUSHION'
     | 'TRACK2_CARRY'
     | 'RETURN_GRADE'
-    | 'RATE_HEADROOM';
+    | 'RATE_HEADROOM'
+    | 'EVIDENCE_REVIEW';
   label: string;
   /** What PROCEED demands, stated with its number. */
   requirement: string;
@@ -857,6 +983,8 @@ export function computeVerdictDetail(input: VerdictInput): VerdictDetail {
   const bestLenderConfidence = finite(input.bestLenderConfidence);
   const appraisalBreakpointPercent = finite(input.appraisalBreakpointPercent);
   const track2MonthlyCashFlow = finite(input.track2MonthlyCashFlow);
+  const evidenceReviewWasSupplied = Object.prototype.hasOwnProperty.call(input, 'evidenceReview');
+  const evidenceReview = input.evidenceReview;
 
   // === UNESTABLISHED-INPUT BLOCKERS ===
   //
@@ -938,13 +1066,25 @@ export function computeVerdictDetail(input: VerdictInput): VerdictDetail {
     });
   }
 
-  // 2. PPP illegal for this vesting/lender
-  if (!input.pppAllowed) {
+  // 2. PPP. A checker that cannot establish the jurisdiction is not evidence
+  // that a PPP is illegal; it is a manual-review condition. A legacy boolean
+  // still works for callers that have only an allowed/not-allowed result.
+  if (input.pppResult?.status === 'UNKNOWN') {
+    killCriteria.push({
+      criterion: 'PPP Review Not Established',
+      triggered: true,
+      severity: 'WARNING',
+      detail: input.pppResult.reason,
+      action: 'Select a recognized property state and confirm vesting, loan amount, unit count, and product type before relying on prepayment economics.',
+    });
+  } else if (!input.pppAllowed) {
     killCriteria.push({
       criterion: 'PPP Illegal for Vesting/Lender',
       triggered: true,
       severity: 'WARNING',
-      detail: `Prepayment penalty is unavailable. No-PPP premium applies (+0.25% rate / +0.625% fee).`,
+      detail: input.pppResult
+        ? input.pppResult.reason
+        : 'Prepayment penalty is unavailable. No-PPP pricing may apply; confirm the lender-specific rate and fee impact.',
       action: 'Switch to entity vesting (LLC) or accept no-PPP pricing.',
     });
   }
@@ -966,6 +1106,18 @@ export function computeVerdictDetail(input: VerdictInput): VerdictDetail {
       detail: 'No insurance gate was run for this property, so a high-risk-zone premium shock is neither confirmed nor ruled out. Insurance moves DSCR more per dollar than the note rate.',
       action: 'Run the insurance gate with the property location, or obtain a bindable quote before relying on this verdict.',
     });
+  }
+
+  // A page that opted into evidence review publishes its missing-evidence
+  // items beside the modeled criteria. Keep them warnings rather than inventing
+  // lender eligibility rules; the separate PROCEED gate below prevents the UI
+  // from turning an incomplete file into an approval.
+  if (evidenceReview?.items) {
+    for (const item of evidenceReview.items) {
+      if (!killCriteria.some((existing) => existing.criterion === item.criterion)) {
+        killCriteria.push(item);
+      }
+    }
   }
 
   // 4. FICO below all floors (<620)
@@ -1239,6 +1391,18 @@ export function computeVerdictDetail(input: VerdictInput): VerdictDetail {
       : `No eligible lender: 0 of ${ranking.length} evaluated programs accept this deal as structured.`;
 
   // === PROCEED GATES — every gate, with the numbers behind it ===
+  const evidenceReviewIncomplete =
+    evidenceReview == null ||
+    evidenceReview.status !== 'READY_FOR_MODELED_VERDICT' ||
+    evidenceReview.items.length > 0;
+  const manualReviewRequired =
+    input.insuranceGate === null ||
+    (evidenceReviewWasSupplied && evidenceReviewIncomplete);
+  const evidenceObserved = !manualReviewRequired
+    ? 'required evidence recorded for this modeled scenario'
+    : evidenceReview == null
+      ? 'evidence review not established'
+      : evidenceReview.items.map((item) => item.criterion).join('; ') || 'manual review required';
   const track1Required = lenderMinDSCR === null ? null : lenderMinDSCR + 0.05;
   const gates: ProceedGate[] = [
     {
@@ -1296,6 +1460,15 @@ export function computeVerdictDetail(input: VerdictInput): VerdictDetail {
       passed: rateHeadroomBps !== null && rateHeadroomBps >= 50,
     },
   ];
+  if (evidenceReviewWasSupplied || input.insuranceGate === null) {
+    gates.push({
+      id: 'EVIDENCE_REVIEW',
+      label: 'Manual underwriting evidence review',
+      requirement: 'Current state/PPP, bindable insurance, and documented eligible reserves recorded',
+      observed: evidenceObserved,
+      passed: !manualReviewRequired,
+    });
+  }
 
   const failedGates = gates.filter(g => !g.passed);
 
@@ -1353,6 +1526,7 @@ export function computeVerdictDetail(input: VerdictInput): VerdictDetail {
 
   const verdictResult: VerdictResult = {
     verdict,
+    manualReviewRequired,
     bindingConstraint,
     killSwitchConditions,
     returnGrade,

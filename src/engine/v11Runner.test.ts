@@ -259,6 +259,29 @@ describe("v11Runner — the verdict is fed real matrix data, never house constan
     expect(criteria).toContain("STR Legality Not Evaluated");
   });
 
+  it('derives PPP treatment from the selected property state and deal facts instead of defaulting it to allowed', () => {
+    const result = runV11Analysis({
+      ...base,
+      property: { ...prop, state: 'PA' },
+    });
+    const criteria = result.verdict.killCriteriaTriggered.map((k) => k.criterion);
+
+    // $300,000 on PA 1-unit is below the governed 2026 indexed threshold.
+    // This must remain visible as a no-PPP scenario rather than a fabricated
+    // `pppAllowed: true` pass.
+    expect(criteria).toContain('PPP Illegal for Vesting/Lender');
+  });
+
+  it('withholds a broad verdict until insurance and reserve evidence are supplied', () => {
+    const result = runV11Analysis(base);
+    const criteria = result.verdict.killCriteriaTriggered.map((k) => k.criterion);
+
+    expect(result.verdict.manualReviewRequired).toBe(true);
+    expect(criteria).toContain('Bindable Insurance Quote Not Confirmed');
+    expect(criteria).toContain('Eligible Reserve Evidence Not Documented');
+    expect(result.memo.insuranceStatus).toBe('UNCONFIRMED — manual review required');
+  });
+
   it("lets a caller's real ranking win over the matrix evaluation", () => {
     const supplied = runV11Analysis(base).memo.lenderRanking.slice(0, 1).map((l) => ({
       ...l,

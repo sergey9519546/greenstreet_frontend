@@ -6,11 +6,15 @@ import {
   computeVerdictDetail,
   computeDealKillCheck,
   computeAcquisitionScore,
+  assessDecisionSupportEvidence,
   type ProceedGate,
   type Track2Acknowledgment,
 } from "../engine/decisionSupport";
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
+import { computeReserveScenarios } from "../engine/reserveEngine";
+import { checkInsuranceGate } from "../engine/v11Runner";
+import { checkPPPLegal } from "../engine/statePppLaws";
 import {
   assumptionsFromV11,
   buildReturnsSchedule,
@@ -23,7 +27,7 @@ import {
   staleDatasets,
   type DataVintageKey,
 } from "../engine/dataVintage";
-import type { LenderRankingEntry } from "../engine/types";
+import type { EntityType, LenderRankingEntry, ReserveAsset } from "../engine/types";
 import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF, lookupMaxLTV } from "../data/dscrPrograms";
 import BottomCTA from "../design/BottomCTA";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
@@ -168,10 +172,18 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
   const [purchasePrice, setPurchasePrice] = useState(425000);
   const [downPct, setDownPct] = useState(25);
   const [monthlyRent, setMonthlyRent] = useState(3000);
+  // State and vesting must be explicit. A Texas/PPP-allowed default gave every
+  // visitor a state-specific conclusion without asking where or how they would
+  // hold the property.
+  const [propertyState, setPropertyState] = useState("");
+  const [entityType, setEntityType] = useState<EntityType>("LLC");
   const [fico, setFico] = useState(740);
   const [annualTaxes, setAnnualTaxes] = useState(5000);
   const [annualInsurance, setAnnualInsurance] = useState(2000);
   const [hoa, setHoa] = useState(0);
+  const [insuranceQuoteConfirmed, setInsuranceQuoteConfirmed] = useState(false);
+  const [reportedLiquidReserves, setReportedLiquidReserves] = useState(0);
+  const [reserveEvidenceDocumented, setReserveEvidenceDocumented] = useState(false);
   // The exit assumptions move the after-tax IRR further than any other input on
   // this page — at the engine default of a 6.5% exit cap, a property bought at a
   // sub-5% cap is modelled as sold at a ~25% discount, and that spread (not the
@@ -192,7 +204,8 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
         purchasePrice,
         loanAmount: purchasePrice * (1 - downPct / 100),
         monthlyRent,
-        state: "TX",
+        state: propertyState,
+        entityType,
         ficoScore: fico,
         propertyType: "SFR" as const,
         annualTaxes,
@@ -200,6 +213,48 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
         hoa,
       });
       const deal = solveDSCR(inputs.property, inputs.borrower, inputs.loan, inputs.strategy);
+      const reserveAssets: ReserveAsset[] = reportedLiquidReserves > 0
+        ? [{ type: "CHECKING", value: reportedLiquidReserves }]
+        : [];
+      const borrower = {
+        ...inputs.borrower,
+        availableReserves: reportedLiquidReserves,
+        reserveAssets,
+      };
+      const insuranceGate = checkInsuranceGate(
+        inputs.property.state,
+        false,
+        false,
+        insuranceQuoteConfirmed,
+        inputs.property.annualInsurance,
+      );
+      const reserveScenarios = computeReserveScenarios(
+        deal.dscr,
+        deal.monthlyPITIA.total,
+        inputs.strategy,
+        borrower,
+        inputs.loan,
+        inputs.property.state,
+        reserveAssets,
+      );
+      const pppResult = checkPPPLegal(
+        inputs.property.state,
+        borrower.entityType,
+        deal.loanAmount,
+        inputs.property.unitCount,
+        inputs.loan.armType === "FIXED" ? "FIXED" : "ARM",
+      );
+      const evidenceReview = assessDecisionSupportEvidence({
+        propertyState: inputs.property.state,
+        pppResult,
+        insuranceGate,
+        reserveScenarios,
+        reserveEvidence: reserveEvidenceDocumented
+          ? "DOCUMENTED"
+          : reportedLiquidReserves > 0
+            ? "SELF_REPORTED"
+            : "NOT_PROVIDED",
+      });
 
       // ── ONE approved scenario and debt schedule ──────────────────────────
       // Every return figure below is read off a SINGLE amortising schedule that
@@ -309,12 +364,12 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
         solvedRate: deal.solvedRate,
         rateHeadroomBps: deal.rateHeadroomBps,
         appraisalBreakpointPercent: deal.appraisalBreakpointPercent,
-        // Not evaluated on this surface — the verdict raises its own warning.
-        insuranceGate: null,
+        insuranceGate,
         brrrrGate: null,
         armReset: null,
         strLegalityStatus: "NOT_APPLICABLE", // long-term rental: the STR gate does not apply
-        pppAllowed: true,
+        pppResult,
+        pppAllowed: pppResult.allowed,
         ficoScore: fico,
         ltv: ltvNeeded,
         ltvCap: bestFit ? bestFit.program.maxLTV : Number.NaN,
@@ -325,10 +380,11 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
         isDecliningMarket: inputs.property.isDecliningMarket,
         track2MonthlyCashFlow,
         track2Acknowledgment: acknowledgment,
+        evidenceReview,
       });
 
-      const kill = computeDealKillCheck(deal, inputs.borrower, inputs.loan, inputs.property, inputs.strategy, null, null, null);
-      const acq = computeAcquisitionScore(deal, null, inputs.property, inputs.borrower, inputs.loan, inputs.strategy, null, null);
+      const kill = computeDealKillCheck(deal, borrower, inputs.loan, inputs.property, inputs.strategy, reserveScenarios, pppResult, null);
+      const acq = computeAcquisitionScore(deal, reserveScenarios, inputs.property, borrower, inputs.loan, inputs.strategy, null, pppResult);
 
       const cleared = gates.filter((g) => g.passed).length;
 
@@ -349,11 +405,15 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
         track2MonthlyCashFlow,
         evaluated,
         bestFit,
+        pppResult,
+        insuranceGate,
+        reserveScenarios,
+        evidenceReview,
       };
     } catch {
       return null;
     }
-  }, [purchasePrice, downPct, monthlyRent, fico, annualTaxes, annualInsurance, hoa, exitCapRate, holdYears, ackChecked, ackThesisDollars, ackStatement]);
+  }, [purchasePrice, downPct, monthlyRent, propertyState, entityType, fico, annualTaxes, annualInsurance, hoa, insuranceQuoteConfirmed, reportedLiquidReserves, reserveEvidenceDocumented, exitCapRate, holdYears, ackChecked, ackThesisDollars, ackStatement]);
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -394,7 +454,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                 borderRadius: 100, padding: "7px 14px", marginBottom: 24,
               }}
             >
-              Decision engine · IC verdict
+              Decision engine · preliminary screen
             </div>
             <H1 style={{ margin: "0 0 24px" }}>Should you buy this deal?</H1>
             <Lead style={{ color: dc.ink.dim, maxWidth: "50ch", margin: "0 0 20px" }}>
@@ -431,8 +491,47 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
             <Card style={{ padding: 30 }}>
               <Eyebrow>Deal &amp; borrower</Eyebrow>
               <p style={{ fontSize: 12, color: INK_DIM, margin: "0 0 18px", lineHeight: 1.5 }}>
-                Estimates are fine — the engine re-runs live as you type.
+                Estimates are fine for screening. The page never treats an estimate as a lender approval: state, insurance, and post-close reserves still need review.
               </p>
+
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, color: INK_DIM, marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                  Property State (2-letter)
+                </span>
+                <span style={{ display: "block", fontSize: 11, color: INK_DIM, marginBottom: 5, lineHeight: 1.4 }}>
+                  Required for the governed prepayment review and state-level underwriting overlays. Leave blank only if you want a manual-review result.
+                </span>
+                <input
+                  aria-label="Property State"
+                  type="text"
+                  maxLength={2}
+                  value={propertyState}
+                  onChange={(e) => setPropertyState((e.target.value || "").toUpperCase().slice(0, 2))}
+                  placeholder="e.g. TX"
+                  style={{ width: "100%", boxSizing: "border-box", background: BAND, color: INK, border: HAIRLINE, borderRadius: radius.sm, padding: "12px 14px", fontSize: 16, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", outline: "none" }}
+                />
+              </label>
+
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, color: INK_DIM, marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                  Projected Vesting
+                </span>
+                <span style={{ display: "block", fontSize: 11, color: INK_DIM, marginBottom: 5, lineHeight: 1.4 }}>
+                  Used only to run the existing state PPP matrix. Your lender and counsel must confirm the actual closing vesting.
+                </span>
+                <select
+                  aria-label="Projected Vesting"
+                  value={entityType}
+                  onChange={(e) => setEntityType(e.target.value as EntityType)}
+                  style={{ width: "100%", boxSizing: "border-box", background: BAND, color: INK, border: HAIRLINE, borderRadius: radius.sm, padding: "12px 14px", fontSize: 15, fontWeight: 600, outline: "none" }}
+                >
+                  <option value="INDIVIDUAL">Individual</option>
+                  <option value="LLC">LLC</option>
+                  <option value="S_CORP">S corporation</option>
+                  <option value="C_CORP">C corporation</option>
+                  <option value="TRUST">Trust</option>
+                </select>
+              </label>
 
               {([
                 { label: "Purchase Price", hint: "What you're paying for the property.", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$", suffix: "" },
@@ -440,7 +539,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                 { label: "Monthly Rent", hint: "Expected gross rent. For a vacant property, use market-comparable rent.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$", suffix: "" },
                 { label: "FICO Score", hint: "620 is the floor for most DSCR programs; 740+ unlocks the best grid cells.", value: fico, set: setFico, step: 5, prefix: "", suffix: "" },
                 { label: "Annual Taxes", hint: "Property taxes per year. County assessor site — an estimate is fine.", value: annualTaxes, set: setAnnualTaxes, step: 250, prefix: "$", suffix: "" },
-                { label: "Annual Ins.", hint: "Hazard insurance per year. Budget $1,500–$3,000 if unknown.", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$", suffix: "" },
+                { label: "Annual Ins.", hint: "Annual hazard premium. An estimate is modeled, but the verdict remains preliminary until you confirm a current bindable quote.", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$", suffix: "" },
                 { label: "Monthly HOA", hint: "HOA dues per month. Enter 0 if none.", value: hoa, set: setHoa, step: 25, prefix: "$", suffix: "" },
                 { label: "Hold Period", hint: "Years until you sell. The return is measured over this window.", value: holdYears, set: setHoldYears, step: 1, prefix: "", suffix: "yr" },
                 { label: "Exit Cap Rate", hint: "The cap rate you assume a buyer pays when you sell. This single field moves the return more than anything else on this page.", value: exitCapRate, set: setExitCapRate, step: 0.25, prefix: "", suffix: "%" },
@@ -462,6 +561,50 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                   />
                 </label>
               ))}
+
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, color: INK_DIM, marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                  Reported Liquid Reserves After Close
+                </span>
+                <span style={{ display: "block", fontSize: 11, color: INK_DIM, marginBottom: 5, lineHeight: 1.4 }}>
+                  Cash remaining after down payment and closing. This scenario models it as checking-account cash; other asset types can have lender haircuts.
+                </span>
+                <CurrencyInput
+                  ariaLabel="Reported Liquid Reserves After Close"
+                  surface="dark"
+                  value={reportedLiquidReserves}
+                  onChange={setReportedLiquidReserves}
+                  step={1000}
+                  prefix="$"
+                  style={{ background: BAND, padding: "0 13px" }}
+                  inputStyle={{ padding: "12px 7px", fontSize: 16, fontWeight: 600 }}
+                />
+              </label>
+
+              <div style={{ borderTop: HAIRLINE, marginTop: 22, paddingTop: 16, display: "grid", gap: 12 }}>
+                <label style={{ display: "flex", gap: 9, alignItems: "flex-start", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={insuranceQuoteConfirmed}
+                    onChange={(e) => setInsuranceQuoteConfirmed(e.target.checked)}
+                    style={{ marginTop: 3, width: 16, height: 16, accentColor: dc.emerald, flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: 12, color: INK_DIM, lineHeight: 1.45 }}>
+                    I have reviewed a current bindable insurance quote for this property and entered that annual premium above.
+                  </span>
+                </label>
+                <label style={{ display: "flex", gap: 9, alignItems: "flex-start", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={reserveEvidenceDocumented}
+                    onChange={(e) => setReserveEvidenceDocumented(e.target.checked)}
+                    style={{ marginTop: 3, width: 16, height: 16, accentColor: dc.emerald, flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: 12, color: INK_DIM, lineHeight: 1.45 }}>
+                    I have reviewed current statements showing the reported reserves remain available after closing. A lender must still confirm eligibility.
+                  </span>
+                </label>
+              </div>
 
               <div style={{ borderTop: HAIRLINE, marginTop: 22, paddingTop: 16 }}>
                 <span style={{ display: "block", fontSize: 11, color: INK_DIM, marginBottom: 6, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
@@ -498,9 +641,18 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                     >
                       <span style={{ width: 8, height: 8, borderRadius: "50%", background: verdictColor(result.verdict.verdict), display: "inline-block" }} />
                       <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor(result.verdict.verdict) }}>
-                        IC verdict
+                        Preliminary modeled verdict
                       </span>
                     </div>
+                    {result.verdict.manualReviewRequired ? (
+                      <p style={{ color: risk.cautionOnDark, fontSize: 12.5, fontWeight: 600, margin: "0 0 12px", lineHeight: 1.5 }}>
+                        Manual review required — incomplete state, PPP, insurance, or reserve evidence means this is not an approval recommendation.
+                      </p>
+                    ) : (
+                      <p style={{ color: INK_DIM, fontSize: 12.5, margin: "0 0 12px", lineHeight: 1.5 }}>
+                        This is a preliminary modeled screen, not a lender approval, rate lock, legal conclusion, or commitment to lend.
+                      </p>
+                    )}
                     <Mono style={{ display: "block", fontSize: "clamp(42px,5vw,64px)", fontWeight: 600, letterSpacing: "-0.02em", color: verdictColor(result.verdict.verdict), lineHeight: 1, marginBottom: 14 }}>
                       {result.verdict.verdict}
                     </Mono>
@@ -601,9 +753,47 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                   </p>
                 </Card>
 
+                {/* ── EVIDENCE REVIEW ── */}
+                <Card className="gs-reveal">
+                  <Eyebrow color={result.evidenceReview.status === "READY_FOR_MODELED_VERDICT" ? dc.emerald : risk.cautionOnDark}>
+                    Scenario evidence review
+                  </Eyebrow>
+                  <p style={{ fontSize: 12.5, color: INK_DIM, margin: "0 0 16px", lineHeight: 1.5 }}>
+                    State and PPP are calculated from the existing governed matrix. Insurance and reserves are reported inputs that must be confirmed in the actual lender file.
+                  </p>
+                  <div style={{ display: "grid", gap: 10 }}>
+                    <div style={{ padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.08)" }}>
+                      <strong style={{ display: "block", fontSize: 13, color: INK, marginBottom: 3 }}>
+                        PPP review for {propertyState || "an unselected state"}
+                      </strong>
+                      <span style={{ fontSize: 12, color: INK_DIM, lineHeight: 1.45 }}>
+                        {result.pppResult.status.replace(/_/g, " ")} · {result.pppResult.reason}
+                      </span>
+                    </div>
+                    <div style={{ padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.08)" }}>
+                      <strong style={{ display: "block", fontSize: 13, color: INK, marginBottom: 3 }}>
+                        Insurance evidence
+                      </strong>
+                      <span style={{ fontSize: 12, color: INK_DIM, lineHeight: 1.45 }}>
+                        {result.insuranceGate.quoteConfirmed
+                          ? `Reported bindable quote: ${money(result.insuranceGate.premiumAnnual)}/yr. ${result.insuranceGate.reason}`
+                          : "No bindable quote confirmed. The annual insurance amount remains a modeled estimate until a quote is reviewed."}
+                      </span>
+                    </div>
+                    <div style={{ padding: "10px 0" }}>
+                      <strong style={{ display: "block", fontSize: 13, color: INK, marginBottom: 3 }}>
+                        Conservative eligible reserves
+                      </strong>
+                      <span style={{ fontSize: 12, color: INK_DIM, lineHeight: 1.45 }}>
+                        {money(result.reserveScenarios.conservative.totalEligibleReserves)} modeled eligible against {money(result.reserveScenarios.conservative.totalDollars)} required. {result.evidenceReview.status === "READY_FOR_MODELED_VERDICT" ? "Reported evidence is complete for this model; lender eligibility still requires confirmation." : "Manual review remains required before relying on this scenario."}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+
                 {/* ── THE GATES — the published "why" ── */}
                 <Card className="gs-reveal">
-                  <Eyebrow>Why — the six gates PROCEED must clear</Eyebrow>
+                  <Eyebrow>Why — the gates PROCEED must clear</Eyebrow>
                   <p style={{ fontSize: 12, color: INK_DIM, margin: "0 0 16px", lineHeight: 1.5 }}>
                     These are the exact gates the verdict evaluated, in the order it evaluated them — not a
                     second scoring system. The first FAIL is the binding constraint quoted above.
