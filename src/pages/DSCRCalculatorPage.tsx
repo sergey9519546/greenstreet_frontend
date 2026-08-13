@@ -12,6 +12,7 @@ import { computeReturns } from "../engine/returnsEngine";
 import { computeExecutionRisk } from "../engine/decisionSupport";
 import { computeReassessedTax, computeReassessmentDSCRImpact } from "../engine/reassessmentEngine";
 import { rescueTrack2, generateStructureOptions } from "../engine/loanOptimizer";
+import { DealRescuePanel } from "../components/DealRescuePanel";
 import PropertyTypesGallery from '../components/PropertyTypesGallery';
 import type { PropertyInputs, LoanStructure, BorrowerProfile, ARMType, StructureOption } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
@@ -26,6 +27,7 @@ import {
   writeDealToUrl,
   copyShareLink,
   computeDealFixes,
+  computeAmortizationRescuePreview,
   computeRescueAnalysis,
   normalizeDeal,
 } from "../lib/dealState";
@@ -230,6 +232,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   const dealFixes = useMemo(
     () => computeDealFixes(deal, { taxYr, targetDscr: dscr < 1.0 ? 1.0 : 1.25 }),
     [deal, taxYr, dscr],
+  );
+  const amortizationRescuePreview = useMemo(
+    () => computeAmortizationRescuePreview(deal, { taxYr }),
+    [deal, taxYr],
   );
   const [showRescue, setShowRescue] = useState(false);
   // Full rescue analysis (8 ranked levers via production rescueTrack1 engine).
@@ -997,41 +1003,18 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     </div>
                   )}
 
-                  {/* Fix My Deal — one-click levers when coverage is weak */}
-                  {dealFixes.length > 0 && (
-                    <div style={{ marginTop: 20, background: 'rgba(216,217,88,0.06)', borderWidth: '1px 1px 1px 3px', borderStyle: 'solid', borderColor: 'rgba(216,217,88,0.28)', borderLeftColor: LEMON, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON }}>
-                          Fix my deal
-                        </div>
-                        <span style={{ fontSize: 12, color: 'rgba(238,239,211,0.55)' }}>
-                          Tap a lever — inputs update instantly
-                        </span>
-                      </div>
-                      <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: '0 0 12px', lineHeight: 1.5 }}>
-                        Coverage is short of the {dscr < 1.0 ? '1.00x floor' : '1.25x best-tier gate'}. These are the cleanest paths to clear it on this structure.
-                      </p>
-                      <div style={{ display: 'grid', gap: 10 }}>
-                        {dealFixes.map((fx) => (
-                          <div key={fx.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', background: 'rgba(0,0,0,0.18)', borderRadius: 8, padding: '12px 14px', border: '1px solid rgba(238,239,211,0.08)' }}>
-                            <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: 14, fontWeight: 700, color: PISTACHIO }}>{fx.label}</span>
-                                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: fx.risk === 'LOW' ? risk.positive : fx.risk === 'MODERATE' ? LEMON : risk.dangerOnDark, background: 'rgba(238,239,211,0.06)', borderRadius: 100, padding: '2px 8px' }}>{fx.risk} risk</span>
-                                <Mono style={{ fontSize: 12, color: swatch.emerald }}>{fx.impact}</Mono>
-                              </div>
-                              <div style={{ fontSize: 12.5, color: 'rgba(238,239,211,0.65)', lineHeight: 1.45 }}>{fx.description}</div>
-                            </div>
-                            <button type="button" onClick={() => applyDealPatch(fx.apply)} style={{ flex: '0 0 auto', background: LEMON, color: MIDNIGHT, border: 'none', borderRadius: radius.sm, padding: '10px 16px', fontWeight: 700, fontSize: 13, fontFamily: font.family, cursor: 'pointer', minHeight: 44 }}>
-                              Apply
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+                  {/* Input-derived levers update the live deal snapshot. */}
+                  <DealRescuePanel
+                    currentDscr={dscr}
+                    targetDscr={dscr < 1.0 ? 1.0 : 1.25}
+                    fixes={dealFixes}
+                    structurePreview={amortizationRescuePreview}
+                    onApplyFix={(fix) => applyDealPatch(fix.apply)}
+                  />
 
-                      {/* Full rescue analysis — all 8 ranked levers from the engine */}
-                      {rescue && rescue.fixes.length > 0 && (
-                        <div style={{ marginTop: 14, borderTop: '1px solid rgba(238,239,211,0.1)', paddingTop: 12 }}>
+                  {/* Full rescue analysis — all 8 ranked levers from the engine */}
+                  {rescue && rescue.fixes.length > 0 && (
+                    <div style={{ marginTop: 14, background: 'rgba(0,55,56,0.05)', border: '1px solid rgba(0,55,56,0.18)', borderRadius: 10, padding: '14px 16px' }}>
                           <button
                             type="button"
                             onClick={() => setShowRescue((s) => !s)}
@@ -1079,8 +1062,6 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                           )}
                         </div>
                       )}
-                    </div>
-                  )}
 
                   {/* Track 2 Rescue — investor cash flow fixes when Track 2 DSCR < 1.0 */}
                   {track2Rescue && dual.track2 < 1.0 && (

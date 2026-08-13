@@ -5,6 +5,7 @@
  */
 
 import { calculatePaymentFactor } from "../engine";
+import { calculate40YearPayment, calculateIORecastPayment } from "../engine/amortization";
 import { rescueTrack1 } from "../engine/loanOptimizer";
 
 export type CalcTab = "dscr" | "maxprice";
@@ -232,12 +233,74 @@ export interface DealFix {
   apply: Partial<DealSnapshot>;
 }
 
+/**
+ * Exact payment comparisons for the calculator's current balance and note
+ * rate. These are illustrations of the stated mathematical structures, not
+ * quote, eligibility, or approval determinations.
+ */
+export interface AmortizationRescuePreview {
+  currentMonthlyPI: number;
+  fortyYear: {
+    monthlyPI: number;
+    dscr: number;
+  };
+  interestOnly: {
+    monthlyPI: number;
+    dscr: number;
+    recastMonthlyPI: number;
+    recastDscr: number;
+  };
+}
+
 // 30-yr amortising payment factor. The math is the golden-tested engine
 // primitive (`calculatePaymentFactor`, pinned at 8.25%/30yr = 0.0075127) — this
 // wrapper only pins the term to 360 and keeps the calculator's display
 // convention that a 0% rate means "no payment" (the engine returns 1/n there).
 // NOTE: takes the rate as a PERCENT (7.25), matching the engine.
 const pf = (ratePct: number) => (ratePct === 0 ? 0 : calculatePaymentFactor(ratePct, 360));
+
+/**
+ * Model an unchanged-rate 40-year payment and a 10-year interest-only /
+ * 20-year recast payment against the calculator's current fixed costs.
+ */
+export function computeAmortizationRescuePreview(
+  deal: DealSnapshot,
+  opts: { taxYr: number },
+): AmortizationRescuePreview | null {
+  const { price, down, rent, rate, ins, hoa } = deal;
+  const values = [price, down, rent, rate, ins, hoa, opts.taxYr];
+  if (values.some((value) => !Number.isFinite(value)) || price <= 0 || rate <= 0) return null;
+
+  const loanAmount = price * (1 - down / 100);
+  const fixedCosts = opts.taxYr / 12 + ins / 12 + hoa;
+  if (loanAmount <= 0 || fixedCosts < 0) return null;
+
+  const currentMonthlyPI = loanAmount * pf(rate);
+  const fortyYearMonthlyPI = calculate40YearPayment(loanAmount, rate);
+  const interestOnlyMonthlyPI = loanAmount * (rate / 100 / 12);
+  const recastMonthlyPI = calculateIORecastPayment(loanAmount, rate, 240);
+  const payments = [currentMonthlyPI, fortyYearMonthlyPI, interestOnlyMonthlyPI, recastMonthlyPI];
+  if (payments.some((payment) => !Number.isFinite(payment) || payment < 0)) return null;
+
+  const dscrFor = (monthlyPI: number) => {
+    const monthlyPitia = monthlyPI + fixedCosts;
+    return monthlyPitia > 0 ? rent / monthlyPitia : 0;
+  };
+
+  return {
+    currentMonthlyPI,
+    fortyYear: {
+      monthlyPI: fortyYearMonthlyPI,
+      dscr: dscrFor(fortyYearMonthlyPI),
+    },
+    interestOnly: {
+      monthlyPI: interestOnlyMonthlyPI,
+      dscr: dscrFor(interestOnlyMonthlyPI),
+      recastMonthlyPI,
+      recastDscr: dscrFor(recastMonthlyPI),
+    },
+  };
+}
 
 function breakEvenRate(loan: number, targetPI: number): number {
   if (loan <= 0 || targetPI <= 0) return 0;

@@ -5,6 +5,7 @@ import {
   loadDealFromUrl,
   computeDealFixes,
   computeRescueAnalysis,
+  computeAmortizationRescuePreview,
   DEFAULT_DEAL,
 } from "./dealState";
 
@@ -105,5 +106,30 @@ describe("dealState", () => {
       ins: 1_200,
     });
     expect(computeRescueAnalysis(strong, { taxYr: 3_000, targetDscr: 1.0 })).toBeNull();
+  });
+
+  it("derives 40-year and IO-recast payments from the current deal inputs", () => {
+    const preview = computeAmortizationRescuePreview(
+      normalizeDeal({ ...DEFAULT_DEAL, price: 100_000, down: 20, rent: 1_000, rate: 6, ins: 0, hoa: 0 }),
+      { taxYr: 0 },
+    );
+
+    expect(preview).not.toBeNull();
+    // Hand-checked fixed-rate payment vectors for an $80,000 balance at 6.00%.
+    expect(preview!.currentMonthlyPI).toBeCloseTo(479.64, 2);
+    expect(preview!.fortyYear.monthlyPI).toBeCloseTo(440.17, 2);
+    expect(preview!.fortyYear.dscr).toBeCloseTo(2.27, 2);
+    expect(preview!.interestOnly.monthlyPI).toBe(400);
+    expect(preview!.interestOnly.recastMonthlyPI).toBeCloseTo(573.14, 2);
+    expect(preview!.interestOnly.recastDscr).toBeCloseTo(1.74, 2);
+  });
+
+  it("withholds amortization structure comparisons when no rate is modeled", () => {
+    const preview = computeAmortizationRescuePreview(
+      { ...DEFAULT_DEAL, rate: 0 },
+      { taxYr: 4_000 },
+    );
+
+    expect(preview).toBeNull();
   });
 });

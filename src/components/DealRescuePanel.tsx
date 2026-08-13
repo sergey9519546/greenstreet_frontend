@@ -1,169 +1,116 @@
 import React from 'react';
-import { Zap, ArrowUpRight, DollarSign, Percent, RefreshCw } from 'lucide-react';
-import { swatch, radius } from '../theme';
+import { ArrowUpRight } from 'lucide-react';
+import { font, radius, risk, swatch } from '../theme';
+import type { AmortizationRescuePreview, DealFix } from '../lib/dealState';
 
 export interface DealRescuePanelProps {
-  currentDSCR: number;
-  monthlyPITIA: number;
-  monthlyRent: number;
-  purchasePrice: number;
-  loanAmount: number;
-  currentRatePct: number;
-  onApplyAction: (actionKey: 'IO' | 'BUYDOWN' | 'SELLER_CREDIT' | 'TOP_UP_LTV' | 'AIRDNA_STR') => void;
+  /** The coverage ratio calculated from the live desk inputs. */
+  currentDscr: number;
+  /** The minimum coverage target used to derive `fixes`. */
+  targetDscr: number;
+  /** Concrete input patches derived from the current calculator scenario. */
+  fixes: readonly DealFix[];
+  /** Exact current-rate payment comparisons that are not directly applied. */
+  structurePreview?: AmortizationRescuePreview | null;
+  /** Applies the selected scenario patch in the calculator owner. */
+  onApplyFix: (fix: DealFix) => void;
 }
 
+const riskColor = (level: DealFix['risk']) => (
+  level === 'LOW' ? risk.positive : level === 'MODERATE' ? swatch.lemon : risk.dangerOnDark
+);
+
+/**
+ * A live calculator control, not a lender-program recommender. Every card is
+ * generated from the current scenario and the parent owns the actual state
+ * update, so a click immediately reruns the desk's normal calculations.
+ */
 export function DealRescuePanel({
-  currentDSCR,
-  monthlyPITIA,
-  monthlyRent,
-  purchasePrice,
-  loanAmount,
-  currentRatePct,
-  onApplyAction,
+  currentDscr,
+  targetDscr,
+  fixes,
+  structurePreview,
+  onApplyFix,
 }: DealRescuePanelProps) {
-  if (currentDSCR >= 1.0) {
-    return null; // Deal already qualifies (DSCR >= 1.0x)
-  }
-
-  // Calculate rescue metrics
-  const ioEstimatedPayment = (loanAmount * (currentRatePct / 100)) / 12 + (monthlyPITIA - (loanAmount * (currentRatePct / 100)) / 12);
-  const ioDSCRBoost = Math.max(0, (monthlyRent / (monthlyPITIA * 0.82)) - currentDSCR);
-  const topUpDownPaymentAmount = Math.round(purchasePrice * 0.05);
-
-  const actions = [
-    {
-      key: 'IO' as const,
-      icon: <Zap className="w-4 h-4" style={{ color: swatch.lemon }} />,
-      title: 'Switch to Interest-Only (IO)',
-      description: 'Lowers debt service by 15–22%, boosting DSCR by ~+0.15 points.',
-      badge: `+${ioDSCRBoost.toFixed(2)}x DSCR`,
-      tagColor: swatch.lemon,
-    },
-    {
-      key: 'BUYDOWN' as const,
-      icon: <Percent className="w-4 h-4" style={{ color: swatch.emerald }} />,
-      title: 'Add 1.0 Discount Point Buydown',
-      description: 'Reduces interest rate by ~0.25%, lowering monthly P&I payment.',
-      badge: '-0.25% Rate',
-      tagColor: swatch.emerald,
-    },
-    {
-      key: 'SELLER_CREDIT' as const,
-      icon: <DollarSign className="w-4 h-4" style={{ color: swatch.pistachio }} />,
-      title: 'Request 2% Seller Closing Credit',
-      description: 'Offsets upfront points without increasing borrower cash out-of-pocket.',
-      badge: 'Cash Neutral',
-      tagColor: swatch.pistachio,
-    },
-    {
-      key: 'TOP_UP_LTV' as const,
-      icon: <ArrowUpRight className="w-4 h-4" style={{ color: swatch.lemon }} />,
-      title: `Top-Up Down Payment by 5% ($${topUpDownPaymentAmount.toLocaleString()})`,
-      description: 'Lowers loan balance to drop into a lower LTV pricing tier.',
-      badge: 'Lower LTV Tier',
-      tagColor: swatch.lemon,
-    },
-    {
-      key: 'AIRDNA_STR' as const,
-      icon: <RefreshCw className="w-4 h-4" style={{ color: swatch.emerald }} />,
-      title: 'Switch to AirDNA STR Projection',
-      description: 'Underwrite using short-term rental market revenue data.',
-      badge: 'STR Market Net',
-      tagColor: swatch.emerald,
-    },
-  ];
+  if (fixes.length === 0) return null;
 
   return (
-    <div
-      className="p-5 my-4"
+    <section
+      aria-label="Interactive deal rescue"
       style={{
-        background: '#064a4c',
-        border: '1px solid rgba(216,217,88,0.3)',
-        borderRadius: radius.md,
+        marginTop: 20,
+        background: 'rgba(216,217,88,0.06)',
+        borderWidth: '1px 1px 1px 3px',
+        borderStyle: 'solid',
+        borderColor: 'rgba(216,217,88,0.28)',
+        borderLeftColor: swatch.lemon,
+        borderRadius: '0 10px 10px 0',
+        padding: '16px 18px',
       }}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <span
-          className="w-7 h-7 flex items-center justify-center font-bold text-xs"
-          style={{
-            background: 'rgba(216,217,88,0.2)',
-            color: swatch.lemon,
-            borderRadius: '50%',
-          }}
-        >
-          !
-        </span>
-        <div>
-          <h4
-            className="text-sm font-bold tracking-tight"
-            style={{ color: swatch.pistachio }}
-          >
-            Interactive Deal Rescue Panel
-          </h4>
-          <p className="text-xs" style={{ color: 'rgba(238,239,211,0.72)' }}>
-            Current DSCR is <span className="font-mono text-red-400 font-bold">{currentDSCR.toFixed(2)}x</span> (below 1.00x qualification floor). Select an optimization below to restructure:
-          </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: swatch.lemon }}>
+          Interactive deal rescue
         </div>
+        <span style={{ fontSize: 12, color: 'rgba(238,239,211,0.55)' }}>
+          Current {currentDscr.toFixed(2)}x · target {targetDscr.toFixed(2)}x
+        </span>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-        {actions.map((act) => (
-          <button
-            key={act.key}
-            onClick={() => onApplyAction(act.key)}
-            className="p-3 text-left transition flex flex-col justify-between group"
-            style={{
-              background: 'rgba(238,239,211,0.04)',
-              border: '1px solid rgba(238,239,211,0.14)',
-              borderRadius: radius.sm,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(216,217,88,0.12)';
-              e.currentTarget.style.borderColor = 'rgba(216,217,88,0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(238,239,211,0.04)';
-              e.currentTarget.style.borderColor = 'rgba(238,239,211,0.14)';
-            }}
-          >
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  {act.icon}
-                  <span
-                    className="text-xs font-bold"
-                    style={{ color: swatch.pistachio }}
-                  >
-                    {act.title}
-                  </span>
-                </div>
-                <span
-                  className="text-[10px] font-mono font-bold px-1.5 py-0.5"
-                  style={{
-                    background: `${act.tagColor}20`,
-                    color: act.tagColor,
-                    borderRadius: radius.pill,
-                  }}
-                >
-                  {act.badge}
-                </span>
+      <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: '0 0 12px', lineHeight: 1.5 }}>
+        Each option is calculated from this scenario. Applying one updates the calculator inputs and reruns the model.
+      </p>
+      <div style={{ display: 'grid', gap: 10 }}>
+        {fixes.map((fix) => (
+          <div key={fix.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', background: 'rgba(0,0,0,0.18)', borderRadius: 8, padding: '12px 14px', border: '1px solid rgba(238,239,211,0.08)' }}>
+            <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: swatch.pistachio }}>{fix.label}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: riskColor(fix.risk), background: 'rgba(238,239,211,0.06)', borderRadius: 100, padding: '2px 8px' }}>{fix.risk} risk</span>
+                <span style={{ fontSize: 12, fontFamily: font.mono, color: swatch.emerald }}>{fix.impact}</span>
               </div>
-              <p
-                className="text-[11px] leading-relaxed"
-                style={{ color: 'rgba(238,239,211,0.65)' }}
-              >
-                {act.description}
-              </p>
+              <div style={{ fontSize: 12.5, color: 'rgba(238,239,211,0.65)', lineHeight: 1.45 }}>{fix.description}</div>
             </div>
-            <div
-              className="mt-2 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 opacity-80 group-hover:opacity-100"
-              style={{ color: swatch.lemon }}
+            <button
+              type="button"
+              onClick={() => onApplyFix(fix)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: '0 0 auto', background: swatch.lemon, color: swatch.midnight, border: 'none', borderRadius: radius.sm, padding: '10px 14px', fontWeight: 700, fontSize: 13, fontFamily: font.family, cursor: 'pointer', minHeight: 44 }}
             >
-              Apply Rescue Strategy &rarr;
-            </div>
-          </button>
+              Apply {fix.label} <ArrowUpRight size={15} aria-hidden="true" />
+            </button>
+          </div>
         ))}
       </div>
-    </div>
+      {structurePreview && (
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(238,239,211,0.1)' }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(238,239,211,0.55)', marginBottom: 8 }}>
+            Model-only structure comparisons
+          </div>
+          <div style={{ marginBottom: 8, fontSize: 11.5, color: 'rgba(238,239,211,0.58)' }}>
+            Current 30-year P&amp;I ${Math.round(structurePreview.currentMonthlyPI).toLocaleString('en-US')}/mo
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 8 }}>
+            <div style={{ background: 'rgba(0,0,0,0.15)', borderRadius: 8, padding: '10px 12px' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: swatch.pistachio }}>40-year model</div>
+              <div style={{ marginTop: 3, fontSize: 12, color: 'rgba(238,239,211,0.68)' }}>
+                P&amp;I ${Math.round(structurePreview.fortyYear.monthlyPI).toLocaleString('en-US')}/mo · {structurePreview.fortyYear.dscr.toFixed(2)}x DSCR
+              </div>
+            </div>
+            <div style={{ background: 'rgba(0,0,0,0.15)', borderRadius: 8, padding: '10px 12px' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: swatch.pistachio }}>IO recast model</div>
+              <div style={{ marginTop: 3, fontSize: 12, color: 'rgba(238,239,211,0.68)', lineHeight: 1.45 }}>
+                P&amp;I ${Math.round(structurePreview.interestOnly.monthlyPI).toLocaleString('en-US')}/mo · {structurePreview.interestOnly.dscr.toFixed(2)}x during IO<br />
+                P&amp;I ${Math.round(structurePreview.interestOnly.recastMonthlyPI).toLocaleString('en-US')}/mo · {structurePreview.interestOnly.recastDscr.toFixed(2)}x after recast
+              </div>
+            </div>
+          </div>
+          <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.48)', margin: '9px 0 0', lineHeight: 1.45 }}>
+            Uses the current balance and rate. IO assumes 10 years without principal reduction, then a 20-year recast at the same rate; actual product terms, pricing, and underwriting can differ.
+          </p>
+        </div>
+      )}
+      <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.48)', margin: '12px 0 0', lineHeight: 1.45 }}>
+        These are scenario changes, not lender terms or approval outcomes. Confirm rent, pricing, and financing assumptions before acting.
+      </p>
+    </section>
   );
 }

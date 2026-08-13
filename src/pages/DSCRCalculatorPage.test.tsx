@@ -167,6 +167,16 @@ describe('DSCRCalculatorPage — live DSCR', () => {
     expect(readGaugeDscr()).toBeLessThan(before);
   });
 
+  it('applies an input-derived rescue lever to the live calculator scenario', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole('button', { name: /apply raise rent/i }));
+
+    await waitFor(() => expect(readGaugeDscr()).toBeCloseTo(1.25, 2));
+    expect(screen.queryByRole('button', { name: /apply raise rent/i })).not.toBeInTheDocument();
+  });
+
   it('tracks compounding edits — price, rent and rate together', async () => {
     const user = userEvent.setup();
     renderPage();
