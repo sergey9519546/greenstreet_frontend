@@ -2,26 +2,36 @@
 
 **Target Domain**: `https://www.greenstreet.finance` (Canonical Apex: `greenstreet.finance`)  
 **Runtime Engine**: Node 22.x / Vite 6.x / Express 4.x / Vitest 4.x  
-**Cloud Hosting**: Vercel Serverless / Firebase App Hosting / Cloud Functions  
+**Cloud Hosting**: Vercel Serverless (canonical production) / Firebase Hosting + Cloud Functions (alternative)
 
 ---
 
 ## 1. Environment Variable Configuration
 
-Ensure the following environment variables are supplied in the production environment:
+Configure the following values in the production host. Values prefixed with
+`VITE_` are compiled into the browser bundle; server credentials must never use
+that prefix or be committed to the repository.
 
 | Variable | Description | Example / Standard Value |
 | :--- | :--- | :--- |
-| `VITE_DOMAIN` | Canonical domain identity | `greenstreet.finance` |
-| `VITE_API_URL` | API server endpoint | `https://www.greenstreet.finance/api` |
-| `NODE_ENV` | Operational environment mode | `production` |
-| `FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON` | Firebase Admin SDK JSON credentials string | `{"type": "service_account", ...}` |
+| `APP_URL` | Canonical server origin | `https://www.greenstreet.finance` |
+| `ALLOWED_ORIGINS` | Exact browser origins allowed to call the API | `https://www.greenstreet.finance,https://greenstreet.finance` |
+| `VITE_DOMAIN` | Optional build-time canonical client domain | `greenstreet.finance` |
+| `VITE_API_URL` | Optional browser API base; leave unset for the same-origin default | `/api` |
+| `VITE_FIREBASE_*` | Confirmed Firebase browser configuration for authenticated workspace features | Host-provided project values |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | Server-only Firebase Admin service-account JSON for a non-Google host such as Vercel | `{"type": "service_account", ...}` |
+| `NODE_ENV` | Runtime mode | `production` (managed by Vercel; do not override there) |
+
+Firebase Cloud Functions receives Application Default Credentials from its
+managed runtime. A Vercel deployment instead needs
+`FIREBASE_SERVICE_ACCOUNT_JSON` supplied as an encrypted server-side secret
+before it can persist lead intake or use Firestore-backed rate limits.
 
 ---
 
 ## 2. Server Reverse Proxy & Trust Security
 
-The Express backend application in [`src/serverApp.ts`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/greenstreet_frontend/src/serverApp.ts) configures:
+The Express backend application in [`src/serverApp.ts`](../src/serverApp.ts) configures:
 
 ```ts
 // Explicitly set trust proxy for Vercel/Firebase reverse proxies
@@ -45,15 +55,25 @@ app.set("trust proxy", 1);
 
 ## 4. CI/CD Build & Verification Pipeline
 
-Run the complete verification pipeline before triggering a deployment:
+Run the CI-equivalent verification pipeline before triggering a deployment:
 
 ```bash
-# 1. Vitest Unit Test Suite (40 test files / 411 tests)
+# 1. Install the lockfile-resolved dependencies
+npm ci
+
+# 2. TypeScript type check
+npm run typecheck
+
+# 3. Full Vitest suite (node and DOM projects)
 npm test
 
-# 2. TypeScript Type Check (0 errors)
-npx tsc --noEmit
+# 4. Homepage fidelity contract
+npm run test:home-fidelity
 
-# 3. Production Bundle Build
+# 5. Production bundle build
 npm run build
+
+# 6. Repository and delivery contracts (run after the build)
+npm run test:project-brain
+npm run test:delivery
 ```
