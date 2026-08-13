@@ -2,12 +2,26 @@ import os
 import json
 from pathlib import Path
 
+# Keep the checked-in index reproducible from any checkout. Optional external
+# research roots retain the historical workstation layout when it is present,
+# but a clone can safely run this script with only repository documentation.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DOCUMENTS_ROOT = REPO_ROOT.parent
+
 # Target directories to index
 TARGET_DIRS = [
-    r"C:\Users\serge\OneDrive\Documents\DSCR_LOAN OFFICE\docs\dscr_loan_office",
-    r"C:\Users\serge\OneDrive\Documents\FINANCE DATASETS",
-    r"C:\Users\serge\OneDrive\Documents\obsidian-wiki-vault"
+    REPO_ROOT / "docs" / "dscr_loan_office",
+    DOCUMENTS_ROOT / "FINANCE DATASETS",
+    DOCUMENTS_ROOT / "obsidian-wiki-vault",
 ]
+
+# Add one or more extra roots without baking another machine-specific path into
+# source. Values use the platform path separator (";" on Windows, ":" on Unix).
+TARGET_DIRS.extend(
+    Path(directory).expanduser()
+    for directory in os.environ.get("PROJECT_BRAIN_EXTRA_DIRS", "").split(os.pathsep)
+    if directory.strip()
+)
 
 # Explicit exclusions
 EXCLUDE_DIRS = {
@@ -52,7 +66,7 @@ def generate_index():
                         "keywords": ["loan", "dscr", "underwriting"] if "dscr" in filepath.name.lower() else ["finance"]
                     })
     
-    out_dir = Path(r"C:\Users\serge\OneDrive\Documents\DSCR_LOAN OFFICE\docs\project_brain")
+    out_dir = REPO_ROOT / "docs" / "project_brain"
     out_dir.mkdir(parents=True, exist_ok=True)
     
     json_path = out_dir / "MASTER_RESEARCH_INDEX.json"

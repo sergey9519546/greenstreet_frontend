@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Project Brain CLI Query Tool for AI Agents
-Searches all 1,011 research papers, whitepapers, datasets, and guidelines.
+Searches the checked-in Project Brain research index.
 
 Usage:
   python scripts/query_project_brain.py "prepayment penalty Florida"
@@ -10,11 +10,12 @@ Usage:
 
 import sys
 import json
-import os
+from pathlib import Path
 
-INDEX_PATH = r"C:\Users\serge\OneDrive\Documents\DSCR_LOAN OFFICE\docs\project_brain\MASTER_RESEARCH_INDEX.json"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+INDEX_PATH = REPO_ROOT / "docs" / "project_brain" / "MASTER_RESEARCH_INDEX.json"
 
-if not os.path.exists(INDEX_PATH):
+if not INDEX_PATH.exists():
     print(f"Error: Master Research Index not found at {INDEX_PATH}")
     sys.exit(1)
 
@@ -51,7 +52,7 @@ for doc in docs:
 matches.sort(key=lambda x: x[0], reverse=True)
 
 print(f"=== PROJECT BRAIN KNOWLEDGE QUERY: '{query}' ===")
-print(f"Found {len(matches)} relevant documents across 1,011 research files:\n")
+print(f"Found {len(matches)} relevant documents across {len(docs)} indexed research files:\n")
 
 for score, doc in matches[:15]:
     size_kb = doc.get("size_bytes", 0) // 1024

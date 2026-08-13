@@ -6,6 +6,25 @@
 
 import masterIndex from './data/MASTER_RESEARCH_INDEX.json';
 
+// The bundled index predates the repository re-root and contains snapshots
+// recorded from several local checkout locations. Results are surfaced to
+// application code, so convert entries that identify this repository into a
+// portable repository-relative path instead of leaking a dead machine path.
+const LEGACY_REPOSITORY_ROOTS = [
+  'c:/users/serge/onedrive/documents/dscr_loan office/greenstreet_frontend/',
+  'c:/users/serge/onedrive/documents/dscr_loan office/',
+  'c:/users/serge/projects/greenstreet-finance/greenstreet_frontend/',
+  'c:/users/serge/projects/greenstreet-finance/',
+];
+
+export function normalizeResearchPath(path: string): string {
+  const normalized = path.replace(/\\/g, '/');
+  const lowerPath = normalized.toLowerCase();
+  const repositoryRoot = LEGACY_REPOSITORY_ROOTS.find((root) => lowerPath.startsWith(root));
+
+  return repositoryRoot ? normalized.slice(repositoryRoot.length) : path;
+}
+
 export interface ResearchDocMatch {
   title: string;
   path: string;
@@ -63,7 +82,7 @@ export class ResearchRetriever {
       if (score > 0) {
         matches.push({
           title: doc.title,
-          path: doc.path,
+          path: normalizeResearchPath(doc.path),
           sizeBytes: doc.size_bytes,
           category: doc.category,
           keywords: doc.keywords,
@@ -72,8 +91,15 @@ export class ResearchRetriever {
       }
     }
 
+    const seenPaths = new Set<string>();
+
     return matches
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .filter((match) => {
+        if (seenPaths.has(match.path)) return false;
+        seenPaths.add(match.path);
+        return true;
+      })
       .slice(0, maxResults);
   }
 

@@ -17,6 +17,8 @@
     "qa:interactions": "node scripts/interaction-qa.mjs",
     "test": "vitest run",
     "test:home-fidelity": "node scripts/check-home-contract.mjs",
+    "test:project-brain": "node scripts/check-project-brain-contract.mjs",
+    "test:delivery": "node scripts/check-delivery-contract.mjs",
     "test:watch": "vitest",
     "test:unit": "vitest run --project node",
     "test:dom": "vitest run --project dom"

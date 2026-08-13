@@ -1,8 +1,42 @@
-# COMPREHENSIVE AUDIT: 50 MASTER IMPROVEMENTS AND ARCHITECTURAL EXPANSIONS
+# AUDIT BACKLOG: 50 MASTER IMPROVEMENTS AND ARCHITECTURAL EXPANSIONS
 
-**System:** DSCR Sovereign OS & Project Brain  
-**Audit Date:** August 11, 2026  
-**Scope:** Math Formulas, State Compliance Laws, Lender Matrices, STR Rules, Software Architecture, and UI/UX Conversion.
+**System:** DSCR Sovereign OS & Project Brain
+**Audit Date:** August 11, 2026
+**Status reviewed:** August 13, 2026
+**Scope:** Math formulas, state-compliance research, lender matrices, STR rules, software architecture, and UI/UX conversion.
+
+> This is a research and delivery backlog, not a release note. “Implemented” below means a behavior is present in this repository and locally covered; it does not mean a lender guideline, rate, legal conclusion, provider integration, or deployed service has been verified. “Partial” means the repository contains a bounded implementation or prototype but not the complete behavior described here. “Planned” includes claims that require source verification, provider data, credentials, or a separately approved delivery effort.
+
+## Delivery Status Ledger
+
+| IDs | Status | Repository evidence or delivery boundary |
+| --- | --- | --- |
+| 1–2 | Implemented — scoped | The live calculator shows 40-year and IO-recast model comparisons from the current scenario. They are mathematical illustrations, not product quotes, eligibility decisions, or lender-term inputs. |
+| 3 | Implemented | Reassessment-aware tax/TCO modeling is present and locally tested; it remains a modeled estimate rather than a county-record feed. |
+| 4 | Planned | No climate-zone insurance forecast or verified geographic insurance-data integration is wired. |
+| 5 | Partial | Track 2 includes turnover and operating-reserve assumptions, not the exact leasing-placement-fee model stated below. |
+| 6 | Planned | The current reserve engine excludes crypto; the proposed eligibility and depletion treatment requires lender/source verification. |
+| 7 | Partial | Debt yield is calculated and surfaced, but there is no mandatory 5–9-unit commercial eligibility gate. |
+| 8 | Partial | A reserve-asset haircut map exists; it does not implement the stated age-aware depletion-income calculation. |
+| 9 | Partial | Program metadata identifies small-balance products, not the stated rate-add and minimum-DSCR enforcement. |
+| 10 | Partial | The points breakeven helper is unit-tested but is not connected to a live quote or deal workflow. |
+| 11–20 | Partial — source verification required | A general state PPP matrix and safeguards exist, but the listed 2026 legal claims and automatic repricing behavior are not a substitute for current primary-law and lender review. |
+| 21–29 | Partial — provider verification required | Program metadata and underwriting utilities cover portions of these scenarios; no live lender-feed, provider confirmation, or complete hard-gate implementation exists for the listed claims. |
+| 30 | Implemented | True-cost/AEY-style comparison flows are locally tested; results remain modeled estimates, not live lender quotes. |
+| 31 | Partial | STR legality inputs can hard-stop a modeled STR path, but municipal, HOA, and enforcement facts are caller-supplied rather than independently verified. |
+| 32 | Partial | STR underwriting applies documented/projection haircuts and appraisal-aware fallback logic; it has no live appraisal or AirDNA integration. |
+| 33 | Partial | A 12-month seasonality model flags off-season risk, but it uses supplied or baseline assumptions rather than market-verified forecasts. |
+| 34–37 | Partial — provider/property verification required | The repository has relevant property/program metadata, but not complete condotel, non-warrantable, acreage, and appraisal-condition hard gates. |
+| 38 | Planned | `decimal.js` is not a project dependency and financial calculations still use bounded JavaScript number arithmetic. |
+| 39 | Planned | Project Brain search remains a checked-in JSON/scoring tool; it is not SQLite FTS5 or a vector-search service. |
+| 40 | Partial | API routes use TypeScript/Zod schemas, not the specified Pydantic v2 model layer. |
+| 41 | Partial | The lead endpoint has validation, privacy, and rate-limit controls; OTP, enrichment, Turnstile, and fingerprinting are not integrated. |
+| 42 | Partial | The server has a guarded worker boundary; the proposed browser Monte Carlo worker with streaming progress is not delivered. |
+| 43–44 | Planned | No asynchronous IC-PDF queue or append-only PostgreSQL ledger plane is deployed in this repository. |
+| 45 | Implemented | Live modeled results distinguish Track 1 qualification from Track 2 investor carry, with local tests. |
+| 46 | Partial | Existing intake/calculator flows provide rapid estimates, but not the exact five-input production gateway specified here. |
+| 47–49 | Planned | The current product design does not implement the stated FaithFi token migration, New Spirit/Inter typography contract, or dedicated two-quote component. |
+| 50 | Implemented — scoped | `DealRescuePanel` is mounted in the live calculator, applies input-derived scenario patches, and shows 40-year/IO-recast comparisons. A rate-change scenario is not a quoted points buydown; points/buydown actions remain unavailable until quote inputs exist. |
 
 ---
 
@@ -349,8 +383,6 @@
 
 ---
 
-# AUDIT COMPLETION SUMMARY
+# AUDIT STATUS CONCLUSION
 
-All **50 Master Improvements and Expansions** have been systematically cataloged, mathematically formatted, and assigned to their exact system destinations across `docs/dscr_loan_office/`. 
-
-The Project Brain is fully equipped with these 50 advanced capabilities!
+All 50 entries are cataloged and assigned to candidate system destinations. The ledger above—not the aspirational wording in each entry—states their current delivery status. Do not present planned or partial items as production capabilities until their implementation, source provenance, and deployment behavior are separately verified.
