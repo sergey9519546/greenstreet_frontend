@@ -358,6 +358,9 @@ export default function StressMatrixPage({
     >
       {/* ── Global styles ──────────────────────────────────────────────── */}
       <style>{`
+        /* The break-even and waterfall pair drops to one column before its
+           numeric rows start wrapping. */
+        @media (max-width: 860px){ .sm-verdict-pair{grid-template-columns:minmax(0,1fr) !important;} }
         .sm-num::-webkit-outer-spin-button,.sm-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .sm-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};letter-spacing:-0.02em;}
         .sm-cell-mini{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;
@@ -757,10 +760,17 @@ export default function StressMatrixPage({
                   </div>
                 </div>
 
+                {/* Dual-track and the covenant test are one thought — "does it
+                    clear underwriting, and does it clear the note's covenant" —
+                    so they read as a row rather than as two stacked verdicts. */}
+                <div className="sm-verdict-pair" style={{
+                  marginTop: 16, display: "grid", gap: 16,
+                  gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)",
+                  alignItems: "stretch",
+                }}>
                 {/* ── Dual-track: lender (Track 1) vs investor survival (Track 2),
                        with the "Qualifies but Dangerous" flag (DSCR spec) ── */}
                 <div style={{
-                  marginTop: 16,
                   background: dualTrack.qualifiesButDangerous ? "rgba(224,99,99,0.10)" : "rgba(238,239,211,0.04)",
                   border: `1px solid ${dualTrack.qualifiesButDangerous ? "rgba(224,99,99,0.42)" : "rgba(238,239,211,0.10)"}`,
                   borderRadius: dc.r.sm, padding: "14px 18px",
@@ -801,7 +811,6 @@ export default function StressMatrixPage({
                   };
                   return (
                     <div style={{
-                      marginTop: 16,
                       background: covenantCheck.breach ? "rgba(224,99,99,0.10)" : covenantCheck.status === 'TIGHT' ? "rgba(216,217,88,0.08)" : "rgba(77,189,151,0.08)",
                       border: `1px solid ${covenantCheck.breach ? "rgba(224,99,99,0.42)" : covenantCheck.status === 'TIGHT' ? "rgba(216,217,88,0.25)" : "rgba(77,189,151,0.25)"}`,
                       borderRadius: dc.r.sm, padding: "14px 18px",
@@ -836,13 +845,25 @@ export default function StressMatrixPage({
                     </div>
                   );
                 })()}
+                </div>
 
-                {/* ── Break-even vacancy — how much occupancy loss the deal
-                       absorbs before DSCR < 1.00 (hardened per DSCR spec) ── */}
+                {/* Break-even vacancy and the shock waterfall sit side by side
+                    rather than stacked. Both are narrow — a single number with a
+                    sentence, and a short list of rows — so stacking them spent a
+                    full extra row of vertical space to show two things that fit
+                    on one. The verdict stack above the matrix ran ~547px, over a
+                    full screen, which is why the matrix itself needed scrolling
+                    to reach. Collapses to one column under 860px, where two
+                    columns would squeeze the waterfall's numeric rows. */}
+                <div className="sm-verdict-pair" style={{
+                  marginTop: 16, display: "grid", gap: 16,
+                  gridTemplateColumns: shockWaterfall.steps.length > 0 ? "minmax(0,1fr) minmax(0,1fr)" : "minmax(0,1fr)",
+                  alignItems: "start",
+                }}>
                 <div style={{
-                  marginTop: 16, display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap",
+                  display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap",
                   background: "rgba(238,239,211,0.04)", border: "1px solid rgba(238,239,211,0.10)",
-                  borderRadius: dc.r.sm, padding: "14px 18px",
+                  borderRadius: dc.r.sm, padding: "14px 18px", height: "100%",
                 }}>
                   <div style={{ flexShrink: 0 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>
@@ -867,7 +888,7 @@ export default function StressMatrixPage({
 
                 {/* ── Multi-shock waterfall — each active lever's marginal DSCR bite ── */}
                 {shockWaterfall.steps.length > 0 && (
-                  <div style={{ marginTop: 16, background: "rgba(238,239,211,0.04)", border: "1px solid rgba(238,239,211,0.10)", borderRadius: dc.r.sm, padding: "14px 18px" }}>
+                  <div style={{ background: "rgba(238,239,211,0.04)", border: "1px solid rgba(238,239,211,0.10)", borderRadius: dc.r.sm, padding: "14px 18px", height: "100%" }}>
                     <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 10 }}>Where the damage comes from</div>
                     <div style={{ display: "grid", gap: 7 }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, fontSize: 12.5 }}>
@@ -885,6 +906,7 @@ export default function StressMatrixPage({
                     </div>
                   </div>
                 )}
+                </div>
 
                 {/* ── Plain-language verdict ─────────────────────── */}
                 <div style={{
