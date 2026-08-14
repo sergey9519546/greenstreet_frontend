@@ -127,6 +127,17 @@ export function compareLoanStructures(input: StructureComparisonInput) {
       monthlyHoa: returnAssumptions.hoaMonthly,
       exitCapRatePct: fixedSchedule.exit.exitCapRatePct,
       holdYears: fixedSchedule.exit.year,
+      // The exit cap is the single input that decides this IRR, and stating it
+      // as a bare percentage hides what it assumes about the property. At the
+      // 6.5% default against this scenario's 4.57% entry cap the model sells a
+      // $500,000 house for $403,169 — a 19% nominal price decline, shown to the
+      // reader only as "6.5% exit cap". returnsEngine documents this field as
+      // "assume 25-100 bps above your entry cap"; 6.5% sits ~193 bps above it.
+      // Surfacing the resulting price and the spread so the assumption is
+      // legible, the way DecisionSupportPage already shows its spread.
+      entryCapRatePct: fixedSchedule.metrics.entryCapRatePct,
+      impliedSalePrice: fixedSchedule.exit.grossSalePrice,
+      purchasePrice: input.purchasePrice,
       cashOnCash: {
         vacancyPct: track2.vacancyApplied,
         managementPct: track2.managementApplied,

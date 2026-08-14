@@ -125,6 +125,25 @@ export default function StructureOptimizerPage({ onNavigate }: { onBack?: () => 
               </Card>
             ))}
           </div>
+          {/* The IRR above is dominated by one assumption, and quoting it as a
+              bare cap rate reads as neutral when it is not: at the default it
+              sells the property for materially less than the purchase price.
+              Stated in dollars here so a reader can accept or reject it, rather
+              than having to work back from a percentage buried in the
+              assumptions note below. */}
+          {Number.isFinite(assumptions.impliedSalePrice) && assumptions.impliedSalePrice > 0 && (
+            <p style={{ color: INK_DIM, fontSize: 12, lineHeight: 1.6, margin: "4px 0 0" }}>
+              That IRR assumes the property is sold in year {assumptions.holdYears} for{" "}
+              <strong style={{ color: INK }}>{money(assumptions.impliedSalePrice)}</strong>{" "}
+              ({pct(((assumptions.impliedSalePrice - assumptions.purchasePrice) / assumptions.purchasePrice) * 100, 1)}{" "}
+              against the {money(assumptions.purchasePrice)} purchase price), because it values the
+              exit at a {pct(assumptions.exitCapRatePct, 2)} cap against this scenario&apos;s{" "}
+              {pct(assumptions.entryCapRatePct, 2)} entry cap — a{" "}
+              {pct(assumptions.exitCapRatePct - assumptions.entryCapRatePct, 2)} spread. No property
+              appreciation is modeled. Change that one assumption and this number moves more than any
+              other input on the page.
+            </p>
+          )}
           <p style={{ color: INK_DIM, fontSize: 12, lineHeight: 1.6, margin: "4px 0 0" }}>
             Five-year after-tax IRR is shown only for the fixed-rate structure. It is not established for the interest-only or ARM examples because this returns model does not simulate their payment changes.
           </p>
