@@ -233,7 +233,7 @@ const PAGE_CSS = `
 }
 .bp-btn:hover { transform: translateY(-2px); }
 .bp-btn:active { transform: translateY(1px); }
-.bp-btn:focus-visible, .bp-profile-button:focus-visible, .bp-card:focus-visible { outline: 2px solid ${dc.lemon}; outline-offset: 3px; }
+.bp-btn:focus-visible, .bp-profile-button:focus-visible { outline: 2px solid ${dc.lemon}; outline-offset: 3px; }
 .bp-btn-primary { background: ${dc.lemon}; color: ${dc.dark}; }
 .bp-btn-secondary { background: rgba(238,239,211,0.08); color: ${dc.cream}; border-color: rgba(238,239,211,0.24); }
 .bp-btn-secondary:hover { background: ${dc.cream}; color: ${dc.dark}; border-color: ${dc.cream}; }
@@ -251,22 +251,11 @@ const PAGE_CSS = `
 .bp-hero-metric + .bp-hero-metric { padding-left: 22px; }
 .bp-hero-metric strong { display: block; font-family: ${dc.mono}; font-size: clamp(24px, 2.2vw, 34px); letter-spacing: -0.04em; color: ${dc.lemon}; line-height: 1; }
 .bp-hero-metric span { display: block; margin-top: 7px; font-size: 12px; color: rgba(238,239,211,0.64); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
-.bp-rail {
-  background: ${dc.dark};
-  border-top: 1px solid rgba(238,239,211,0.14);
-  color: ${dc.cream};
-}
-.bp-rail-inner {
-  max-width: ${dc.maxW}px;
-  margin: 0 auto;
-  padding: 18px ${dc.pad};
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 18px;
-  align-items: center;
-}
-.bp-rail-label { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(238,239,211,0.58); }
-.bp-rail-buttons { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+/* .bp-chip is now only the document tags inside the dossier. It used to double
+   as the sticky lane rail directly under the hero — a third control selecting
+   the same five profiles the workbench list already selects. The tags are
+   spans, not buttons, so the old cursor/hover/is-active affordances are gone
+   with it; they were advertising a click that never existed here. */
 .bp-chip {
   border: 1px solid rgba(238,239,211,0.18);
   border-radius: 8px;
@@ -275,10 +264,7 @@ const PAGE_CSS = `
   padding: 10px 12px;
   white-space: nowrap;
   font: 750 13px/1 ${dc.sans};
-  cursor: pointer;
-  transition: background .18s ease, color .18s ease, border-color .18s ease;
 }
-.bp-chip.is-active, .bp-chip:hover { background: ${dc.lemon}; color: ${dc.dark}; border-color: ${dc.lemon}; }
 .bp-section { padding: clamp(72px, 8vw, 132px) 0; }
 .bp-section-head {
   display: grid;
@@ -391,48 +377,51 @@ const PAGE_CSS = `
 .bp-dossier-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
 .bp-note { margin-top: 20px; max-width: 860px; }
 .bp-matrix { background: ${dc.mintBg}; border-top: 1px solid rgba(0,55,56,0.16); }
-.bp-card-grid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
-}
-.bp-card {
-  grid-column: span 2;
-  min-height: 260px;
-  border: 1px solid rgba(0,55,56,0.17);
-  border-radius: 10px;
-  background: ${dc.cream};
-  color: ${dc.dark};
-  padding: clamp(20px, 2vw, 28px);
+/* The matrix used to be a second grid of clickable profile cards, which made
+   this page render every lane's name three times (rail chip, workbench button,
+   card) and its one-line fit twice. A table is the one view the workbench
+   genuinely cannot give: the dossier shows a single lane in depth, this shows
+   all five on the same row so the numbers can be read against each other.
+   It also retires the old .bp-card rules, which were unscoped and were
+   landing on the marketing shell's own .bp-card elements in index.html. */
+.bp-cmp-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.bp-cmp {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
   text-align: left;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: transform .18s ease, border-color .18s ease, background .18s ease;
-}
-.bp-card:nth-child(1), .bp-card:nth-child(5) { grid-column: span 3; }
-.bp-card:hover { transform: translateY(-4px); border-color: ${dc.dark}; background: #f4f5dc; }
-.bp-card.is-active { background: ${dc.dark}; color: ${dc.cream}; border-color: ${dc.dark}; }
-.bp-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
-.bp-card-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: ${dc.mintBg};
   color: ${dc.dark};
+  font-size: 14px;
 }
-.bp-card.is-active .bp-card-icon { background: ${dc.lemon}; color: ${dc.dark}; }
-.bp-card h3 { margin: 24px 0 9px; font-size: clamp(24px, 2.6vw, 38px); line-height: 1; letter-spacing: -0.025em; font-weight: 600; }
-.bp-card p { margin: 0; color: rgba(0,55,56,0.66); font-size: 14px; line-height: 1.48; letter-spacing: 0; }
-.bp-card.is-active p { color: rgba(238,239,211,0.70); }
-.bp-card-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
-.bp-card-meta span { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(0,55,56,0.48); margin-bottom: 4px; }
-.bp-card.is-active .bp-card-meta span { color: rgba(238,239,211,0.48); }
-.bp-card-meta strong { font-size: 14px; line-height: 1.25; }
+.bp-cmp caption { text-align: left; padding-bottom: 14px; font-size: 13px; color: rgba(0,55,56,0.62); }
+.bp-cmp th, .bp-cmp td { padding: 14px 16px; border-bottom: 1px solid rgba(0,55,56,0.14); vertical-align: top; }
+.bp-cmp thead th {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(0,55,56,0.55);
+  border-bottom: 1px solid rgba(0,55,56,0.28);
+  white-space: nowrap;
+}
+.bp-cmp tbody th { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; white-space: nowrap; }
+.bp-cmp tbody tr.is-active { background: rgba(0,55,56,0.06); }
+.bp-cmp tbody tr.is-active th { box-shadow: inset 3px 0 0 ${dc.lemon}; }
+.bp-cmp-jump {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: rgba(0,55,56,0.28);
+  text-underline-offset: 3px;
+}
+.bp-cmp-jump:hover { text-decoration-color: ${dc.dark}; }
+.bp-cmp-jump:focus-visible { outline: 2px solid ${dc.lemon}; outline-offset: 3px; }
+.bp-cmp-kicker { display: block; font-weight: 400; font-size: 12px; color: rgba(0,55,56,0.55); margin-top: 3px; }
 .bp-file { background: ${dc.cream}; }
 .bp-file-grid {
   display: grid;
@@ -488,8 +477,6 @@ const PAGE_CSS = `
   .bp-hero-copy { padding-top: 72px; }
   .bp-section-head, .bp-workbench-grid { grid-template-columns: 1fr; }
   .bp-profile-list { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .bp-card-grid { grid-template-columns: 1fr 1fr; }
-  .bp-card, .bp-card:nth-child(1), .bp-card:nth-child(5) { grid-column: span 1; }
 }
 @media (max-width: 640px) {
   .bp-hero {
@@ -502,8 +489,7 @@ const PAGE_CSS = `
   .bp-hero-metrics { grid-template-columns: 1fr; }
   .bp-hero-metric, .bp-hero-metric + .bp-hero-metric, .bp-hero-metric:last-child { padding: 14px 0; border-right: 0; border-bottom: 1px solid rgba(238,239,211,0.16); }
   .bp-hero-metric:last-child { border-bottom: 0; }
-  .bp-rail-inner { grid-template-columns: 1fr; }
-  .bp-profile-list, .bp-card-grid, .bp-spec-grid { grid-template-columns: 1fr; }
+  .bp-profile-list, .bp-spec-grid { grid-template-columns: 1fr; }
   .bp-spec, .bp-spec:nth-child(2) { border-right: 0; border-bottom: 1px solid rgba(238,239,211,0.12); }
   .bp-spec:last-child { border-bottom: 0; }
   .bp-dossier-main, .bp-dossier-side, .bp-dossier-block { padding: 24px 18px; }
@@ -634,23 +620,8 @@ export default function BorrowerProfilesPage({
           </div>
         </section>
 
-        <section className="bp-rail" aria-label="Borrower profile shortcuts">
-          <div className="bp-rail-inner">
-            <div className="bp-rail-label">Choose a lane</div>
-            <div className="bp-rail-buttons">
-              {PROFILES.map((profile) => (
-                <button
-                  key={profile.id}
-                  type="button"
-                  className={`bp-chip${profile.id === activeId ? " is-active" : ""}`}
-                  onClick={() => chooseProfile(profile.id, true)}
-                >
-                  {profile.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* The lane rail that used to sit here selected the same five profiles
+            the workbench list below already selects, one screen apart. */}
 
         <section id="profile-workbench" className="bp-section bp-workbench">
           <div className="bp-wrap">
@@ -660,7 +631,7 @@ export default function BorrowerProfilesPage({
                 <h2>One screen for the lane, the terms, and the trap doors.</h2>
               </div>
               <p className="bp-section-copy">
-                The old page made users read five long essays. This version behaves like an intake desk: choose the borrower, see the underwriting lane, then check what can stop the file before anyone locks a rate.
+                Choose the borrower, read the lane it lands in, then check what can stop the file before anyone locks a rate.
               </p>
             </div>
 
@@ -756,44 +727,56 @@ export default function BorrowerProfilesPage({
           <div className="bp-wrap">
             <div className="bp-section-head">
               <div>
-                <div className="bp-eyebrow" style={{ color: dc.rain }}>Comparison matrix</div>
-                <h2>Every profile should feel like a real underwriting path.</h2>
+                <div className="bp-eyebrow" style={{ color: dc.rain }}>Side by side</div>
+                <h2>What changes when the borrower changes.</h2>
               </div>
               <p className="bp-section-copy">
-                The cards below are not generic personas. Each one carries a different document burden, pricing story, reserve expectation, and risk flag.
+                Same property, different borrower, different file. Leverage, credit floor and reserves all move — and the lane with the best DSCR is not always the one with the easiest documents.
               </p>
             </div>
-            <div className="bp-card-grid">
-              {PROFILES.map((profile) => {
-                const Icon = profile.icon;
-                return (
-                  <button
-                    key={profile.id}
-                    type="button"
-                    className={`bp-card${profile.id === activeId ? " is-active" : ""}`}
-                    onClick={() => chooseProfile(profile.id, true)}
-                  >
-                    <span>
-                      <span className="bp-card-top">
-                        <span className="bp-card-icon"><Icon size={21} strokeWidth={2} /></span>
-                        <Mono style={{ fontSize: 18, fontWeight: 800 }}>{profile.dscr.toFixed(2)}x</Mono>
-                      </span>
-                      <h3>{profile.label}</h3>
-                      <p>{profile.fit}</p>
-                    </span>
-                    <span className="bp-card-meta">
-                      <span>
-                        <span>Program</span>
-                        <strong>{profile.program}</strong>
-                      </span>
-                      <span>
-                        <span>Pricing read</span>
-                        <strong>{profile.priceBand}</strong>
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
+            {/* One row per lane so the columns can be read against each other.
+                The workbench above answers "what is this lane"; this answers
+                "how does it compare", which is the only question a single
+                dossier cannot. Lane names link back up rather than duplicating
+                the selector a third time. */}
+            <div className="bp-cmp-scroll">
+              <table className="bp-cmp">
+                <caption>Illustrative program positioning for scenario triage — not a rate sheet. Select a lane to open it in the workbench above.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Borrower lane</th>
+                    <th scope="col">Illustrative DSCR</th>
+                    <th scope="col">Max leverage</th>
+                    <th scope="col">Credit floor</th>
+                    <th scope="col">Reserves</th>
+                    <th scope="col">Complexity</th>
+                    <th scope="col">Pricing read</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {PROFILES.map((profile) => (
+                    <tr key={profile.id} className={profile.id === activeId ? "is-active" : undefined}>
+                      <th scope="row">
+                        <button
+                          type="button"
+                          className="bp-cmp-jump"
+                          onClick={() => chooseProfile(profile.id, true)}
+                          aria-pressed={profile.id === activeId}
+                        >
+                          {profile.label}
+                        </button>
+                        <span className="bp-cmp-kicker">{profile.kicker}</span>
+                      </th>
+                      <td><Mono style={{ fontWeight: 800 }}>{profile.dscr.toFixed(2)}x</Mono></td>
+                      <td>{profile.ltv}</td>
+                      <td>{profile.fico}</td>
+                      <td>{profile.reserves}</td>
+                      <td>{profile.complexity}</td>
+                      <td>{profile.priceBand}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
@@ -802,9 +785,9 @@ export default function BorrowerProfilesPage({
           <div className="bp-wrap bp-file-grid">
             <div>
               <div className="bp-eyebrow" style={{ color: dc.rain }}>Submission file</div>
-              <h2>Make the borrower profile prove itself.</h2>
+              <h2>What the file has to prove.</h2>
               <p className="bp-section-copy" style={{ marginTop: 22 }}>
-                A profile page should not stop at marketing copy. These are the four evidence groups that decide whether the file reaches pricing cleanly or comes back with conditions.
+                Four evidence groups decide whether the file reaches pricing cleanly or comes back with conditions. Assemble them before submission, not after the first request.
               </p>
             </div>
             <div className="bp-doc-list">
@@ -830,10 +813,10 @@ export default function BorrowerProfilesPage({
             <div className="bp-section-head">
               <div>
                 <div className="bp-eyebrow">Strict file audit</div>
-                <h2>These are the profile failures that deserve the spotlight.</h2>
+                <h2>What actually sinks these files.</h2>
               </div>
               <p className="bp-section-copy">
-                The redesign puts the risks where users actually make choices. No buried warning paragraphs, no soft disclaimer after the decision has already been made.
+                Each of these turns up after a lane looks clean on paper. They are listed here, next to the decision, rather than in a disclaimer further down the page.
               </p>
             </div>
             <div className="bp-redflag-list">
