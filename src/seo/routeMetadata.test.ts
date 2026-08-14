@@ -41,8 +41,26 @@ describe("public route metadata", () => {
     ["/tools/tax-engine", "tax-engine"],
     ["/tools/returns", "returns"],
     ["/unpublished-path", "not-found"],
+    // Retired partner aliases, paired with the view resolve.ts actually returns
+    // for them today — not the view they used to carry. A metadata alias used
+    // to run ahead of both the portal and not-found guards and force each to
+    // index,follow, publishing the private workspace and a 404 to search
+    // engines as "Partner With Greenstreet".
+    ["/partnerships", "portal"],
+    ["/partners", "portal"],
+    ["/become-a-partner", "not-found"],
   ] as const)("keeps protected, held, and unknown paths out of search: %s", (pathname, view) => {
     expect(getRouteMetadata({ pathname, view }).robots).toBe("noindex,nofollow");
+  });
+
+  it("does not advertise a retired partner alias as a page that still renders", () => {
+    // `brokers-partner` is unreachable: nothing in resolve.ts resolves to it,
+    // so no metadata may point at it as a live destination.
+    for (const pathname of ["/partnerships", "/partners"]) {
+      const metadata = getRouteMetadata({ pathname, view: "portal" });
+      expect(metadata.title).not.toMatch(/Partner With Greenstreet/);
+      expect(metadata.canonical).not.toBe(`${SITE_ORIGIN}/partners`);
+    }
   });
 
   it("keeps every held tool out of search results", () => {

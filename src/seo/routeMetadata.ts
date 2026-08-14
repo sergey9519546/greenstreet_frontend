@@ -297,7 +297,16 @@ export function getRouteMetadata({ pathname, view }: RouteMetadataInput): RouteM
   // PUBLIC_PAGES["lender-intel"] below with its own title and canonical. Only
   // /products/platform still aliases to the Products page.
   if (path === "/products/platform") return indexed(PUBLIC_PAGES.products!);
-  if (["/become-a-partner", "/partnerships"].includes(path)) return indexed(PUBLIC_PAGES["brokers-partner"]!);
+  // No partner alias here. "Partnerships" was retired from the primary nav
+  // (see navModel.ts) and no path resolves to the `brokers-partner` view any
+  // more: resolve.ts sends /partners and /partnerships to `portal`, and
+  // /become-a-partner to `not-found`. This alias used to run BEFORE the portal
+  // guard below and the not-found guard after it, so it overrode both — which
+  // published the private InvestGO workspace and a 404 to search engines as an
+  // indexable "Partner With Greenstreet" page, canonicalized to /partners,
+  // which is itself the workspace. Dropping it lets each path reach the guard
+  // that actually describes what renders. Restoring a public partner page is a
+  // routing + content decision, not a metadata one.
 
   if (path.startsWith("/blog/")) {
     const slug = path.slice("/blog/".length);
