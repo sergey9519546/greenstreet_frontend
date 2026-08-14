@@ -1143,6 +1143,56 @@
 
 }
 
+/* ── Scroll-authored reveal ───────────────────────────────────────────────
+   Native CSS scroll-driven animation. No JS, no rAF, no scroll listener, no
+   sticky — so there is nothing to initialise, nothing to tear down, and nothing
+   that can leave the section holding scroll space for an effect that failed.
+   The section's height is identical with and without this block.
+
+   Two rules make it safe to ship without watching it run:
+
+   1. It is gated on @supports, so a browser without scroll-driven animation
+      gets the plain section rather than a half-applied state.
+   2. Every start state is READABLE. Nothing animates from opacity 0. If the
+      animation never advances for any reason, the worst case is slightly dim
+      and 10px low — still legible, still clickable. Revealing from zero would
+      trade a nice entrance for a chance of invisible content, which is not a
+      trade worth making on a section that carries the property guidance.
+
+   Scroll position is the only clock, so this stays inside the no-ambient-motion
+   rule in DESIGN_SOURCE_OF_TRUTH.md:70-77 — at rest nothing moves. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .gs-property-home__headline,
+    .gs-property-home__lede,
+    .gs-property-home__stage {
+      animation: gs-ph-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 8% cover 24%;
+    }
+
+    /* The rail reads left-to-right, so it arrives that way. nth-child rather
+       than a per-tab delay keeps this entirely declarative. */
+    .gs-property-home__tab {
+      animation: gs-ph-arrive linear both;
+      animation-timeline: view();
+      animation-range: entry 6% cover 22%;
+    }
+    .gs-property-home__tab:nth-child(n + 4) { animation-range: entry 9% cover 26%; }
+    .gs-property-home__tab:nth-child(n + 7) { animation-range: entry 12% cover 30%; }
+  }
+}
+
+@keyframes gs-ph-rise {
+  from { opacity: 0.35; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes gs-ph-arrive {
+  from { opacity: 0.45; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gs-property-home *,
   .gs-property-home *::before,
