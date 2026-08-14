@@ -5,7 +5,18 @@
 export const swatch = {
   midnight: "#003738",        // --swatch--midnight-green
   midnightFaded: "#00373880", // --swatch--midnight-green-faded
-  darkTeal: "#004041",        // --swatch--dark-teal
+  // Was "#004041". Collapsed onto midnight: it was a third ground sitting 9 RGB
+  // points from #003738, used as the card fill across ~32 files, and
+  // DESIGN_SOURCE_OF_TRUTH allows two surfaces with "no in-between tint" — it
+  // names this exact hex as the single biggest reason app pages stopped looking
+  // like the homepage. Collapsed here, at the swatch, because pages reach the
+  // value two ways (dc.teal and swatch.darkTeal directly); fixing only dc.teal
+  // would have left seven files still painting the old ground.
+  // Safe: every consumer uses it as a background — no border, gradient or
+  // stroke reads from it — so nothing goes invisible when the two grounds
+  // match. Cards separate on their own 1px borders, which is how this flat
+  // system is meant to work.
+  darkTeal: "#003738",        // --swatch--dark-teal (now == midnight)
   mint: "#e8e9bf",            // --swatch--mint
   pistachio: "#eeefd3",       // --swatch--pistachio
   pistachioFaded: "#eeefd333",

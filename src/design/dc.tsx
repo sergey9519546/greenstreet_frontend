@@ -89,7 +89,23 @@ export const dc = {
   mintBg: MINT_BG,         // #e8e9bf
   lemon: LEMON,            // #d8d958
   rain: RAINFOREST,        // #006565
-  teal: swatch.darkTeal,   // #004041
+  // Collapsed to the canonical dark surface. This was #004041 — a third ground
+  // sitting 9 RGB points from #003738, used as the card fill on 32 files and
+  // ~74 call sites. DESIGN_SOURCE_OF_TRUTH allows two surfaces and states there
+  // is "no in-between tint"; the doc names this specific hex as the single
+  // biggest reason app pages stopped looking like the homepage.
+  //
+  // Fixed at the token rather than across 32 files so it cannot drift back one
+  // page at a time. Safe to collapse because every dc.teal usage is a
+  // background — verified no border, gradient or stroke reads from it, so
+  // nothing becomes invisible by the two grounds matching. Cards stay legible
+  // on their own 1px borders, which is how the flat system separates surfaces
+  // anyway (no shadows, per the same doc).
+  //
+  // Kept as a named token instead of deleted so the 74 call sites keep
+  // compiling and any future divergence is a deliberate edit here, not a hex
+  // pasted into a page.
+  teal: MIDNIGHT,          // was #004041 — now the same ground as dc.dark
   emerald: swatch.emerald, // #4dbd97
   // Semantic accent split (W4 — ration the brand color). Lemon is RESERVED for
   // the ONE live/primary action per view (the changing CountUp number, the

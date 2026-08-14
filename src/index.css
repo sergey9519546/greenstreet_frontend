@@ -22,7 +22,9 @@
 
   /* Precise color tokens as requested */
   --color-midnight-green: #003738;
-  --color-dark-teal: #004041;
+  /* Collapsed onto midnight — see src/theme.ts. #004041 was a third ground
+     nine RGB points from #003738; the design system allows two surfaces. */
+  --color-dark-teal: #003738;
   --color-rain-forest: #006565;
   --color-light-green: #039692;
   --color-emerald: #4dbd97;
@@ -40,9 +42,9 @@
   --color-slate-200: rgba(0, 55, 56, 0.15);
   --color-slate-300: rgba(0, 55, 56, 0.25);
   --color-slate-400: #4dbd97;
-  --color-slate-500: #004041;
+  --color-slate-500: #003738;
   --color-slate-600: #003738;
-  --color-slate-700: #004041;
+  --color-slate-700: #003738;
   --color-slate-800: #003738;
   --color-slate-900: #002d2e;
 }
