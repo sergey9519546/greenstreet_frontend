@@ -3,6 +3,7 @@ import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
 import { computeAfterTaxIRR } from "../engine/taxEngine";
 import { calculatePI } from "../engine/engine";
+import { deriveExitCapRatePct } from "../engine/returnsEngine";
 import type { TaxProfile, FilingStatus } from "../engine/types";
 import { risk } from "../theme";
 
@@ -46,6 +47,15 @@ export default function TaxEnginePage({
         monthlyRent * 12 * 0.85 - annualTaxes - annualInsurance - hoa * 12;
       const pitiaMonthly =
         piMonthly + annualTaxes / 12 + annualInsurance / 12 + hoa;
+      // Exit cap is DERIVED from this deal's own entry cap (year-1 NOI ÷
+      // purchase price), not a flat constant — see
+      // returnsEngine.deriveExitCapRatePct. `annualNOI` above already excludes
+      // debt service and is independent of the exit cap, so this is a plain
+      // single-pass calculation (no rebuild needed, unlike the schedule-based
+      // pages that have to re-run buildReturnsSchedule to pick up a derived
+      // exit cap's effect on cash flow).
+      const entryCapRatePct =
+        purchasePrice > 0 ? (annualNOI / purchasePrice) * 100 : 0;
       const taxProfile: TaxProfile = {
         ordinaryIncomeBrackets: [],
         magi,
@@ -60,7 +70,7 @@ export default function TaxEnginePage({
         placedInServiceDate: "2024-01-01",
         expectedHoldYears: holdYears,
         exitSellingCostsPct: 7,
-        exitCapRatePct: 6.5,
+        exitCapRatePct: deriveExitCapRatePct(entryCapRatePct),
         section1031Exchange: false,
       };
       const irrResult = computeAfterTaxIRR(

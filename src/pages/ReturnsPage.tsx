@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import { resolveInitialDeal } from "../lib/dealState";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
-import { computeReturns, computeRemainingBalance } from "../engine/returnsEngine";
+import { computeReturns, computeRemainingBalance, buildReturnsSchedule, deriveExitCapRatePct } from "../engine/returnsEngine";
 import type { PropertyInputs, LoanStructure } from "../engine/types";
 import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { computeLossScenarios, type LossScenario } from "../engine/lossFraming";
@@ -264,7 +264,21 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
   const [annualInsurance, setAnnualInsurance] = useState(seed.ins);
   const [hoa,             setHoa]             = useState(seed.hoa);
   const [holdYears,       setHoldYears]       = useState(5);
-  const [exitCapRate,     setExitCapRate]      = useState(5.75);
+  // Seed from THIS scenario's own entry cap (year-1 NOI ÷ purchase price,
+  // computed against the deal-desk seed above) + the documented 25-100bps
+  // spread (see returnsEngine.DEFAULT_EXIT_CAP_SPREAD_PCT) — replacing what
+  // used to be a flat 5.75% regardless of the seeded deal. Computed once, at
+  // mount; the slider below is still fully user-editable.
+  const [exitCapRate,     setExitCapRate]      = useState(() => {
+    const seedEntryCapRatePct = buildReturnsSchedule({
+      purchasePrice: seed.price,
+      grossRentMonthly: seed.rent,
+      annualTaxes: seed.tax,
+      annualInsurance: seed.ins,
+      hoaMonthly: seed.hoa,
+    }).metrics.entryCapRatePct;
+    return Math.round(deriveExitCapRatePct(seedEntryCapRatePct) * 100) / 100;
+  });
   const [rentGrowth,      setRentGrowth]      = useState(4);
   const [vacancy,         setVacancy]         = useState(5);
   const [prepayAtExit,    setPrepayAtExit]    = useState(2);
@@ -305,9 +319,14 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
         purpose: "PURCHASE", expectedHoldYears: holdYears, points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0,
       };
       const penalty = (prepayAtExit / 100) * (purchasePrice * (1 - ltv / 100));
-      return computeReturns(property, loan, monthlyRent, "LTR", rate, penalty);
+      // The Exit Cap Rate slider reaches this call now. It previously fed only
+      // calcIRR below, so the equity multiple, entry cap, yield-on-cost and
+      // debt yield in the hero and yield stack were priced off a different
+      // exit than the IRR displayed beside them, and dragging the slider moved
+      // one number while the others sat still.
+      return computeReturns(property, loan, monthlyRent, "LTR", rate, penalty, undefined, exitCapRate);
     } catch { return null; }
-  }, [purchasePrice, ltv, monthlyRent, rate, holdYears, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa, prepayAtExit]);
+  }, [purchasePrice, ltv, monthlyRent, rate, holdYears, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa, prepayAtExit, exitCapRate]);
 
   // ── derived ───────────────────────────────────────────────────────────────
   const irrOpts = { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit };

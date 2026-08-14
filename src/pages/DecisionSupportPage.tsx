@@ -18,6 +18,7 @@ import { checkPPPLegal } from "../engine/statePppLaws";
 import {
   assumptionsFromV11,
   buildReturnsSchedule,
+  deriveExitCapRatePct,
   DEFAULT_TAX_ASSUMPTIONS,
 } from "../engine/returnsEngine";
 import {
@@ -185,11 +186,27 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
   const [reportedLiquidReserves, setReportedLiquidReserves] = useState(0);
   const [reserveEvidenceDocumented, setReserveEvidenceDocumented] = useState(false);
   // The exit assumptions move the after-tax IRR further than any other input on
-  // this page — at the engine default of a 6.5% exit cap, a property bought at a
-  // sub-5% cap is modelled as sold at a ~25% discount, and that spread (not the
-  // rent) decides the return grade. Leaving it buried in a default was the
-  // largest invisible assumption here, so it is now a field the user can see.
-  const [exitCapRate, setExitCapRate] = useState(6.5);
+  // this page, and that spread (not the rent) usually decides the return grade
+  // — so it is a field the user can see and override, never a buried default.
+  // The SEED below is no longer a flat constant (previously a blind 6.5% cap
+  // regardless of what the deal itself yielded — it modelled a sub-5%-entry-cap
+  // purchase as sold at a ~25% discount for a reason that had nothing to do
+  // with the deal). It is now this scenario's own entry cap (year-1 NOI ÷
+  // purchase price, computed against the default deal inputs above) plus
+  // returnsEngine.DEFAULT_EXIT_CAP_SPREAD_PCT — the midpoint of the documented
+  // 25-100 bps band. Computed once, at mount, from the page's own default
+  // inputs: this is a starting point for the slider, not a live recalculation
+  // every time the deal inputs change.
+  const [exitCapRate, setExitCapRate] = useState(() => {
+    const seedEntryCapRatePct = buildReturnsSchedule({
+      purchasePrice,
+      grossRentMonthly: monthlyRent,
+      annualTaxes,
+      annualInsurance,
+      hoaMonthly: hoa,
+    }).metrics.entryCapRatePct;
+    return Math.round(deriveExitCapRatePct(seedEntryCapRatePct) * 100) / 100;
+  });
   const [holdYears, setHoldYears] = useState(5);
 
   // ── Track-2 acknowledgment (see decisionSupport.computeVerdict) ────────────

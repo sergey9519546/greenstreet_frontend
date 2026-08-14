@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { computeReturns } from "./returnsEngine";
+import {
+  computeReturns,
+  buildReturnsSchedule,
+  deriveExitCapRatePct,
+  DEFAULT_EXIT_CAP_SPREAD_PCT,
+} from "./returnsEngine";
 import type { PropertyInputs, LoanStructure } from "./types";
 
 // returnsEngine.ts is CRITICAL: calculates IRR, equity multiple, and exit proceeds
@@ -43,11 +48,22 @@ describe("returnsEngine - IRR and Exit Proceeds", () => {
     rateLockCost: 0,
   };
 
+  // Rent is $3,000 here, not the $2,500 this test used to run. At $2,500 the
+  // scenario does not cash-flow: NOI lands near $18,300 against roughly $18,876
+  // of annual debt service, year-1 cash-on-cash is -2.61%, and the 6.10% entry
+  // cap sits below the ~8.39% loan constant — the negative-leverage case
+  // leverageCheck.ts describes as resting on appreciation rather than yield. So
+  // this asserted that a negatively levered, negative-cash-flow deal "should
+  // make money", and only passed because a flat 6.5% exit cap happened to hand
+  // that particular entry cap a lenient 40 bp haircut. Deriving the exit cap
+  // from the deal's own entry cap surfaced the false premise. The premise is
+  // now asserted rather than assumed, and the negative-leverage case this was
+  // accidentally covering gets its own test below.
   it("computes positive levered IRR for cash-flowing deal", () => {
     const result = computeReturns(
       property,
       loan,
-      2500, // monthly rent
+      3000, // monthly rent — genuinely cash-flowing at this price
       "LTR",
       7.5, // rate
       0, // prepay penalty
@@ -55,9 +71,24 @@ describe("returnsEngine - IRR and Exit Proceeds", () => {
     );
 
     expect(result).toBeDefined();
+    // Pin the premise. Without this, "positive IRR" is not the property under
+    // test — it is whatever the exit assumption happens to hand back.
+    expect(result.year1CashOnCash).toBeGreaterThan(0);
     expect(result.leveredIRR).toBeGreaterThan(0);
     expect(result.leveredIRR).toBeLessThan(50); // Sanity check: not 500% IRR
     expect(result.equityMultiple).toBeGreaterThan(1.0); // Should make money
+  });
+
+  it("does not manufacture a positive return for a negatively levered deal", () => {
+    // Exactly the scenario the test above used to run: ~6.10% entry cap under a
+    // ~8.39% loan constant, year-1 cash-on-cash below zero. With no appreciation
+    // assumed, five years of negative carry must not come back as a gain. That
+    // is the failure mode a flat exit cap concealed.
+    const result = computeReturns(property, loan, 2500, "LTR", 7.5, 0, 75000);
+
+    expect(result.year1CashOnCash).toBeLessThan(0);
+    expect(result.leveredIRR).toBeLessThan(0);
+    expect(result.equityMultiple).toBeLessThan(1.0);
   });
 
   it("equity multiple = (distributions + exit equity) / cash invested", () => {
@@ -121,5 +152,65 @@ describe("returnsEngine - IRR and Exit Proceeds", () => {
     // Should still compute but IRR will be low or NaN (no positive cash flow)
     expect(result).toBeDefined();
     expect(Number.isNaN(result.leveredIRR) || result.leveredIRR < 15).toBe(true);
+  });
+});
+
+// The single source of truth for "what exit cap applies when the caller
+// hasn't chosen one". Every default-exit-cap call site across the app
+// (irrWaterfall, structureComparison, TaxEnginePage, ReturnsPage's and
+// DecisionSupportPage's slider seeds) imports this instead of hardcoding its
+// own flat percentage — this is the regression guard for that bug.
+describe("deriveExitCapRatePct / DEFAULT_EXIT_CAP_SPREAD_PCT", () => {
+  it("is the documented 75 bps midpoint of the 25-100 bps band", () => {
+    // Pinned: ASSUMPTION_BASIS.exitCapRatePct documents "25-100 bps above
+    // your entry cap"; 0.75 is that band's midpoint. If this ever needs to
+    // change, the ASSUMPTION_BASIS/UI hint copy needs to change with it.
+    expect(DEFAULT_EXIT_CAP_SPREAD_PCT).toBe(0.75);
+  });
+
+  it("adds the spread on top of the entry cap it is given", () => {
+    expect(deriveExitCapRatePct(4.57)).toBeCloseTo(5.32, 10);
+    expect(deriveExitCapRatePct(9.49)).toBeCloseTo(10.24, 10);
+    expect(deriveExitCapRatePct(0)).toBe(DEFAULT_EXIT_CAP_SPREAD_PCT);
+  });
+
+  it("two-pass derivation keeps the implied sale price close to purchase price across a wide price range", () => {
+    // Regression guard for the actual verified defect: a flat 6.5% exit cap
+    // swung a TX SFR (25% down, 5yr hold) from -19.4% implied sale at
+    // $500,000 (4.57% entry cap) to +65.7% at $150,000 (9.49% entry cap) —
+    // opposite investment conclusions caused only by the constant being
+    // unrelated to either deal's own yield. Deriving the exit cap from each
+    // deal's own entry cap should hold the implied sale within a tight band
+    // of purchase price across the same range instead.
+    const scenarios = [
+      { purchasePrice: 500_000, grossRentMonthly: 3_500, annualTaxes: 7_500 },
+      { purchasePrice: 150_000, grossRentMonthly: 2_000, annualTaxes: 2_250 },
+    ];
+
+    for (const s of scenarios) {
+      const base = {
+        purchasePrice: s.purchasePrice,
+        grossRentMonthly: s.grossRentMonthly,
+        annualTaxes: s.annualTaxes,
+        annualInsurance: 2_000,
+        hoaMonthly: 0,
+        ltvPct: 75,
+        holdYears: 5,
+      };
+      const firstPass = buildReturnsSchedule(base);
+      const exitCapRatePct = deriveExitCapRatePct(firstPass.metrics.entryCapRatePct);
+      const schedule = buildReturnsSchedule({ ...base, exitCapRatePct });
+
+      // Rebuilding with the derived exit cap must not change the entry cap
+      // that produced it (no feedback loop).
+      expect(schedule.metrics.entryCapRatePct).toBeCloseTo(
+        firstPass.metrics.entryCapRatePct,
+        10,
+      );
+
+      const saleVsPurchasePct =
+        (schedule.exit.grossSalePrice / s.purchasePrice - 1) * 100;
+      expect(Math.abs(saleVsPurchasePct)).toBeLessThan(10);
+    }
   });
 });

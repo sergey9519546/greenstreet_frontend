@@ -175,6 +175,12 @@ export const DEFAULT_RETURNS_ASSUMPTIONS: ReturnsAssumptions = {
   expenseGrowthPct: 2.5,
   capExReservePct: 5,
   holdYears: 5,
+  // Seed only — NOT the applied exit cap. computeReturns and the pages that
+  // build their own schedules replace this with deriveExitCapRatePct(entry cap)
+  // before any number reaches a user. It survives here because the first of the
+  // two derivation passes needs some finite value to build a schedule with, and
+  // entry cap (year-1 NOI / purchase price) never reads it. Do not read this as
+  // "the default exit cap"; that is what made a flat 6.5% leak into four tools.
   exitCapRatePct: 6.5,
   sellingCostsPct: 6,
   prepayPenaltyAtExit: 0,
@@ -217,6 +223,49 @@ export const ASSUMPTION_BASIS = {
   section1031Exchange:
     'A like-kind exchange defers ALL recapture and gain tax at sale (IRC §1031). Default off.',
 } as const;
+
+// ============================================================
+// DEFAULT EXIT CAP — derived from the deal's own entry cap, never flat
+// ============================================================
+//
+// A flat exit-cap constant (this file, `irrWaterfall.ts`, `TaxEnginePage.tsx`,
+// `structureComparison.ts` and `DecisionSupportPage.tsx` each carried their own
+// copy of "6.5%") prices the sale off a number that has nothing to do with the
+// deal: verified on a TX SFR at 25% down / 740 FICO / 5yr hold with taxes/ins/
+// HOA held fixed, a flat 6.5% cap swung after-tax IRR from -36.10% on a
+// $500,000 purchase (4.57% entry cap) to +26.30% on a $150,000 purchase (9.49%
+// entry cap) — a 3.3x price range producing opposite investment conclusions
+// purely because the constant was unrelated to either deal's own yield, while
+// the $150,000 case was silently priced on +65.7% implied appreciation despite
+// this page's own copy saying no appreciation is modeled.
+//
+// The default below is ANCHORED to the deal instead: entry cap + a spread.
+export const DEFAULT_EXIT_CAP_SPREAD_PCT = 0.75;
+
+/**
+ * Default exit cap = THIS deal's own entry cap + `DEFAULT_EXIT_CAP_SPREAD_PCT`.
+ *
+ * 0.75 (75 bps) is the midpoint of the 25-100 bps band this file already
+ * documents (`ASSUMPTION_BASIS.exitCapRatePct`: "assume 25-100 bps above your
+ * entry cap") and that the Returns page's slider hint restates ("Conservative:
+ * assume 0.5-1% above your entry cap"). This is the ONE place that number is
+ * defined — every default-exit-cap call site should import it from here
+ * rather than hardcoding its own copy.
+ *
+ * Safe to compute as a two-pass — build a schedule once to read
+ * `metrics.entryCapRatePct`, then rebuild with
+ * `exitCapRatePct: deriveExitCapRatePct(firstPass.metrics.entryCapRatePct)` —
+ * because entry cap is year-1 NOI ÷ purchase price (see `metrics` below) and
+ * providably does not read `exitCapRatePct` anywhere in its own derivation:
+ * NOI is a pure operating figure; the exit cap only prices the sale. So the
+ * first pass's entry cap is already final by the time it returns, regardless
+ * of whatever placeholder exit cap that first pass used, and rebuilding with
+ * the derived value cannot feed back and change the entry cap that produced
+ * it. No fixed-point search needed.
+ */
+export function deriveExitCapRatePct(entryCapRatePct: number): number {
+  return entryCapRatePct + DEFAULT_EXIT_CAP_SPREAD_PCT;
+}
 
 // ============================================================
 // THE SCHEDULE
@@ -688,6 +737,9 @@ const DEFAULT_MAINT_PCT = 5;
 const DEFAULT_CAPEX_RESERVE_PCT = 5;
 const DEFAULT_TURNOVER_PCT = 2;
 const DEFAULT_RENT_GROWTH_PCT = 2;
+// Seed only, same as DEFAULT_RETURNS_ASSUMPTIONS.exitCapRatePct above — every
+// caller replaces it with a derived value before a number is displayed. Named
+// DEFAULT_* for symmetry with its neighbours, which ARE real defaults.
 const DEFAULT_EXIT_CAP_PCT = 6.5;
 const DEFAULT_SELLING_COSTS_PCT = 6;
 
@@ -762,8 +814,16 @@ export function computeReturns(
   solvedRate: number,
   prepayPenaltyAtExit: number = 0,
   cashInvestedOverride?: number,
+  /**
+   * A user-set exit cap. Omit to derive it from this deal's own entry cap.
+   * The Returns page owns a visible Exit Cap Rate slider whose value never
+   * reached this function, so its equity multiple, entry cap, yield-on-cost
+   * and debt yield were all quoting a different exit than the IRR shown
+   * beside them.
+   */
+  exitCapRatePctOverride?: number,
 ): ReturnsResult {
-  const assumptions = assumptionsFromV11(
+  const baseAssumptions = assumptionsFromV11(
     property,
     loan,
     grossRentMonthly,
@@ -772,6 +832,27 @@ export function computeReturns(
     prepayPenaltyAtExit,
     cashInvestedOverride,
   );
+
+  // Derive the exit cap from the deal rather than inheriting a flat constant.
+  // A fixed exit cap is not conservative, it is arbitrary: measured against
+  // this engine, a flat 6.5% priced a 4.57%-entry-cap deal at a 19% loss and a
+  // 9.49%-entry-cap deal at a 66% GAIN, while every consumer of this function
+  // states that no appreciation is modeled. Deriving it holds the modeled sale
+  // within a few points of purchase across the whole price range.
+  //
+  // Two passes are safe because entry cap is year-1 NOI / purchase price and
+  // never reads exitCapRatePct, so the first pass's entry cap is already final.
+  // The seed value on DEFAULT_RETURNS_ASSUMPTIONS only has to be finite.
+  const assumptions =
+    exitCapRatePctOverride !== undefined && Number.isFinite(exitCapRatePctOverride)
+      ? { ...baseAssumptions, exitCapRatePct: exitCapRatePctOverride }
+      : {
+          ...baseAssumptions,
+          exitCapRatePct: deriveExitCapRatePct(
+            buildReturnsSchedule(baseAssumptions).metrics.entryCapRatePct,
+          ),
+        };
+
   const schedule = buildReturnsSchedule(assumptions);
   const { metrics, exit, acquisition, rows } = schedule;
 

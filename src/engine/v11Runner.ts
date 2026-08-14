@@ -34,7 +34,7 @@ import type {
 import { solveDSCR, calculatePI } from './engine';
 import { computeReassessedTax, computeReassessmentDSCRImpact } from './reassessmentEngine';
 import { computeARMReset, DEFAULT_ARM_PROGRAMS, CURRENT_MARKET_SNAPSHOT, computeRemainingBalanceAtReset } from './armResetEngine';
-import { computeReturns, computeRemainingBalance } from './returnsEngine';
+import { computeReturns, computeRemainingBalance, deriveExitCapRatePct } from './returnsEngine';
 import { computeAfterTaxIRR, assessCostSegViability } from './taxEngine';
 import {
   assessDecisionSupportEvidence,
@@ -363,7 +363,26 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     annualNOI,
     annualADS,
     dscr.monthlyPITIA.total,
-    input.taxProfile,
+    // taxEngine falls back to a flat 6.5% exit cap when the profile omits one
+    // (taxEngine.ts, both the default profile and the `?? 6.5` guard). A flat
+    // cap is arbitrary rather than conservative — against this engine it priced
+    // a 4.57%-entry-cap deal at a 19% loss and a 9.49%-entry-cap deal at a 66%
+    // gain. `returns.entryCapRate` is already computed just above (it is used
+    // to reverse-engineer annualNOI), so derive from it and let an explicit
+    // caller-supplied cap still win.
+    // Only rewrite a profile the caller actually supplied. Spreading `undefined`
+    // here produced an object carrying nothing but exitCapRatePct, which
+    // stripped expectedHoldYears and made taxEngine throw
+    // "Hold years must be within the tax model range" — when taxProfile is
+    // absent, taxEngine must keep receiving undefined so it applies its own
+    // complete default profile.
+    input.taxProfile
+      ? {
+          ...input.taxProfile,
+          exitCapRatePct:
+            input.taxProfile.exitCapRatePct ?? deriveExitCapRatePct(returns.entryCapRate),
+        }
+      : input.taxProfile,
     prepayPenaltyAtExit,
     dscr.solvedRate, termMonths,  // v11.1 FIX (AUDIT-FINAL-7 D-1): pass rate + term for proper amortization
   );

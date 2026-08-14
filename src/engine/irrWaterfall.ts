@@ -46,6 +46,7 @@ import type {
 } from './types';
 import { calculatePI } from './engine';
 import { computeTcoRate, mapToTcoType } from './tcoDscr';
+import { deriveExitCapRatePct } from './returnsEngine';
 
 // ============================================================
 // MAIN ENTRY POINT
@@ -183,8 +184,17 @@ export function computeIRRWaterfall(
   // We can estimate from afterTaxIRR data + reverse-engineer
   const rentGrowthPct = 0.02;
   const noiExit = noi * Math.pow(1 + rentGrowthPct, holdYears);
-  const exitCapRate = 0.065;  // matches taxEngine default
-  const salePrice = noiExit / exitCapRate;
+  // Exit cap is DERIVED from this waterfall's own entry cap (year-1 NOI ÷
+  // purchase price) via the shared returnsEngine formula — not a flat
+  // constant. A flat 6.5% here used to silently disagree with the entry cap
+  // on every deal where the two weren't already close, the exact bug fixed in
+  // returnsEngine.ts (see DEFAULT_EXIT_CAP_SPREAD_PCT there for the 25-100bps
+  // band this spread comes from). `deriveExitCapRatePct` works in percent
+  // (matching `ReturnsMetrics.entryCapRatePct`); this waterfall works in
+  // decimal fractions, hence the /100.
+  const entryCapRatePct = property.purchasePrice > 0 ? (noi / property.purchasePrice) * 100 : 0;
+  const exitCapRate = deriveExitCapRatePct(entryCapRatePct) / 100;
+  const salePrice = exitCapRate > 0 ? noiExit / exitCapRate : 0;
   const sellingCostsPct = 0.06;
   const sellingCosts = salePrice * sellingCostsPct;
   const netSaleProceeds = salePrice - sellingCosts;
