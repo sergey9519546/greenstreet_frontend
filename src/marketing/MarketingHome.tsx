@@ -478,6 +478,23 @@ function ensureHomepagePropertySlot(root: HTMLElement): HTMLElement | null {
   const existing = root.querySelector<HTMLElement>("#gs-property-types-slot");
   if (existing) return existing;
 
+  const slot = document.createElement("div");
+  slot.id = "gs-property-types-slot";
+  slot.dataset.homeIntegration = "property-guide";
+
+  // Placed directly after the rate widget and before "Watch the Greenstreet
+  // rebuild". The property guide answers "which kind of building is this?",
+  // which is the question a reader has immediately after seeing a rate tier and
+  // before being asked to watch anything — so it belongs between them rather
+  // than buried down beside Resources.
+  const videoSection = root.querySelector<HTMLElement>(".gs-video-section");
+  if (videoSection?.parentElement) {
+    videoSection.before(slot);
+    return slot;
+  }
+
+  // Fall back to the previous position rather than dropping the section
+  // entirely if that section is ever renamed or removed.
   const resourcesHeading = Array.from(root.querySelectorAll("h2")).find(
     (heading) => heading.textContent?.trim() === "Resources",
   );
@@ -486,9 +503,6 @@ function ensureHomepagePropertySlot(root: HTMLElement): HTMLElement | null {
   );
   if (!resourcesSection?.parentElement) return null;
 
-  const slot = document.createElement("div");
-  slot.id = "gs-property-types-slot";
-  slot.dataset.homeIntegration = "property-guide";
   resourcesSection.before(slot);
   return slot;
 }

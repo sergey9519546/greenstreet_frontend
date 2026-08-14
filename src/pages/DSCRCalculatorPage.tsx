@@ -435,9 +435,9 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   const rows = [
     { label: 'Loan amount',   val: fmt(loan),       color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, loan / price * 100).toFixed(0) + '%',          barColor: swatch.emerald },
     { label: 'P&I monthly',   val: fmt(pAndI),      color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, pAndI / pitia * 100).toFixed(0) + '%',          barColor: swatch.emerald },
-    { label: 'Taxes /mo',     val: fmt(taxYr / 12), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (taxYr / 12) / pitia * 100).toFixed(0) + '%',   barColor: '#9ab87b' },
-    { label: 'Insurance /mo', val: fmt(ins / 12),   color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (ins / 12) / pitia * 100).toFixed(0) + '%',     barColor: '#9ab87b' },
-    ...(hoa > 0 ? [{ label: 'HOA /mo', val: fmt(hoa), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, hoa / pitia * 100).toFixed(0) + '%', barColor: '#9ab87b' }] : []),
+    { label: 'Taxes /mo',     val: fmt(taxYr / 12), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (taxYr / 12) / pitia * 100).toFixed(0) + '%',   barColor: 'rgba(238,239,211,0.38)' },
+    { label: 'Insurance /mo', val: fmt(ins / 12),   color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (ins / 12) / pitia * 100).toFixed(0) + '%',     barColor: 'rgba(238,239,211,0.38)' },
+    ...(hoa > 0 ? [{ label: 'HOA /mo', val: fmt(hoa), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, hoa / pitia * 100).toFixed(0) + '%', barColor: 'rgba(238,239,211,0.38)' }] : []),
     { label: 'Total PITIA',   val: fmt(pitia),      color: '#eeefd3',               weight: 700, pct: '100%',                                                         barColor: zoneColor },
   ];
 
@@ -1255,7 +1255,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 {/* ── INSURANCE GATE (high-risk markets only) ── */}
                 {insHighRisk && (
                   <div style={{ background: risk.dangerBg, borderWidth: '1px 1px 1px 3px', borderStyle: 'solid', borderColor: risk.dangerBorder, borderLeftColor: risk.danger, borderRadius: '0 12px 12px 0', padding: '15px 20px' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#ff8a8a', marginBottom: 5 }}>Insurance gate · {stateCode}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.dangerOnDark, marginBottom: 5 }}>Insurance gate · {stateCode}</div>
                     <p style={{ fontSize: 13.5, color: 'rgba(238,239,211,0.78)', margin: 0, lineHeight: 1.55 }}>
                       {stateCode} is a high-risk insurance market. Get a <strong style={{ color: '#eeefd3' }}>bindable quote before you commit</strong> to this deal — an unconfirmed premium here is a stop, not a footnote. It&apos;s the other silent DSCR killer, and the number above assumes coverage you can actually buy.
                     </p>
