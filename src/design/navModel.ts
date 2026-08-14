@@ -49,26 +49,28 @@ export const NAV_MENUS: NavMenu[] = [
     label: "Resources",
     view: "blog",
     path: "/blog",
+    // Cut from 19 items (a blog index pasted into a nav menu — 15 of the 19
+    // were individual articles) down to the handful a first-time DSCR
+    // investor actually scans: the one foundational explainer, the two
+    // comparisons that help someone decide DSCR is the right tool, what
+    // closing actually costs, self-serve help, and a catch-all into the full
+    // archive. Nothing was deleted — every article trimmed from THIS list
+    // still renders at its own URL, is still in the sitemap, and is still
+    // one click away via "View all guides" -> /blog. The tools that lived
+    // here (Refi Tracker, 50-State Rule Map, Rate Quiz) stay reachable via
+    // the footer and /products; About and Security & Privacy stay reachable
+    // via the footer's Company group. See src/site/seo.test.ts for the
+    // routability pins and src/router/routeIntegrity.test.ts for the no-
+    // dead-link guarantee neither of those registries depend on nav
+    // membership.
     items: [
-      { label: "Prepayment Penalty Guide", path: "/blog/dscr-loan-prepayment-penalty-exit-cost" },
-      { label: "DSCR Insurance Guide", path: "/blog/dscr-property-insurance-pitia-coverage" },
-      { label: "$100 DSCR Stress Test", path: "/blog/dscr-sensitivity-analysis-rent-pitia" },
-      { label: "DSCR vs Cash Flow", path: "/blog/dscr-vs-rental-property-cash-flow" },
-      { label: "DSCR Appraisal Guide", path: "/blog/dscr-appraisal-form-1007-market-rent" },
-      { label: "DSCR Reserves Guide", path: "/blog/dscr-loan-reserves-liquidity" },
-      { label: "DSCR vs Conventional", path: "/blog/dscr-loan-vs-conventional-investment-property-loan" },
-      { label: "Interest-Only DSCR Guide", path: "/blog/interest-only-dscr-loan-payment-math" },
-      { label: "Closing Costs Guide", path: "/blog/dscr-loan-closing-costs-cash-to-close" },
-      { label: "Points & Break-Even", path: "/blog/dscr-loan-points-break-even" },
       { label: "What Is DSCR?", path: "/blog/what-is-dscr-how-it-works" },
-      { label: "Refi Tracker", view: "refi-tracker", path: "/tools/refi-tracker" },
-      { label: "50-State Rule Map", view: "state-laws", path: "/state-laws" },
-      { label: "Rate Quiz", view: "rate-quiz", path: "/rate-quiz" },
-      { label: "Greenstreet Guidance", view: "blog", path: "/blog" },
+      { label: "DSCR vs Conventional", path: "/blog/dscr-loan-vs-conventional-investment-property-loan" },
+      { label: "DSCR vs Cash Flow", path: "/blog/dscr-vs-rental-property-cash-flow" },
+      { label: "Closing Costs Guide", path: "/blog/dscr-loan-closing-costs-cash-to-close" },
       { label: "FAQ", view: "faq", path: "/faq" },
       { label: "Customer Support", view: "support", path: "/support" },
-      { label: "About", view: "about", path: "/about" },
-      { label: "Security & Privacy", view: "legal", path: "/legal" },
+      { label: "View all guides", view: "blog", path: "/blog" },
     ],
   },
 ];
