@@ -173,7 +173,12 @@ export default function PropertyTypesGallery({
               className="property-type-card"
             >
               <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 14 }}>
-                <Mono style={{ fontSize: 13, fontWeight: 700, color: isSelected ? dc.lemon : "rgba(0,55,56,0.35)" }}>
+                {/* Ink, not lemon, when selected. Lemon on this cream ground
+                    measures 1.28:1 — far under the 4.5:1 AA floor for text, and
+                    effectively invisible. Selection is still marked in lemon by
+                    the rule beside it, where the colour is a fill and carries no
+                    contrast duty; the number just gets darker and heavier. */}
+                <Mono style={{ fontSize: 13, fontWeight: 700, color: isSelected ? dc.dark : "rgba(0,55,56,0.35)" }}>
                   {String(idx + 1).padStart(2, "0")}
                 </Mono>
                 <div

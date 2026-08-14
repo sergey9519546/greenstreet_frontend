@@ -386,7 +386,9 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
   // ── Verdict ─────────────────────────────────────────────────────────────────
   let verdictLabel = 'BELOW FLOOR';
-  let zoneColor    : string = risk.danger;
+  // dangerOnDark: zoneColor is rendered as text on the dark verdict
+  // card, where the base red measures 3.83:1 against a 4.5:1 AA floor.
+  let zoneColor    : string = risk.dangerOnDark;
   let zoneChipBg   : string = risk.dangerBg;
   let verdictText  = 'Most lenders require DSCR ≥ 0.75. Restructure the deal or decline.';
   let verdictHeadline = 'Rent doesn\'t cover the payment — restructure or decline.';
@@ -537,13 +539,16 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>&lt;2s</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>to a priced deal</div></div>
             </div>
           </div>
+          {/* chip uses dangerOnLight: it sits on the mint hero card, where the
+              base danger red measures 2.75:1 as text — under the 4.5:1 AA
+              floor. The light-ground pair clears at 4.59:1. */}
           <HeroProof
             eyebrow="Live preview"
             value={`${dscr.toFixed(2)}x`}
             valueNum={dscr}
             track2Num={dual.track2}
             sub={`${fmt(rent)} rent ÷ ${fmt(pitia)} payment`}
-            chip={{ label: dual.qualifiesButDangerous ? "QUALIFIES — BUT" : verdictLabel, color: dual.qualifiesButDangerous ? risk.danger : zoneColor }}
+            chip={{ label: dual.qualifiesButDangerous ? "QUALIFIES — BUT" : verdictLabel, color: dual.qualifiesButDangerous ? risk.dangerOnLight : zoneColor }}
           />
         </div>
       </section>
@@ -898,10 +903,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <div style={{ marginTop: 20, background: risk.dangerBg, border: `1px solid ${risk.dangerBorder}`, borderLeft: `3px solid ${risk.danger}`, borderRadius: '0 8px 8px 0', padding: '13px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                         <RiskFlame level="high" size={16} />
-                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.danger }}>Qualifies but dangerous</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.dangerOnDark }}>Qualifies but dangerous</span>
                       </div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: 0, lineHeight: 1.55 }}>
-                        This clears the lender at <strong style={{ color: '#eeefd3' }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: risk.danger }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal still loses money each month.{' '}
+                        This clears the lender at <strong style={{ color: '#eeefd3' }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: risk.dangerOnDark }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal still loses money each month.{' '}
                         <a href="/tools/stress-matrix" onClick={(e) => { e.preventDefault(); onNavigate?.('stress-matrix'); }} style={{ color: swatch.emerald, fontWeight: 600, textDecoration: 'none' }}>Pressure-test it in the Stress Matrix →</a>
                       </p>
                     </div>
@@ -1077,10 +1082,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                         style={{ all: 'unset', width: '100%', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.danger }}>
+                          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.dangerOnDark }}>
                             {showTrack2Rescue ? '▾' : '▸'} Track 2 Rescue — 4 fixes for negative cash flow
                           </span>
-                          <Mono style={{ fontSize: 16, fontWeight: 700, color: risk.danger }}>
+                          <Mono style={{ fontSize: 16, fontWeight: 700, color: risk.dangerOnDark }}>
                             {dual.track2.toFixed(2)}x
                           </Mono>
                         </div>
@@ -1091,7 +1096,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       {showTrack2Rescue && (
                         <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(238,239,211,0.1)' }}>
                           <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: '0 0 14px', lineHeight: 1.55 }}>
-                            <strong style={{ color: risk.danger }}>Track 2 DSCR is {dual.track2.toFixed(2)}x</strong> — after 8% vacancy, 10% management, and 3% maintenance, the property loses money each month. These are your investor survival levers.
+                            <strong style={{ color: risk.dangerOnDark }}>Track 2 DSCR is {dual.track2.toFixed(2)}x</strong> — after 8% vacancy, 10% management, and 3% maintenance, the property loses money each month. These are your investor survival levers.
                           </p>
                           <div style={{ display: 'grid', gap: 10 }}>
                             {track2Rescue.fixes.map((fix, i) => (

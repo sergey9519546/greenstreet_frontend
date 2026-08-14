@@ -50,6 +50,16 @@ export const risk = {
   // dark surface — on the cream marketing ground they fail contrast.
   dangerOnDark: "#e88a8a",
   cautionOnDark: "#e6e76b",
+  // Light-ground variant. `danger` itself does not clear WCAG AA as TEXT on any
+  // of this palette's grounds — measured 2.92:1 on cream #eeefd3, 2.75:1 on mint
+  // #e8e9bf, 3.83:1 on dark #003738, against a 4.5:1 requirement for normal
+  // text. It reads fine as a FILL or BORDER (dangerBg/dangerBorder below, which
+  // carry no contrast duty), which is why the gap went unnoticed.
+  //
+  // This is `danger` scaled to 74% of its own channels — same hue, no new colour
+  // enters the ramp — which measures 4.88:1 on cream and 4.59:1 on mint. Use it
+  // wherever red is TEXT on a light ground; use dangerOnDark (5.26:1) on dark.
+  dangerOnLight: "#a64949",
   warningBg: "rgba(230,184,77,0.10)",
   warningBorder: "rgba(230,184,77,0.30)",
   dangerBg: "rgba(224,99,99,0.10)",

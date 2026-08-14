@@ -17,7 +17,12 @@ const EMERALD = swatch.emerald;
 const MIDNIGHT = swatch.midnight;
 const RAIN = swatch.rainforest;
 const ORANGE = risk.warning;
-const RED = risk.danger;
+// dangerOnDark, not danger. Everything in this file draws on the dark app
+// surface, where the base red measures 3.83:1 as text against a 4.5:1
+// requirement — it was failing WCAG AA on every DSCR value it coloured. The
+// dark-ground pair clears at 5.26:1. `danger` itself remains correct for fills
+// and borders, which carry no contrast duty.
+const RED = risk.dangerOnDark;
 
 // Inject the shared keyframes/transitions once.
 let _injected = false;
