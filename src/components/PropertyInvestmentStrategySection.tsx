@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Btn } from "../design/dc";
 import "./PropertyInvestmentStrategySection.css";
 
@@ -389,141 +389,6 @@ export const PROPERTY_STRATEGIES: PropertyStrategyDetail[] = [
   }
 ];
 
-/**
- * Scroll-scrubbed field guide.
- *
- * The rail already is a real tablist — click and arrow keys own `selectedId`.
- * This does not stand a second state machine beside it; it maps scroll distance
- * onto the SAME setter, so a scrubbed step and a clicked one are identical to
- * assistive tech and the keyboard never fights the scroll.
- *
- * Deliberately NOT GSAP/ScrollTrigger, though both are loaded here. The pin is
- * CSS `sticky` and the scrub is arithmetic on the section's own rect: no
- * plugin registration, no global to share with the page's own GSAP usage, no
- * pinned wrapper injected into a layout that already runs its own pinned and
- * horizontally-scrolled sections, and nothing to refresh when the ~30,000px of
- * lazily-loaded imagery above shifts every offset. Fewer moving parts for the
- * same result.
- *
- * three.js was considered and rejected: its value is lighting, depth and
- * shadow, and DESIGN_SOURCE_OF_TRUTH.md:70-77 forbids all three. A flat-shaded
- * WebGL scene would look identical to this vector at 600KB and a GL context.
- *
- * On the design rules (DESIGN_SOURCE_OF_TRUTH.md:70-77): "no floating or pulsing
- * motion" bans AMBIENT motion — movement performed at the reader. Scroll
- * position is the only clock here, so at rest every frame is a static flat
- * composition. Stop scrolling and nothing moves.
- *
- * Inert when the reader asked for reduced motion or the viewport is narrow —
- * a sticky stage on touch eats the scroll gesture. In both cases the rail stays
- * exactly the click-driven tablist it already was.
- */
-function useScrollScrubbedGuide({
-  enabled,
-  count,
-  sectionRef,
-  onIndexChange,
-  onProgress,
-}: {
-  enabled: boolean;
-  count: number;
-  sectionRef: React.RefObject<HTMLElement | null>;
-  onIndexChange: (index: number) => void;
-  onProgress: (progress: number) => void;
-}) {
-  const indexRef = useRef(-1);
-  const progressRef = useRef(-1);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!enabled || !section || count < 2) return;
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (window.matchMedia("(max-width: 991px)").matches) return;
-
-    // Tells the stylesheet to claim the scroll room and make the stage sticky.
-    // Set here rather than in markup so a browser that never runs this effect
-    // renders the plain, correct section.
-    section.setAttribute("data-scrub", "on");
-
-    let queued = false;
-
-    const measure = () => {
-      queued = false;
-      const rect = section.getBoundingClientRect();
-      // Travel available once the sticky stage has settled. Guard against a
-      // zero/negative span while the section is still being laid out, which
-      // would otherwise divide by zero and pin progress at NaN.
-      const span = section.offsetHeight - window.innerHeight;
-      if (span <= 0) return;
-
-      const raw = -rect.top / span;
-      const progress = raw < 0 ? 0 : raw > 1 ? 1 : raw;
-
-      // Only touch React when the value actually changes at display precision.
-      // Without this the section re-renders on every frame of every scroll,
-      // including the ~30,000px of this page that is nowhere near it.
-      const rounded = Math.round(progress * 1000) / 1000;
-      if (rounded !== progressRef.current) {
-        progressRef.current = rounded;
-        onProgress(rounded);
-      }
-
-      // Round, so an archetype owns the band centred on it rather than flipping
-      // the instant its band is entered.
-      const next = Math.min(count - 1, Math.max(0, Math.round(progress * (count - 1))));
-      if (next !== indexRef.current) {
-        indexRef.current = next;
-        onIndexChange(next);
-      }
-    };
-
-    // Position is sampled per frame rather than driven by scroll events.
-    //
-    // Sampling is chosen for robustness, not because scroll events are broken:
-    // it is indifferent to smooth-scroll libraries, to scroll-anchoring, and to
-    // any ancestor that scrolls instead of the window — all of which exist on
-    // this page, which already runs its own pinned and horizontally-scrolled
-    // sections. It also cannot desync from layout the way a cached start/end
-    // can on a ~30,000px page whose imagery loads lazily.
-    //
-    // Sampling every frame forever would be waste, so an IntersectionObserver
-    // runs the loop only while the section is near the viewport and stops it the
-    // moment it leaves. Off-screen this costs nothing.
-    let raf = 0;
-    const tick = () => {
-      measure();
-      raf = requestAnimationFrame(tick);
-    };
-    const startSampling = () => {
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-    const stopSampling = () => {
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-    };
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) startSampling();
-        else stopSampling();
-      },
-      // Margin so the first archetype is already correct by the time the
-      // section is actually looked at.
-      { rootMargin: "200px 0px 200px 0px" },
-    );
-    observer.observe(section);
-    measure();
-
-    return () => {
-      observer.disconnect();
-      stopSampling();
-      section.removeAttribute("data-scrub");
-    };
-  }, [enabled, count, sectionRef, onIndexChange, onProgress]);
-}
-
-
 export default function PropertyInvestmentStrategySection({
   onNavigate,
   variant = "full",
@@ -535,25 +400,6 @@ export default function PropertyInvestmentStrategySection({
   const activeStrategy = PROPERTY_STRATEGIES.find((s) => s.id === selectedId) || PROPERTY_STRATEGIES[0];
   const activeIndex = PROPERTY_STRATEGIES.findIndex((strategy) => strategy.id === activeStrategy.id);
   const tabIdPrefix = variant === "homepage" ? "home-property-strategy" : "property-strategy";
-
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const [scrubProgress, setScrubProgress] = useState(0);
-  const [isScrubbing, setIsScrubbing] = useState(false);
-
-  // Identity-stable so the ScrollTrigger is built once, not torn down and
-  // rebuilt on every scroll frame that changes state.
-  const handleScrubIndex = useCallback((index: number) => {
-    setIsScrubbing(true);
-    setSelectedId(PROPERTY_STRATEGIES[index]!.id);
-  }, []);
-
-  useScrollScrubbedGuide({
-    enabled: variant === "homepage",
-    count: PROPERTY_STRATEGIES.length,
-    sectionRef,
-    onIndexChange: handleScrubIndex,
-    onProgress: setScrubProgress,
-  });
 
   const revealTab = (button: HTMLButtonElement | null) => {
     if (!button?.scrollIntoView) return;
@@ -604,12 +450,9 @@ export default function PropertyInvestmentStrategySection({
   if (variant === "homepage") {
     return (
       <section
-        ref={sectionRef}
         className="gs-property-home u-theme-light"
         id="property-strategy-home-section"
         aria-labelledby="property-strategy-home-heading"
-        data-scrubbing={isScrubbing ? "true" : "false"}
-        style={{ ["--gs-scrub" as string]: scrubProgress.toFixed(4) }}
       >
         <div className="gs-property-home__inner u-container">
           <header className="gs-property-home__intro">
@@ -642,41 +485,10 @@ export default function PropertyInvestmentStrategySection({
               />
             </div>
 
-            {/* Survey plate. Drawn, not lit — the whole figure is 2px strokes in
-                the ink already used by the section's own SVGs, so it reads as a
-                field-guide plate rather than a rendered object. It is the one
-                element that is genuinely scroll-authored: --gs-scrub walks the
-                stroke-dashoffset, so the plate draws itself across the section
-                and is complete exactly when the last archetype lands. Purely
-                decorative, so it is hidden from assistive tech. */}
-            <div className="gs-property-home__plate" aria-hidden="true">
-              <svg viewBox="0 0 480 340" role="presentation" focusable="false">
-                <g className="gs-plate__grid">
-                  {Array.from({ length: 8 }, (_, i) => (
-                    <line key={`h${i}`} x1="0" y1={42.5 * (i + 1)} x2="480" y2={42.5 * (i + 1)} />
-                  ))}
-                  {Array.from({ length: 11 }, (_, i) => (
-                    <line key={`v${i}`} x1={43.6 * (i + 1)} y1="0" x2={43.6 * (i + 1)} y2="340" />
-                  ))}
-                </g>
-                <g className="gs-plate__figure">
-                  <path pathLength="1" d="M86 150 Q84 108 130 106 L300 96 Q356 92 372 122 L412 132 Q432 152 410 170 L356 178 L346 214 Q342 246 306 244 L150 250 Q96 252 90 212 Q84 188 86 150 Z" />
-                  <path pathLength="1" d="M150 250 L150 178 L232 140 L318 176 L318 244" />
-                  <path pathLength="1" d="M196 250 L196 206 L246 206 L246 250" />
-                  <path pathLength="1" d="M270 200 L300 200 L300 224 L270 224 Z" />
-                </g>
-              </svg>
-            </div>
-
             <div className="gs-property-home__stage-head u-theme-dark">
               <div className="gs-property-home__position" aria-live="polite">
                 <span>{String(activeIndex + 1).padStart(2, "0")}</span>
                 <span>/ {PROPERTY_STRATEGIES.length}</span>
-              </div>
-              {/* Scroll position made legible. Scaled by --gs-scrub, so it is a
-                  readout of where the reader is, never an idle animation. */}
-              <div className="gs-property-home__scrub-meter" aria-hidden="true">
-                <span />
               </div>
 
               <div
