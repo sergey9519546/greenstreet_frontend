@@ -1,6 +1,6 @@
 {
-  "source": "src/marketing/home-markup.html reviewed 2026-08-13 after retired-partnerships nav cleanup and dead Resources-card article links",
-  "sha256": "c5dd8f5517a37f9ad35cedc1b733930349cc38088f95cb6d04b844a664ebd217",
+  "source": "src/marketing/home-markup.html reviewed 2026-08-14 after labelling the bare overlay links and repointing audience tiles to their own pages",
+  "sha256": "841ce0d92c7754b89a440d5794e9362654d0de1af8ff0e1a54c18ecfc8e3fd0e",
   "requiredMarkers": [
     "class=\"page_wrap\"",
     "class=\"nav-wrap\"",
