@@ -828,8 +828,12 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
               </div>
 
-              {/* RESULTS — eyes guided top→down: verdict → the edge → supporting */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* RESULTS — eyes guided top→down: verdict → the edge → supporting.
+                  dc-results-first makes this column lead once .calc-panel stacks
+                  at ≤991px. Without it the 400px input rail sits above the
+                  verdict on every tablet and phone, so the answer this tool
+                  exists to give is a whole form's worth of scrolling away. */}
+              <div className="dc-results-first" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                 {/* ── TIER 1 · VERDICT (dominant) ── */}
                 <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(28px,3vw,40px)', border: `1px solid ${zoneColor}55` }}>

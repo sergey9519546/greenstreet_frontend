@@ -171,6 +171,24 @@ input[type="number"]{cursor:ns-resize;}
   .dc-band-3,.dc-band-2,.dc-split{grid-template-columns:1fr !important;}
   .dc-band-4{grid-template-columns:repeat(2,1fr) !important;}
   .da-metrics-3{grid-template-columns:repeat(2,1fr) !important;}
+
+  /* Tool splits put the input form first in DOM order, which is correct
+     side-by-side on desktop. Once .dc-split collapses to one column, that same
+     order buries the answer: a tool with 16 fields stacks roughly 1,600px of
+     form above its own verdict, so every reader on a tablet or phone scrolls
+     past the whole form to reach the number they came for.
+
+     Opt-in rather than automatic, because .dc-split is used on 16 pages and not
+     all of them are input/output splits — some are prose beside an illustration,
+     where the existing order is right. Put dc-results-first on the results
+     column of a tool split and it leads when stacked; every other split is
+     untouched. (No backticks in this comment — it lives inside a template
+     literal and a stray one truncates the whole stylesheet.)
+
+     Not scoped to a .dc-split child on purpose: the calculator uses its own
+     .calc-panel grid with the same inputs-first shape, and a tool should not
+     have to adopt a particular grid class to get a readable stacking order. */
+  .dc-results-first{order:-1;}
 }
 @media (max-width: 640px){
   .dc-band-4{grid-template-columns:1fr !important;}
