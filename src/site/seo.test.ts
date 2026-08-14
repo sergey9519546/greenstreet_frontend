@@ -5,6 +5,7 @@ import { CANONICAL_PUBLIC_PATHS, PAGE_SEO, absoluteUrl } from "./seo";
 import { isKnownRoute } from "../router/resolve";
 import { NAV_MENUS } from "../design/navModel";
 import { TOOL_RELIABILITY_HOLDS } from "../components/toolReliabilityHolds";
+import { POSTS } from "../pages/BlogPage";
 
 describe("site route and SEO registry", () => {
   it("keeps canonical public paths routable", () => {
@@ -82,6 +83,21 @@ describe("site route and SEO registry", () => {
     for (const path of featuredPaths) expect(homepage).toContain(`href="${path}"`);
     expect(homepage).not.toContain("/blog/greenstreet-t3-survey-rating");
     expect(homepage).not.toContain("/blog/track-2-dscr");
+  });
+
+  // The check above only ever read index.html. src/marketing/home-markup.html is
+  // the copy MarketingHome actually renders (imported ?raw), and it still had all
+  // three dead slugs long after index.html was cleaned — a visitor clicking those
+  // Resources cards on the live homepage landed on BlogPostPage's in-app 404.
+  // Asserted against every rendered slug rather than a hand-listed few, so a new
+  // dead link cannot slip in behind a fixed list.
+  it("links only to published articles from the rendered homepage markup", () => {
+    const markup = readFileSync(resolve(process.cwd(), "src/marketing/home-markup.html"), "utf8");
+    const published = new Set(POSTS.map((post) => post.slug));
+    const linked = [...markup.matchAll(/href="\/blog\/([a-z0-9-]+)"/g)].map((match) => match[1]);
+
+    expect(linked.length).toBeGreaterThan(0);
+    expect(linked.filter((slug) => !published.has(slug))).toEqual([]);
   });
 
   it("blocks the current internal app route in robots", () => {

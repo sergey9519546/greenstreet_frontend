@@ -40,4 +40,21 @@ describe("article metadata matches rendered article content", () => {
     const orphans = Object.keys(ARTICLE_TITLES).filter((slug) => !renderedTitles.has(slug));
     expect(orphans).toEqual([]);
   });
+
+  // The other direction. Only the subset above was ever checked, so a post
+  // could ship without an ARTICLE_TITLES entry and nothing failed — fifteen of
+  // the thirty-three did exactly that. getRouteMetadata's /blog/ branch has no
+  // entry to find, so it noindexed each one as "Article not found" while the
+  // Resources nav linked to it and public/sitemap.xml submitted it to search.
+  it("indexes every article the blog actually renders", () => {
+    const unindexed = POSTS.map((post) => post.slug).filter((slug) => !(slug in ARTICLE_TITLES));
+    expect(unindexed).toEqual([]);
+  });
+
+  it.each(POSTS.map((post) => post.slug))("keeps %s indexable rather than 'Article not found'", (slug) => {
+    const metadata = getRouteMetadata({ pathname: `/blog/${slug}`, view: "blog-post" });
+
+    expect(metadata.robots).toBe("index,follow");
+    expect(metadata.title).not.toMatch(/Article not found/);
+  });
 });

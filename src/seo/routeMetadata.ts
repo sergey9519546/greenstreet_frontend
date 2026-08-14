@@ -189,6 +189,18 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
     canonicalPath: "/faq",
     jsonLdKind: "WebPage",
   },
+  // /support is its own live page (SupportPage), not an alias. It used to be
+  // served the FAQ definition, so a visitor on /support got the tab title
+  // "FAQ" and a canonical pointing at /faq — a different URL than the one
+  // rendering — which invites search engines to fold the page into /faq even
+  // though public/sitemap.xml submits /support separately. Title mirrors
+  // SupportPage's own document.title.
+  support: {
+    title: "Help & Support | Greenstreet Finance",
+    description: "Reach Greenstreet Finance with a question about a DSCR scenario, a tool, or a preliminary review request.",
+    canonicalPath: "/support",
+    jsonLdKind: "WebPage",
+  },
   blog: {
     title: "Investor Guidance | Greenstreet Finance",
     description: "Educational articles about DSCR lending concepts, rental-property underwriting, and investor decision making.",
@@ -303,6 +315,36 @@ export const ARTICLE_TITLES: Record<string, string> = {
   "dscr-loan-document-checklist": "DSCR documentation: a provider-confirmation checklist",
   "dscr-loan-process-after-prequalify": "After a preliminary DSCR estimate: process questions to ask",
   "how-to-improve-dscr-before-applying": "How scenario inputs change modeled DSCR",
+  // The fifteen below were live, linked from the Resources nav and listed in
+  // public/sitemap.xml, but had no entry here — so getRouteMetadata's /blog/
+  // branch noindexed each one as "Article not found". articleTitles.test.ts only
+  // asserted ARTICLE_TITLES is a subset of POSTS, never the reverse, which is
+  // why a missing entry was invisible. That direction is now tested too.
+  //
+  // Each title is the post's RENDERED title verbatim — POSTS, i.e. RAW_POSTS
+  // with the EDITORIAL_REVISIONS compliance overlay applied. That equality is
+  // the contract articleTitles.test.ts enforces, and it is the right one: the
+  // headline in a search result has to be the headline on the page. The
+  // eighteen entries above look "rewritten" only because EDITORIAL_REVISIONS
+  // softens those posts on the page too. If any headline below reads too
+  // strongly, the fix is an EDITORIAL_REVISIONS entry, which moves the page and
+  // the search result together — never a title here that diverges from what the
+  // reader actually lands on.
+  "dscr-appraisal-form-1007-market-rent": "DSCR appraisal and Form 1007: how market rent affects the loan",
+  "dscr-loan-closing-costs-cash-to-close": "DSCR loan closing costs: build a complete cash-to-close budget",
+  "dscr-loan-llc-entity-vesting-guide": "DSCR loans in an LLC: align the borrower, title, bank account, and lease",
+  "dscr-loan-points-break-even": "DSCR loan points: calculate the break-even before buying down the rate",
+  "dscr-loan-prepayment-penalty-exit-cost": "DSCR prepayment penalties: put a price on your exit before closing",
+  "dscr-loan-reserves-liquidity": "DSCR loan reserves: calculate the liquidity you need after closing",
+  "dscr-loan-vs-conventional-investment-property-loan": "DSCR loan vs conventional investment-property loan: how to choose",
+  "dscr-loans-duplex-triplex-fourplex": "DSCR loans for duplexes, triplexes, and fourplexes: what changes",
+  "dscr-property-insurance-pitia-coverage": "DSCR property insurance: the premium, coverage, and deductible test",
+  "dscr-rate-lock-extension-closing-plan": "DSCR rate locks: protect the closing date, not just the interest rate",
+  "dscr-sensitivity-analysis-rent-pitia": "The $100 DSCR stress test: see which assumption can break the deal",
+  "dscr-vs-rental-property-cash-flow": "DSCR vs rental-property cash flow: calculate both before you buy",
+  "first-dscr-loan-first-time-investor-guide": "Your first DSCR loan: a step-by-step guide for new investors",
+  "interest-only-dscr-loan-payment-math": "Interest-only DSCR loans: lower payment now, higher reset risk later",
+  "property-tax-reassessment-dscr-pitia": "Property-tax reassessment: the hidden PITIA reset in a DSCR purchase",
 };
 
 // Derived from TOOL_RELIABILITY_HOLDS rather than hand-maintained: this used
@@ -345,10 +387,11 @@ export function getRouteMetadata({ pathname, view }: RouteMetadataInput): RouteM
   const legal = LEGAL_ALIAS_METADATA[path];
   if (legal) return indexed(legal);
 
-  if (path === "/support") return indexed(PUBLIC_PAGES.faq!);
-  // /lender-intel is its own live page (LenderIntelPage), so it resolves through
-  // PUBLIC_PAGES["lender-intel"] below with its own title and canonical. Only
-  // /products/platform still aliases to the Products page.
+  // /lender-intel and /support are both their own live pages (LenderIntelPage,
+  // SupportPage), so they resolve through their own PUBLIC_PAGES entries below
+  // with their own titles and canonicals. Only /products/platform still aliases
+  // to the Products page. (The /support alias outlived the comment that said
+  // this and was still handing out the FAQ definition.)
   if (path === "/products/platform") return indexed(PUBLIC_PAGES.products!);
   // No partner alias here. The `brokers-partner` view and its page component
   // were deleted outright (not merely made unreachable) — the owner retired

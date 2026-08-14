@@ -1,6 +1,6 @@
 {
-  "source": "src/marketing/home-markup.html reviewed 2026-08-13 after retired-partnerships nav cleanup",
-  "sha256": "747a54117c96f2728332d447000206ca31554c326b7764f3d04963cdc3282e9d",
+  "source": "src/marketing/home-markup.html reviewed 2026-08-13 after retired-partnerships nav cleanup and dead Resources-card article links",
+  "sha256": "c5dd8f5517a37f9ad35cedc1b733930349cc38088f95cb6d04b844a664ebd217",
   "requiredMarkers": [
     "class=\"page_wrap\"",
     "class=\"nav-wrap\"",
