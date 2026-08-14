@@ -10,7 +10,6 @@ export type PageView =
   | "str-hosts"
   | "vacation-homes"
   | "brokers"
-  | "brokers-partner"
   | "investors"
   | "faq"
   | "blog"

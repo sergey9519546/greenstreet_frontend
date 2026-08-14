@@ -146,7 +146,6 @@ const PORTAL_PATHS: Record<string, string> = {
   portal: "/investgo",
   products: "/products",
   solutions: "/solutions",
-  "brokers-partner": "/partnerships",
   blog: "/blog",
   "rate-quiz": "/rate-quiz",
 };

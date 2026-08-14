@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getRouteMetadata, SITE_ORIGIN } from "./routeMetadata";
 import { TOOL_RELIABILITY_HOLDS } from "../components/toolReliabilityHolds";
+import type { PageView } from "../router/resolve";
 
 describe("public route metadata", () => {
   it("indexes canonical public pages", () => {
@@ -37,9 +38,6 @@ describe("public route metadata", () => {
 
   it.each([
     ["/investgo", "portal"],
-    ["/tools/decision-support", "decision-support"],
-    ["/tools/tax-engine", "tax-engine"],
-    ["/tools/returns", "returns"],
     ["/unpublished-path", "not-found"],
     // Retired partner aliases, paired with the view resolve.ts actually returns
     // for them today — not the view they used to carry. A metadata alias used
@@ -53,13 +51,53 @@ describe("public route metadata", () => {
     expect(getRouteMetadata({ pathname, view }).robots).toBe("noindex,nofollow");
   });
 
-  it("does not advertise a retired partner alias as a page that still renders", () => {
-    // `brokers-partner` is unreachable: nothing in resolve.ts resolves to it,
-    // so no metadata may point at it as a live destination.
+  it("indexes released tools that a stale hand-maintained HELD_VIEWS list used to noindex", () => {
+    // HELD_VIEWS used to be its own hardcoded copy of "which tools are on a
+    // reliability hold" instead of being derived from TOOL_RELIABILITY_HOLDS
+    // (the single source of truth, checked via the "keeps every held tool out
+    // of search results" test below). Nobody updated the copy as each of
+    // these nine tools shipped, so getRouteMetadata kept serving
+    // noindex + "Tool unavailable for review" for a URL public/sitemap.xml
+    // was simultaneously submitting to search engines as live. Deriving
+    // HELD_VIEWS from TOOL_RELIABILITY_HOLDS means this can only regress if a
+    // tool is genuinely put back on hold.
+    const released: ReadonlyArray<readonly [string, PageView]> = [
+      ["/tools/refi-tracker", "refi-tracker"],
+      ["/tools/arm-reset", "arm-reset"],
+      ["/tools/monte-carlo", "monte-carlo"],
+      ["/tools/returns", "returns"],
+      ["/tools/tax-engine", "tax-engine"],
+      ["/tools/stress-matrix", "stress-matrix"],
+      ["/tools/structure-optimizer", "structure-optimizer"],
+      ["/tools/decision-support", "decision-support"],
+      ["/tools/portfolio", "portfolio"],
+    ];
+    for (const [pathname, view] of released) {
+      const metadata = getRouteMetadata({ pathname, view });
+      expect(metadata.robots, pathname).toBe("index,follow");
+      expect(metadata.title, pathname).not.toMatch(/unavailable/i);
+      expect(metadata.title, pathname).not.toMatch(/not found/i);
+      expect(metadata.canonical, pathname).toBe(`${SITE_ORIGIN}${pathname}`);
+    }
+  });
+
+  it("still keeps the actually-held InvestGO workspace out of search after deriving HELD_VIEWS", () => {
+    const metadata = getRouteMetadata({ pathname: "/investgo", view: "portal" });
+    expect(metadata.robots).toBe("noindex,nofollow");
+    expect(metadata.title).toMatch(/unavailable|InvestGO Workspace/i);
+  });
+
+  it("describes the private workspace, not a deleted partner page, for /partnerships and /partners", () => {
+    // The `brokers-partner` view and its page component are gone outright —
+    // not just unreachable. resolve.ts sends both paths to `portal`, so their
+    // metadata must describe the private InvestGO workspace (noindexed,
+    // canonicalized to /investgo) rather than the retired "Partner With
+    // Greenstreet" copy.
     for (const pathname of ["/partnerships", "/partners"]) {
       const metadata = getRouteMetadata({ pathname, view: "portal" });
+      expect(metadata.robots).toBe("noindex,nofollow");
       expect(metadata.title).not.toMatch(/Partner With Greenstreet/);
-      expect(metadata.canonical).not.toBe(`${SITE_ORIGIN}/partners`);
+      expect(metadata.canonical).toBe(`${SITE_ORIGIN}/investgo`);
     }
   });
 

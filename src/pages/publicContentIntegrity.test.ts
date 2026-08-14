@@ -95,17 +95,6 @@ describe("public content integrity", () => {
     );
   });
 
-  it("keeps InvestGO feedback role-only and explicitly illustrative", () => {
-    const portal = source("src/pages/BrokersPortalPage.tsx");
-
-    expect(portal).toContain("Illustrative composite scenarios for educational purposes");
-    expect(portal).toContain("Illustrative investor scenarios.");
-    expect(portal).not.toMatch(
-      /Alex Stickelman|Sandra Rivera|Robert Hayes|Vela Capital/,
-    );
-    expect(portal).not.toMatch(/closed in 19 days|eight loans through Greenstreet/i);
-  });
-
   it("keeps homepage scenario routing free of name and email PII", () => {
     const home = source("index.html");
     const start = home.indexOf('<script id="gs-lead-js">');

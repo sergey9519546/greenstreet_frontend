@@ -1,6 +1,6 @@
 {
-  "source": "src/marketing/home-markup.html reviewed 2026-08-11 after fail-closed booking cleanup",
-  "sha256": "e16d9b013cde124b79a1a1479e4773c7e3c585a492d2ae77c07eafe8acb4c76e",
+  "source": "src/marketing/home-markup.html reviewed 2026-08-13 after retired-partnerships nav cleanup",
+  "sha256": "747a54117c96f2728332d447000206ca31554c326b7764f3d04963cdc3282e9d",
   "requiredMarkers": [
     "class=\"page_wrap\"",
     "class=\"nav-wrap\"",

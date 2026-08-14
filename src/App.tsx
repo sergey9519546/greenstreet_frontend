@@ -23,7 +23,6 @@ const routeModules = {
   NonUsInvestorsPage: () => import("./pages/NonUsInvestorsPage"),
   STRHostsPage: () => import("./pages/STRHostsPage"),
   VacationHomesPage: () => import("./pages/VacationHomesPage"),
-  BrokersPortalPage: () => import("./pages/BrokersPortalPage"),
   InvestorsPage: () => import("./pages/InvestorsPage"),
   AboutPage: () => import("./pages/AboutPage"),
   CareersPage: () => import("./pages/CareersPage"),
@@ -168,7 +167,6 @@ const BorrowerProfilesPage = lazyRoute("BorrowerProfilesPage");
 const NonUsInvestorsPage = lazyRoute("NonUsInvestorsPage");
 const STRHostsPage = lazyRoute("STRHostsPage");
 const VacationHomesPage = lazyRoute("VacationHomesPage");
-const BrokersPortalPage = lazyRoute("BrokersPortalPage");
 const InvestorsPage = lazyRoute("InvestorsPage");
 const AboutPage = lazyRoute("AboutPage");
 const CareersPage = lazyRoute("CareersPage");
@@ -436,7 +434,6 @@ function viewToPath(view: PageView): string {
     case "str-hosts":         return "/str-airbnb";
     case "vacation-homes":    return "/vacation-homes";
     case "brokers":           return "/brokers";
-    case "brokers-partner":   return "/partnerships";
     case "investors":         return "/investors";
     case "faq":               return "/faq";
     case "blog":              return "/blog";
@@ -468,7 +465,7 @@ function viewToPath(view: PageView): string {
     case "construction-bridge": return "/tools/construction-bridge";
     case "tco-threshold":       return "/tools/tco-threshold";
     // Exhaustive over PageView (verified: every union member has a case
-    // above), but a 42-arm switch without a default isn't something TS proves
+    // above), but a 41-arm switch without a default isn't something TS proves
     // exhaustive reliably. Fail closed to the marketing route rather than
     // let a future desync between PageView and this switch return undefined
     // into a pushState call.
@@ -679,8 +676,6 @@ export default function App() {
         return <VacationHomesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers":
         return <BrokersPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
-      case "brokers-partner":
-        return <BrokersPortalPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "investors":
         return <InvestorsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "about":

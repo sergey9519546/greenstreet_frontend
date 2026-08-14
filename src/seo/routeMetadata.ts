@@ -1,4 +1,5 @@
 import type { PageView } from "../router/resolve";
+import { TOOL_RELIABILITY_HOLDS } from "../components/toolReliabilityHolds";
 
 /** The one public origin used in canonical URLs and structured data. */
 export const SITE_ORIGIN = "https://www.greenstreet.finance";
@@ -84,6 +85,68 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
     canonicalPath: "/tools/tco-threshold",
     jsonLdKind: "WebPage",
   },
+  // The nine entries below (refi-tracker through portfolio) were missing
+  // outright — not merely blocked by HELD_VIEWS. Every one of these tools
+  // ships live (see App.tsx's renderPage switch) and public/sitemap.xml
+  // already submits its canonical URL, but with no PUBLIC_PAGES definition
+  // getRouteMetadata fell through to the final noindex("Page not found")
+  // branch regardless of HELD_VIEWS. Titles mirror each page's own
+  // `document.title` exactly, since applyRouteMetadata's title write runs
+  // after the page component mounts and would otherwise overwrite it.
+  "refi-tracker": {
+    title: "Should I Refinance My DSCR Loan? | Greenstreet Finance",
+    description: "Model whether refinancing a DSCR loan clears its break-even cost, built from the current note's full amortization schedule rather than typed-in balances.",
+    canonicalPath: "/tools/refi-tracker",
+    jsonLdKind: "WebPage",
+  },
+  "arm-reset": {
+    title: "What Happens When My ARM Resets? | Greenstreet Finance",
+    description: "See how a DSCR loan's payment and coverage ratio change when an adjustable-rate mortgage resets, across bullish-to-crisis SOFR scenarios.",
+    canonicalPath: "/tools/arm-reset",
+    jsonLdKind: "WebPage",
+  },
+  "monte-carlo": {
+    title: "Monte Carlo Simulator | Greenstreet Finance",
+    description: "Run a Monte Carlo simulation of DSCR outcomes over a multi-year holding period using stated rate-path and volatility assumptions.",
+    canonicalPath: "/tools/monte-carlo",
+    jsonLdKind: "WebPage",
+  },
+  "returns": {
+    title: "Returns & IRR | Greenstreet Finance",
+    description: "Estimate cash-on-cash return and IRR for a rental-property scenario using purchase price, financing, rent growth, and exit assumptions.",
+    canonicalPath: "/tools/returns",
+    jsonLdKind: "WebPage",
+  },
+  "tax-engine": {
+    title: "Tax Engine | Greenstreet Finance",
+    description: "Estimate after-tax IRR for a rental-property scenario, including depreciation, interest deduction, and recapture assumptions.",
+    canonicalPath: "/tools/tax-engine",
+    jsonLdKind: "WebPage",
+  },
+  "stress-matrix": {
+    title: "Stress Matrix | Greenstreet Finance",
+    description: "Stress-test a DSCR scenario against rate, rent, vacancy, and tax shocks to see how coverage holds against a maintenance covenant threshold.",
+    canonicalPath: "/tools/stress-matrix",
+    jsonLdKind: "WebPage",
+  },
+  "structure-optimizer": {
+    title: "Structure Optimizer | Greenstreet Finance",
+    description: "Compare loan-structure options for a DSCR scenario to see how financing choices affect modeled coverage and proceeds.",
+    canonicalPath: "/tools/structure-optimizer",
+    jsonLdKind: "WebPage",
+  },
+  "decision-support": {
+    title: "Decision Support | Greenstreet Finance",
+    description: "Review a DSCR scenario's solved rate, program eligibility, and after-tax IRR together in one educational decision-support view.",
+    canonicalPath: "/tools/decision-support",
+    jsonLdKind: "WebPage",
+  },
+  "portfolio": {
+    title: "Portfolio Builder | Greenstreet Finance",
+    description: "Track DSCR and equity across a manually entered portfolio of rental properties for educational planning purposes.",
+    canonicalPath: "/tools/portfolio",
+    jsonLdKind: "WebPage",
+  },
   "borrower-profiles": {
     title: "Borrower Profiles | Greenstreet Finance",
     description: "Explore common business-purpose DSCR borrower scenarios and the information needed for a preliminary review.",
@@ -112,12 +175,6 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
     title: "For Brokers | Greenstreet Finance",
     description: "Learn how Greenstreet Finance supports brokers evaluating business-purpose DSCR scenarios.",
     canonicalPath: "/brokers",
-    jsonLdKind: "WebPage",
-  },
-  "brokers-partner": {
-    title: "Partner With Greenstreet | Greenstreet Finance",
-    description: "Learn about the Greenstreet Finance partner workflow for business-purpose DSCR scenarios.",
-    canonicalPath: "/partners",
     jsonLdKind: "WebPage",
   },
   investors: {
@@ -248,21 +305,17 @@ export const ARTICLE_TITLES: Record<string, string> = {
   "how-to-improve-dscr-before-applying": "How scenario inputs change modeled DSCR",
 };
 
-const HELD_VIEWS = new Set<PageView>([
-  "decision-support",
-  "deal-analyzer",
-  "rate-quiz",
-  "state-laws",
-  "str-underwriting",
-  "structure-optimizer",
-  "tax-engine",
-  "refi-tracker",
-  "portfolio",
-  "monte-carlo",
-  "arm-reset",
-  "returns",
-  "stress-matrix",
-]);
+// Derived from TOOL_RELIABILITY_HOLDS rather than hand-maintained: this used
+// to be its own hardcoded list of 13 views. As tools shipped, nobody updated
+// it, so it kept noindexing (title "Tool unavailable for review") ten
+// released, working tools whose URLs public/sitemap.xml was simultaneously
+// submitting to search engines — index and noindex signals for the same URL
+// at once. TOOL_RELIABILITY_HOLDS is the single source of truth for what is
+// actually held (today: only the InvestGO workspace), so deriving from it
+// makes that kind of drift structurally impossible going forward.
+const HELD_VIEWS = new Set<PageView>(
+  Object.values(TOOL_RELIABILITY_HOLDS).map((hold) => hold.view),
+);
 
 function normalizePathname(pathname: string): string {
   const path = pathname.split(/[?#]/, 1)[0] || "/";
@@ -297,16 +350,16 @@ export function getRouteMetadata({ pathname, view }: RouteMetadataInput): RouteM
   // PUBLIC_PAGES["lender-intel"] below with its own title and canonical. Only
   // /products/platform still aliases to the Products page.
   if (path === "/products/platform") return indexed(PUBLIC_PAGES.products!);
-  // No partner alias here. "Partnerships" was retired from the primary nav
-  // (see navModel.ts) and no path resolves to the `brokers-partner` view any
-  // more: resolve.ts sends /partners and /partnerships to `portal`, and
-  // /become-a-partner to `not-found`. This alias used to run BEFORE the portal
-  // guard below and the not-found guard after it, so it overrode both — which
-  // published the private InvestGO workspace and a 404 to search engines as an
-  // indexable "Partner With Greenstreet" page, canonicalized to /partners,
-  // which is itself the workspace. Dropping it lets each path reach the guard
-  // that actually describes what renders. Restoring a public partner page is a
-  // routing + content decision, not a metadata one.
+  // No partner alias here. The `brokers-partner` view and its page component
+  // were deleted outright (not merely made unreachable) — the owner retired
+  // the partner page and all its material. resolve.ts sends /partners and
+  // /partnerships to `portal`, and /become-a-partner to `not-found`; each path
+  // reaches the guard below that actually describes what renders. An alias
+  // used to run BEFORE the portal guard and the not-found guard, overriding
+  // both to publish the private InvestGO workspace and a 404 to search
+  // engines as an indexable "Partner With Greenstreet" page. A future public
+  // partner page would need new routing, content, and metadata — this file
+  // no longer has anything to resurrect.
 
   if (path.startsWith("/blog/")) {
     const slug = path.slice("/blog/".length);

@@ -71,6 +71,15 @@ describe('resolveRoute — canonical paths round-trip', () => {
   it('falls back to not-found for unknown internal paths', () => {
     expect(resolveRoute('/this-route-does-not-exist')).toBe('not-found');
   });
+
+  // `/become-a-partner` was never mapped to a view — it has no ROUTE_MAP entry
+  // and no prefix handler, so it falls through to not-found like any other
+  // unknown path. The retired `brokers-partner` view (formerly reachable only
+  // via /partnerships, never via this path) has since been deleted outright,
+  // so there is no view left for this path to accidentally resolve to.
+  it('/become-a-partner → not-found (never a routed path; brokers-partner view is deleted)', () => {
+    expect(resolveRoute('/become-a-partner')).toBe('not-found');
+  });
 });
 
 describe('resolveRoute — documented intentional aliases', () => {
