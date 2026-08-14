@@ -162,51 +162,76 @@
   letter-spacing: -0.02em;
 }
 
+/* Stage head. Cream, not a coloured band: the section already sits on the
+   light ground and the stage below is dark, which is the whole two-surface
+   system. The previous dark strip made this a third band competing with both. */
 .gs-property-home__stage-head {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: clamp(1.5rem, 3vw, 3rem);
-  align-items: stretch;
-  padding: 0 clamp(1.5rem, 3vw, 3rem);
-  color: var(--property-home-cream);
-  background: var(--property-home-deep);
-  border-bottom: 1px solid rgba(238, 239, 211, 0.24);
+  padding: clamp(1.25rem, 2.5vw, 2rem) clamp(1.5rem, 3vw, 3rem) 0;
+  color: var(--property-home-ink);
+  background: var(--property-home-cream);
 }
 
+/* Rail, rebuilt on the homepage's own "How it works" step pattern rather than a
+   horizontally-scrolling strip. Ten archetypes in a scroller meant seven were
+   always off-screen and the reader had no idea how many existed; an autofit
+   grid shows the whole set at once and wraps instead of hiding. */
 .gs-property-home__rail {
-  display: flex;
-  gap: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0 clamp(1rem, 2vw, 2rem);
   min-width: 0;
   margin: 0;
   padding: 0;
-  overflow-x: auto;
-  scrollbar-color: rgba(238, 239, 211, 0.35) transparent;
-  scrollbar-width: thin;
-  scroll-snap-type: x proximity;
 }
 
 .gs-property-home__tab {
   display: grid;
-  flex: 0 0 clamp(9.25rem, 11vw, 11rem);
-  gap: 0.55rem;
+  gap: 0.5rem;
   align-content: start;
-  min-height: 6rem;
-  padding: 1.2rem 1rem;
-  color: rgba(238, 239, 211, 0.58);
+  padding: 0 0 1.1rem;
+  color: rgba(0, 55, 56, 0.55);
   background: transparent;
   border: 0;
   border-radius: 0;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  scroll-snap-align: start;
-  transition: color 200ms ease, background-color 200ms ease, transform 200ms ease;
+  /* No transition on colour. Colour here carries STATE — which archetype is
+     selected — and a state cue must not depend on an animation finishing. Only
+     the rule fill below animates, because it is decoration. */
 }
 
-.gs-property-home__tab + .gs-property-home__tab {
-  border-left: 1px solid rgba(238, 239, 211, 0.14);
+/* The progress rule. Baseline plus a fill that runs to full width on the active
+   step — the same read as the step tabs on the homepage. Width is driven by
+   selection, so it moves only when the reader acts: no ambient motion, per
+   DESIGN_SOURCE_OF_TRUTH.md:70-77. */
+.gs-property-home__tab-rule {
+  position: relative;
+  display: block;
+  height: 2px;
+  background: rgba(0, 55, 56, 0.16);
+}
+
+.gs-property-home__tab-rule-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: block;
+  width: 0;
+  background: var(--property-home-ink);
+  transition: width 420ms var(--property-ease);
+}
+
+.gs-property-home__tab[data-active="true"] .gs-property-home__tab-rule-fill {
+  width: 100%;
+}
+
+.gs-property-home__tab-head {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding-top: 0.85rem;
 }
 
 .gs-property-home__tab-index {
@@ -216,25 +241,35 @@
   letter-spacing: 0.1em;
 }
 
+.gs-property-home__tab-arrow {
+  flex: 0 0 auto;
+  opacity: 0;
+  /* Instant for the same reason: the arrow is one of the two non-colour signals
+     for the selected step, so it must be correct the moment state changes. */
+}
+
 .gs-property-home__tab-label {
   max-width: 17ch;
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   font-weight: 550;
   line-height: 1.15;
 }
 
 .gs-property-home__tab:hover,
 .gs-property-home__tab[data-active="true"] {
-  color: var(--property-home-cream);
+  color: var(--property-home-ink);
 }
 
-.gs-property-home__tab[data-active="true"] {
-  color: var(--property-home-ink);
-  background: var(--property-home-cream);
+/* The arrow appears for the active step and on hover — a second, non-colour
+   signal for which step is selected, alongside the filled rule and the weight
+   change. Colour is never the only cue. */
+.gs-property-home__tab:hover .gs-property-home__tab-arrow,
+.gs-property-home__tab[data-active="true"] .gs-property-home__tab-arrow {
+  opacity: 1;
 }
 
-.gs-property-home__tab[data-active="true"] .gs-property-home__tab-index {
-  color: var(--property-home-ink);
+.gs-property-home__tab[data-active="true"] .gs-property-home__tab-label {
+  font-weight: 700;
 }
 
 .gs-property-home__tab:active {

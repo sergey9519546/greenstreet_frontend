@@ -514,8 +514,32 @@ export default function PropertyInvestmentStrategySection({
                       onClick={(event) => selectStrategy(item.id, event.currentTarget)}
                       onKeyDown={(event) => handleTabKeyDown(event, index)}
                     >
-                      <span className="gs-property-home__tab-index">
-                        {String(index + 1).padStart(2, "0")}
+                      {/* Progress rule, mirroring the homepage's own "How it
+                          works" step tabs: a hairline baseline with a fill that
+                          runs to full width on the active step. Decorative — the
+                          selected state is already carried by aria-selected and
+                          by the label's own weight and colour, so a screen
+                          reader loses nothing by skipping it. */}
+                      <span className="gs-property-home__tab-rule" aria-hidden="true">
+                        <span className="gs-property-home__tab-rule-fill" />
+                      </span>
+                      <span className="gs-property-home__tab-head">
+                        <span className="gs-property-home__tab-index">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <svg
+                          className="gs-property-home__tab-arrow"
+                          viewBox="0 0 14 14"
+                          width="11"
+                          height="11"
+                          fill="none"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <path d="M6.95 1.47L12.82 7.34" stroke="currentColor" strokeWidth="2" />
+                          <line x1="6.92" y1="11.82" x2="11.40" y2="7.34" stroke="currentColor" strokeWidth="2" />
+                          <line x1="11.95" y1="6.70" x2="0.38" y2="6.70" stroke="currentColor" strokeWidth="2" />
+                        </svg>
                       </span>
                       <span className="gs-property-home__tab-label">{item.tabLabel}</span>
                     </button>
