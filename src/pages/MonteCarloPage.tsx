@@ -564,9 +564,8 @@ export default function MonteCarloPage({
                 datasetKey="sofrModel"
                 ground="dark"
                 style={{
-                  color: YELLOW,
-                  background: "rgba(154,123,0,0.08)",
-                  border: "1px solid rgba(154,123,0,0.25)",
+                  background: "rgba(238,239,211,0.05)",
+                  border: "1px solid rgba(238,239,211,0.16)",
                   borderRadius: dc.r.sm,
                   padding: "8px 10px",
                   marginBottom: 16,

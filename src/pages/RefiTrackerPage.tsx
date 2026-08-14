@@ -486,6 +486,11 @@ export default function RefiTrackerPage({
 
                   const line = chart.pts.map((p: { m: number; adv: number }, i: number) => `${i === 0 ? "M" : "L"} ${X(p.m).toFixed(1)} ${Y(p.adv).toFixed(1)}`).join(" ");
                   const beX = chart.breakEvenMonth === null ? null : X(chart.breakEvenMonth);
+                  // No crossing inside the horizon means total cost never favours
+                  // refinancing (see the "Break-even" row below, which already colors
+                  // this same null case risk.dangerOnDark) — the curve must not read
+                  // as the same green that means "ahead" when it never gets there.
+                  const trajColor = beX === null ? risk.dangerOnDark : dc.emerald;
 
                   return (
                     <>
@@ -497,8 +502,8 @@ export default function RefiTrackerPage({
 
                       {/* Behind zero the refinance is still down on the deal. */}
                       <path d={`${line} L ${X(chart.pts[chart.pts.length - 1].m).toFixed(1)} ${zeroY} L ${X(chart.pts[0].m).toFixed(1)} ${zeroY} Z`}
-                        fill={dc.emerald} fillOpacity="0.14" />
-                      <path d={line} fill="none" stroke={dc.emerald} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                        fill={trajColor} fillOpacity="0.14" />
+                      <path d={line} fill="none" stroke={trajColor} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
 
                       {beX !== null && (
                         <>
@@ -1033,7 +1038,7 @@ export default function RefiTrackerPage({
             {[
               { v: `${secondLien.combinedDSCR.toFixed(2)}x`, l: "combined DSCR", c: secondLien.combinedDSCR >= 1.0 ? dc.emerald : risk.danger },
               { v: `${secondLien.cltv.toFixed(0)}%`, l: "CLTV (cap 75%)", c: secondLien.cltv <= 75 ? dc.cream : risk.danger },
-              { v: fmt$(secondLien.maxSecondLien), l: `max 2nd lien · ${secondLien.bindingConstraint}-bound`, c: dc.lemon },
+              { v: fmt$(secondLien.maxSecondLien), l: `max 2nd lien · ${secondLien.bindingConstraint}-bound`, c: dc.cream },
               { v: secondLien.qualifies ? "QUALIFIES" : "TIGHT", l: `2nd pmt ${fmt$(secondLien.secondLienPayment)}/mo`, c: secondLien.qualifies ? dc.emerald : dc.lemon },
             ].map((s) => (
               <div key={s.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
@@ -1079,7 +1084,7 @@ export default function RefiTrackerPage({
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }} className="dc-band-4">
             {[
-              { v: fmt$(refiGap.maxNewLoan), l: `max new loan · ${refiGap.bindingConstraint}-bound`, c: dc.lemon },
+              { v: fmt$(refiGap.maxNewLoan), l: `max new loan · ${refiGap.bindingConstraint}-bound`, c: dc.cream },
               refiGap.canRetireBalance
                 ? { v: fmt$(refiGap.cashOutAvailable), l: "cash-out available", c: dc.emerald }
                 : { v: fmt$(refiGap.proceedsGap), l: "cash to close (gap)", c: risk.danger },

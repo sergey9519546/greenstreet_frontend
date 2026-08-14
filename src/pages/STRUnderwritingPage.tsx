@@ -13,7 +13,7 @@ const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 function dscrColor(d: number): string {
   if (d >= 1.25) return dc.rain;   // RAINFOREST #006565
   if (d >= 1.0) return dc.lemon;   // LEMON #d8d958
-  return "#d32f2f";
+  return risk.danger;
 }
 function dscrLabel(d: number): string {
   if (d >= 1.25) return "STRONG";
@@ -729,17 +729,17 @@ export default function STRUnderwritingPage({
                       {
                         label: "World 1 — Long-term lease",
                         world: result.underwriting.world1_LTR,
-                        bg: "#002a29",
+                        bg: dc.dark,
                       },
                       {
                         label: "World 2 — Projected STR",
                         world: result.underwriting.world2_Projected,
-                        bg: "#002a29",
+                        bg: dc.dark,
                       },
                       {
                         label: "World 3 — Documented STR",
                         world: result.underwriting.world3_Documented,
-                        bg: "#002a29",
+                        bg: dc.dark,
                       },
                     ].map(({ label, world, bg }) => {
                       const isBest = label
@@ -950,7 +950,7 @@ export default function STRUnderwritingPage({
                         borderRadius: 20,
                         background: result.legality.incomeEnabled
                           ? "rgba(77,189,151,0.15)"
-                          : "rgba(211,47,47,0.15)",
+                          : risk.dangerBg,
                         border: `1px solid ${result.legality.incomeEnabled ? dc.emerald : risk.danger}`,
                         color: result.legality.incomeEnabled ? dc.emerald : risk.danger,
                         fontSize: 12,
@@ -1021,19 +1021,19 @@ export default function STRUnderwritingPage({
                         </div>
                         <div style={{ fontSize: 20, color: "rgba(238,239,211,0.3)" }}>→</div>
                         <div style={{ textAlign: "center" }}>
-                          <div style={{ fontSize: 11, color: risk.danger, marginBottom: 4, fontWeight: 600 }}>
+                          <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 4, fontWeight: 600 }}>
                             Withholding (15%)
                           </div>
-                          <Mono style={{ fontSize: 18, fontWeight: 600, color: risk.danger }}>
+                          <Mono style={{ fontSize: 18, fontWeight: 600, color: dc.cream }}>
                             −{fmt(result.firpta.federalWithholdingAmount)}
                           </Mono>
                         </div>
                         <div style={{ fontSize: 20, color: "rgba(238,239,211,0.3)" }}>→</div>
                         <div style={{ textAlign: "center" }}>
-                          <div style={{ fontSize: 11, color: dc.emerald, marginBottom: 4, fontWeight: 600 }}>
+                          <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 4, fontWeight: 600 }}>
                             Net to Seller
                           </div>
-                          <Mono style={{ fontSize: 18, fontWeight: 600, color: dc.emerald }}>
+                          <Mono style={{ fontSize: 18, fontWeight: 600, color: dc.cream }}>
                             {fmt(expectedSalePrice - result.firpta.federalWithholdingAmount)}
                           </Mono>
                         </div>
@@ -1044,13 +1044,13 @@ export default function STRUnderwritingPage({
                         <div
                           style={{
                             padding: "10px 14px",
-                            background: "rgba(216,217,88,0.08)",
+                            background: "rgba(238,239,211,0.04)",
                             borderRadius: 6,
                             marginBottom: 12,
-                            border: "1px solid rgba(216,217,88,0.2)",
+                            border: "1px solid rgba(238,239,211,0.12)",
                           }}
                         >
-                          <span style={{ fontSize: 12, color: dc.lemon, fontWeight: 600 }}>
+                          <span style={{ fontSize: 12, color: dc.cream, fontWeight: 600 }}>
                             + State withholding ({state}): {fmt(result.firpta.stateWithholdingAmount)}
                           </span>
                           <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", display: "block", marginTop: 3 }}>

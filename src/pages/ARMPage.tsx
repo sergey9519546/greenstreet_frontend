@@ -24,12 +24,18 @@ const INDEX_LABELS: Record<ARMIndex, string> = {
   TREASURY_10YR: "10yr Treasury",
 };
 
+// Bearish and Crisis used to carry raw hex (#ff8c42, #c0392b) — a bright
+// orange in the #f97316 family the palette exists to keep out, and an
+// ungoverned dark red with no token behind it. The ramp only defines four
+// tiers (positive/caution/warning/danger), so a 5-scenario escalation from
+// Bullish to Crisis has to double up at the top: Stress and Crisis both read
+// risk.danger — the label and SOFR% still tell them apart.
 const SOFR_SCENARIOS: { label: string; sofr: number; color: string }[] = [
   { label: "Bullish",  sofr: 2.59, color: dc.emerald },
   { label: "Base",     sofr: 3.59, color: dc.lemon },
-  { label: "Bearish",  sofr: 4.59, color: "#ff8c42" },
+  { label: "Bearish",  sofr: 4.59, color: risk.warning },
   { label: "Stress",   sofr: 5.00, color: risk.danger },
-  { label: "Crisis",   sofr: 7.00, color: "#c0392b" },
+  { label: "Crisis",   sofr: 7.00, color: risk.danger },
 ];
 
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
@@ -847,9 +853,8 @@ export default function ARMPage({
                     datasetKey="sofrModel"
                     ground="dark"
                     style={{
-                      color: "#e6b84d",
-                      background: "rgba(230,184,77,0.1)",
-                      border: "1px solid rgba(230,184,77,0.28)",
+                      background: "rgba(238,239,211,0.05)",
+                      border: "1px solid rgba(238,239,211,0.16)",
                       borderRadius: dc.r.sm,
                       padding: "8px 12px",
                       marginBottom: 16,
@@ -986,7 +991,7 @@ export default function ARMPage({
                           <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>
                             {result.ioMonths > 0 ? "IO period" : "Fixed period"}
                           </td>
-                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.emerald, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                             <Mono>{result.cfg.initialRate.toFixed(3)}%</Mono>
                           </td>
                           <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>

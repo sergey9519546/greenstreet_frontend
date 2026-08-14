@@ -459,7 +459,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, borderTop: "1px solid rgba(238,239,211,0.16)", paddingTop: 16 }}>
               {[
-                { l: "Cash-on-cash", v: coc.toFixed(1) + "%", c: dc.emerald },
+                { l: "Cash-on-cash", v: coc.toFixed(1) + "%", c: dc.cream },
                 { l: "Equity multiple", v: emStr, c: dc.cream },
                 { l: "Capital back", v: beYear, c: dc.lemon },
               ].map((m) => (
@@ -576,7 +576,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                   {[
                     { label: "Cash-on-Cash Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon, hint: "Year 1 cash flow ÷ cash invested. Good: ≥8%" },
                     { label: "Unlevered IRR", val: pct(unlIRR), color: dc.cream, hint: "IRR if you paid all cash — no loan" },
-                    { label: "Equity Multiple", val: emStr, color: dc.emerald, hint: "Total cash returned ÷ cash invested" },
+                    { label: "Equity Multiple", val: emStr, color: dc.cream, hint: "Total cash returned ÷ cash invested" },
                     { label: "Cash Invested", val: fmt$(cashInv), color: dc.cream, hint: "Down payment only" },
                     { label: "Cap Rate (entry)", val: entryCapRate.toFixed(2) + "%", color: dc.cream, hint: "Net operating income ÷ purchase price" },
                     { label: "Debt Yield", val: debtYield.toFixed(2) + "%", color: dc.cream, hint: "Net income ÷ loan amount (lender metric)" },

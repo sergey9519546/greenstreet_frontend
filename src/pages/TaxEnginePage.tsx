@@ -264,7 +264,7 @@ export default function TaxEnginePage({
                 {
                   label: "Depreciation shield",
                   val: result ? fmt$(result.totalDepreciationShield / Math.max(1, holdYears)) + "/yr" : "—",
-                  color: dc.emerald,
+                  color: dc.cream,
                 },
                 {
                   label: "Pre-tax IRR",
@@ -274,7 +274,7 @@ export default function TaxEnginePage({
                 {
                   label: "Tax drag",
                   val: dragStr,
-                  color: risk.danger,
+                  color: dc.cream,
                 },
               ].map((r) => (
                 <div
@@ -725,35 +725,35 @@ export default function TaxEnginePage({
                       Tax breakdown — where the money goes
                     </div>
                     <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
-                      Green = tax benefit that improves your return. Red = tax cost that reduces it. The difference between pre-tax and after-tax IRR is your total tax drag.
+                      Each line is a component of the calculation, not a verdict on its own — the after-tax IRR above is the number that judges the deal. The difference between pre-tax and after-tax IRR is your total tax drag.
                     </p>
                     {(
                       [
                         {
                           label: "Depreciation shield (total hold) — your annual tax savings from writing off the building",
                           val: fmt$(result.totalDepreciationShield),
-                          color: dc.emerald,
+                          color: dc.cream,
                         },
                         {
                           label: "Depreciation shield as % of NOI — annual depreciation deduction divided by net operating income",
                           val: ((result as any).depShieldPctOfNOI * 100).toFixed(1) + "%",
-                          color: dc.emerald,
+                          color: dc.cream,
                         },
                         {
                           label: "Effective tax rate (combined federal + state) — blended rate across all operating years",
                           val: ((result as any).effectiveTaxRate * 100).toFixed(1) + "%",
-                          color: dc.lemon,
+                          color: dc.cream,
                         },
                         {
                           label: "Total tax on exit — depreciation recapture + capital gains tax owed when you sell",
                           val: fmt$(result.totalTaxOnExit),
-                          color: risk.danger,
+                          color: dc.cream,
                         },
                         {
                           label: "§1250 recapture rate — the tax rate on depreciation you claimed (capped at 25%)",
                           val:
                             (result.effectiveRecaptureRate * 100).toFixed(1) + "%",
-                          color: dc.lemon,
+                          color: dc.cream,
                         },
                         {
                           label: "Long-term capital gains rate — applied to the remaining profit above your basis",
@@ -764,7 +764,7 @@ export default function TaxEnginePage({
                         {
                           label: "NIIT (3.8% net investment income tax) — applies if MAGI exceeds $200K single / $250K joint",
                           val: result.niitApplies ? "Yes — adds 3.8% to investment income" : "No",
-                          color: result.niitApplies ? risk.danger : dc.emerald,
+                          color: dc.cream,
                         },
                       ] as { label: string; val: string; color: string }[]
                     ).map((r) => (
@@ -882,7 +882,7 @@ export default function TaxEnginePage({
                                   style={{
                                     padding: "6px 8px",
                                     fontSize: 12,
-                                    color: dc.lemon,
+                                    color: dc.cream,
                                     textAlign: "right",
                                     fontFamily: dc.mono,
                                   }}
@@ -893,7 +893,7 @@ export default function TaxEnginePage({
                                   style={{
                                     padding: "6px 8px",
                                     fontSize: 12,
-                                    color: dc.emerald,
+                                    color: dc.cream,
                                     textAlign: "right",
                                     fontFamily: dc.mono,
                                   }}
@@ -904,7 +904,7 @@ export default function TaxEnginePage({
                                   style={{
                                     padding: "6px 8px",
                                     fontSize: 12,
-                                    color: risk.danger,
+                                    color: dc.cream,
                                     textAlign: "right",
                                     fontFamily: dc.mono,
                                   }}

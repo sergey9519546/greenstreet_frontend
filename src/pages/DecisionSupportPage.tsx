@@ -1007,7 +1007,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                         </div>
                       );
                     })}
-                    <p style={{ fontSize: 11.5, color: risk.warning, margin: "12px 0 0", lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 11.5, color: stale.length > 0 ? risk.warning : dc.emerald, margin: "12px 0 0", lineHeight: 1.5 }}>
                       {stale.length > 0
                         ? `${stale.length} of the registry's datasets are past their refresh cadence today. Verify against current sources before relying on this verdict.`
                         : "Every registered dataset is within its refresh cadence."}
