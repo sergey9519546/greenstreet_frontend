@@ -138,7 +138,30 @@ export const CANONICAL_PUBLIC_PATHS = [
   "/tools/commercial-dscr",
   "/tools/construction-bridge",
   "/tools/tco-threshold",
+  // All three are live indexable pages with their own PUBLIC_PAGES entries that
+  // were never added here. /brokers was missing from the sitemap outright. The
+  // other two were *in* the committed sitemap.xml but absent from this list, so
+  // the file had drifted from the registry it is generated from — re-running
+  // scripts/generate-sitemap.ts would have silently dropped two live tools
+  // rather than adding them.
+  "/brokers",
+  "/tools/structure-optimizer",
+  "/tools/perfect-property",
 ] as const;
+
+/**
+ * Legal surfaces that are routable and publicly linked but deliberately NOT in
+ * CANONICAL_PUBLIC_PATHS, which carries only "/legal". Both resolve to the legal
+ * view and both are linked with target="_blank" from the lead-capture consent
+ * text, so a borrower is asked to accept terms at URLs search engines can reach.
+ * They stay out of the canonical registry because that drives canonical-tag
+ * behaviour and these URLs share one page.
+ *
+ * Declared here rather than inside scripts/generate-sitemap.ts so the sitemap
+ * test can assert against the same list without importing the generator, which
+ * writes public/sitemap.xml as a top-level side effect.
+ */
+export const EXTRA_PUBLISHED_PATHS = ["/privacy-policy", "/terms-of-service"] as const;
 
 export function absoluteUrl(path: string): string {
   return `${SITE_DOMAIN}${path}`;

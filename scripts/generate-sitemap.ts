@@ -16,7 +16,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { CANONICAL_PUBLIC_PATHS, absoluteUrl } from "../src/site/seo";
+import { CANONICAL_PUBLIC_PATHS, EXTRA_PUBLISHED_PATHS, absoluteUrl } from "../src/site/seo";
 import { TOOL_RELIABILITY_HOLDS } from "../src/components/toolReliabilityHolds";
 
 const ROOT = resolve(import.meta.dirname, "..");
@@ -46,10 +46,12 @@ const blogPaths = [...blogSource.matchAll(/slug:\s*"([^"]+)"/g)].map((m) => `/bl
 // from the lead-capture consent text (src/components/QualifyModal.tsx:1769-1770),
 // so a borrower is asked to accept terms at URLs search engines can reach.
 // The first generated sitemap dropped them — they were published before it and
-// must stay published. Listed explicitly rather than widened into
-// CANONICAL_PUBLIC_PATHS, because that registry drives canonical-tag behaviour
-// and these three URLs share one page.
-const EXTRA_PUBLISHED_PATHS = ["/privacy-policy", "/terms-of-service"] as const;
+// must stay published. Kept out of CANONICAL_PUBLIC_PATHS because that registry
+// drives canonical-tag behaviour and these URLs share one page.
+//
+// The list itself now lives in src/site/seo.ts so src/seo/sitemap.test.ts can
+// check the generated file against it without importing this script, which
+// would regenerate the sitemap as an import side effect.
 
 const paths: string[] = [];
 const seen = new Set<string>();
