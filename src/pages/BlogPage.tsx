@@ -404,7 +404,7 @@ const RAW_POSTS = [
       { list: [
         "Summarizing state rule changes (the rules themselves are checked against source documents).",
         "Drafting plain-language explanations of underwriting decisions.",
-        "Surfacing which lender programs are worth checking, based on file characteristics.",
+        "Surfacing which programs are worth checking, based on file characteristics.",
       ]},
       { p: "In each of these cases, the AI is writing prose or ranking options — not producing the authoritative number. The number comes from the deterministic engine: rate × balance × amortization factor, plus explicit addlines for taxes, insurance, HOA. No token sampling." },
       { h: "The audit trail requirement" },

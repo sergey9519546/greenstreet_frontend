@@ -16,9 +16,19 @@ import { calculatePaymentFactor } from "../engine";
 
 // ── Who-We-Serve: Non-US Investor Investors ──────────────────────────────────
 // Bespoke dark page. Conversion core = the "Yes, you can" fear-grid. Positioning:
-// broker CHOICE (one application → best of many DSCR lenders) + human concierge.
+// non-US files are workable, and a person walks you through it.
 // [PARTNER] rows are tagged "via partner" so nothing overpromises a capability we
 // can't deliver without a formation/banking/FX partner lined up.
+//
+// This page does NOT advertise lender count in either direction. It used to sell
+// "one application in front of multiple U.S. lenders / best of many" as the core
+// pitch. That is a broker-choice claim, and 8fb76e0 removed the opposite claim
+// (originating and funding in-house) for the same underlying reason: the site
+// publishes no legal entity name, NMLS identifier or state-license list, so it
+// cannot hold itself out as a lender, and the owner has ruled that the
+// multi-lender pitch is not the story either. Copy describes what happens to the
+// borrower's file. Disclaimers that terms "vary by lender" stay — those are
+// accurate limits on a quote, not a pitch.
 //
 // ── COMPLIANCE — read before editing anything in the hero ────────────────────
 // This page may NOT render an approval. No stamp, no seal, no checkmark badge,
@@ -125,12 +135,12 @@ const FEARS: { worry: string; answer: string; partner?: boolean }[] = [
   { worry: "No U.S. bank account.", answer: "We connect you to a U.S. business account, remotely.", partner: true },
   { worry: "Moving money across borders scares me.", answer: "Our FX partners move funds at competitive, compliant rates.", partner: true },
   { worry: "I can't fly here to close.", answer: "You don't have to — closings are remote in most states." },
-  { worry: "Will any lender work with my country?", answer: "We shop multiple lenders to find the one comfortable with where you live." },
+  { worry: "Will my country be a problem?", answer: "Country of residence is checked against the program rules up front, before you spend time on documents." },
 ];
 
 const STEPS = [
   { t: "Check your buying power", s: "60 seconds, no credit pull — see your likely loan, rate, and payment." },
-  { t: "We match you to the lender", s: "Best-fit DSCR lender for your country and deal — plus your LLC + U.S. bank if you need them.", partner: true },
+  { t: "We structure the file", s: "Your country and deal are matched against the DSCR program rules — plus your LLC + U.S. bank if you need them.", partner: true },
   { t: "Upload documents digitally", s: "Passport, the property, and simple financials. No fax, no mail." },
   { t: "Close remotely", s: "~21–45 days. Then do it again for the next property." },
 ];
@@ -141,7 +151,7 @@ const STEPS = [
 const QUALIFY = [
   { v: FN_DOWN, l: "down payment", s: "of the purchase price" },
   { v: "~1.0x+", l: "DSCR to price best", s: "rent against the payment" },
-  { v: "$100K–$2M+", l: "loan size", s: "depending on lender" },
+  { v: "$100K–$2M+", l: "loan size", s: "depending on the program" },
   { v: "6–12 mo", l: "reserves", s: "held after closing" },
 ];
 
@@ -151,7 +161,7 @@ const FAQS = [
   { q: "How much down payment?", a: `${FN_DOWN} of the purchase price — the non-US purchase LTV caps in our program rules are ${spanPct(FN_LTV.map((l) => l.purchase))}.` },
   { q: "What documents do I actually need?", a: "Passport, the property / lease info, and basic financials. No U.S. tax returns or W-2s." },
   { q: "Can I hold the property in an LLC?", a: "Yes — usually required. We help you form one through our formation partner.", partner: true },
-  { q: "Why is my rate higher than a U.S. citizen's?", a: "It's an investment, non-QM loan — that carries a premium over owner-occupied conventional. We shop lenders to keep it tight." },
+  { q: "Why is my rate higher than a U.S. citizen's?", a: "It's an investment, non-QM loan — that carries a premium over owner-occupied conventional. The property's coverage, your leverage and your reserves are what move it." },
   { q: "Can I close without coming to the U.S.?", a: "Yes — remote closing is available in most states." },
   { q: "Long-term and short-term (Airbnb) rentals — both?", a: "Both. STR is underwritten on real projected nightly income (ADR × occupancy), not optimistic guesses." },
 ];
@@ -325,7 +335,7 @@ export default function NonUsInvestorsPage({
               Prefer to talk? Message a DSCR specialist on WhatsApp →
             </button>
             <div style={{ marginTop: 22, fontSize: 12, color: "rgba(238,239,211,0.62)", letterSpacing: "0.01em" }}>
-              No SSN required · Passport accepted · Close remotely · Powered by multiple U.S. DSCR lenders
+              No SSN required · Passport accepted · Close remotely · Business-purpose DSCR
             </div>
           </div>
 
@@ -550,7 +560,7 @@ export default function NonUsInvestorsPage({
         <div className="gs-reveal" style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Why us, not a faceless platform</div>
           <p style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.3, margin: 0, color: dc.cream }}>
-            A platform gives you <span style={{ color: "rgba(238,239,211,0.62)" }}>their</span> loan. We give you the <span style={{ color: dc.lemon }}>best</span> loan — one application in front of multiple U.S. lenders, including the ones most comfortable with where you live. A real person, in your language, from your first question to the keys.
+            A platform hands you a <span style={{ color: "rgba(238,239,211,0.62)" }}>form</span>. You get a <span style={{ color: dc.lemon }}>person</span> — in your language, from your first question to the keys, who has taken a non-U.S. file through closing before and tells you what the property has to prove.
           </p>
         </div>
       </section>
