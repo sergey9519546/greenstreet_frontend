@@ -20,6 +20,7 @@ import { CurrencyInput } from "../components/ui/CurrencyInput";
 import { PremiumSlider } from "../components/ui/PremiumSlider";
 import { ControlTooltip } from "../components/ui/ControlTooltip";
 import { track, AnalyticsEvent } from "../lib/analytics";
+import ZipSeedPanel from "../components/ZipSeedPanel";
 import {
   type DealSnapshot,
   type CalcTab,
@@ -602,6 +603,22 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
               {/* INPUT RAIL */}
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.16)' }}>
+                {/* Rent and insurance are the two figures a visitor is least
+                    able to guess, and both are the ones a wrong answer distorts
+                    most. Seeding them from ZIP-level market data is the whole
+                    point of the recovered dataset — as an opt-in starting
+                    point, never as an assertion about this property. */}
+                <div style={{ marginBottom: 20 }}>
+                  <ZipSeedPanel
+                    onApply={({ rent: seedRent, insuranceMonthly, price: seedPrice }) => {
+                      applyDealPatch({
+                        ...(seedRent !== undefined ? { rent: seedRent } : {}),
+                        ...(insuranceMonthly !== undefined ? { ins: insuranceMonthly } : {}),
+                        ...(seedPrice !== undefined ? { price: seedPrice } : {}),
+                      });
+                    }}
+                  />
+                </div>
                 {/* Plain-English DSCR Explainer Box */}
                 <div style={{ background: "rgba(216, 217, 88, 0.08)", border: "1px solid rgba(216, 217, 88, 0.25)", borderRadius: radius.sm, padding: "14px 16px", marginBottom: 20 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: LEMON, marginBottom: 4 }}>💡 What is DSCR?</div>
