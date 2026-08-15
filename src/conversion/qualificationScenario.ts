@@ -5,18 +5,46 @@ export type QualificationPurpose = "purchase" | "rate-term" | "cash-out";
  * qualification flow. This object deliberately has no identity or contact
  * fields and is kept in React memory only.
  */
+export type QualificationPropertyType =
+  | "sfr"
+  | "2-4-unit"
+  | "condo"
+  | "townhouse"
+  | "5-8-unit"
+  | "short-term-rental";
+
 export interface QualificationScenarioDraft {
   propertyValue?: number;
   loanAmount?: number;
   rent?: number;
   rate?: number;
   purpose?: QualificationPurpose;
+  /**
+   * Carried so the homepage hero's property-type answer survives the handoff
+   * rather than being asked twice. Same category as `purpose` — a closed enum
+   * describing the deal, never anything identifying. Values match
+   * LeadSubmissionSchema.propertyType exactly.
+   *
+   * The hero deliberately does NOT hand off its credit-score answer: its "740+"
+   * option straddles two lead bands (720-759 and 760-plus), and guessing would
+   * seed a wrong FICO band onto a lending record. The modal asks for it.
+   */
+  propertyType?: QualificationPropertyType;
 }
 
 const PURPOSES = new Set<QualificationPurpose>([
   "purchase",
   "rate-term",
   "cash-out",
+]);
+
+const PROPERTY_TYPES = new Set<QualificationPropertyType>([
+  "sfr",
+  "2-4-unit",
+  "condo",
+  "townhouse",
+  "5-8-unit",
+  "short-term-rental",
 ]);
 
 function boundedNumber(
@@ -57,6 +85,12 @@ export function sanitizeQualificationScenarioDraft(
     PURPOSES.has(candidate.purpose as QualificationPurpose)
   ) {
     draft.purpose = candidate.purpose as QualificationPurpose;
+  }
+  if (
+    typeof candidate.propertyType === "string" &&
+    PROPERTY_TYPES.has(candidate.propertyType as QualificationPropertyType)
+  ) {
+    draft.propertyType = candidate.propertyType as QualificationPropertyType;
   }
 
   return Object.keys(draft).length > 0 ? draft : null;

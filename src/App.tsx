@@ -751,12 +751,22 @@ export default function App() {
         <Suspense fallback={<RouteFallback view={view} />}>
           <PageRenderer />
         </Suspense>
-        {view === "marketing" ||
-        view === "not-found" ||
+        {/* "marketing" is NOT in this list any more. Excluding it unmounted
+            QualifyWidget on the homepage, which also removed window.openQualify
+            — the global the widget's own docstring says exists "so any CTA on
+            the page (including the Webflow marketing layer) can open the
+            modal". So the one layer it was built for was the one layer that
+            could not reach it, and the hero CTA fell back to a full-page
+            navigation to /book-demo that dropped the visitor's answers.
+
+            The sticky pill stays off the marketing page via showTrigger, which
+            is what that exclusion was presumably protecting — the homepage keeps
+            its own design, and now also has a working funnel. */}
+        {view === "not-found" ||
         (view === "portal" && !CLIENT_WORKSPACE_CONFIGURED) ||
         QUALIFY_WIDGET_SUPPRESSED_VIEWS.has(view) ? null : (
           <QualifyWidget
-            showTrigger={view !== "book-demo"}
+            showTrigger={view !== "book-demo" && view !== "marketing"}
           />
         )}
       </div>

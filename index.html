@@ -2419,9 +2419,23 @@ document.addEventListener('DOMContentLoaded', function() {
     [fico,prop].forEach(function(s){s.addEventListener("change",function(){s.classList.toggle("is-empty",!s.value);updateMatch();});});
     var cta=card.querySelector(".gs-lead-cta"),err=card.querySelector("#gsl-err");
     function go(){
-      err.textContent="";cta.textContent="Taking you in…";
-      var p=new URLSearchParams({source:"home_hero",fico:fico.value,property:prop.value,scenario:programFor(fico.value,prop.value)||""});
-      window.location.href="/book-demo?"+p.toString();
+      err.textContent="";
+      /* Hand off IN PLACE. window.openQualify is the global QualifyWidget
+         exposes for exactly this, and QualifyModal is the only path in the
+         app that reaches POST /api/leads. The previous behaviour full-page
+         navigated to /book-demo with the answers in the query string, and
+         BookDemoPage never read them - so a visitor answered two questions,
+         waited through a reload, and started the form from scratch.
+         Property type is mapped to LeadSubmissionSchema values and carried
+         over. Credit score deliberately is NOT: "740+" straddles the
+         720-759 and 760-plus bands and guessing would seed a wrong FICO
+         band onto a lending record. The modal asks for it. */
+      var MAP={"sfr":"sfr","2-4unit":"2-4-unit","multi":"5-8-unit","str":"short-term-rental"};
+      var mapped=MAP[prop.value];
+      if(typeof window.openQualify==="function"){window.openQualify(mapped?{propertyType:mapped}:undefined);return;}
+      /* React has not booted yet - fall back to the page that opens it on arrival. */
+      cta.textContent="Taking you in…";
+      window.location.href="/book-demo";
     }
     cta.onclick=go;
     if(window.gsap){window.gsap.from(card,{y:16,opacity:0,duration:.5,ease:"power2.out"});}
