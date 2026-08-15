@@ -46,11 +46,13 @@ const APPROVED_EXTERNAL_REFERENCES: readonly ExternalReference[] = [
       type: "text/css",
     },
   },
-  {
-    tag: "link",
-    url: "https://www.greenstreet.finance/",
-    attributes: { rel: "canonical" },
-  },
+  // The <link rel="canonical"> that used to sit here has been removed from
+  // index.html. It hardcoded the homepage URL, and vercel.json rewrites all 72
+  // routes to that one file, so every tool page and blog post shipped a
+  // canonical claiming to be a duplicate of "/" until the bundle booted and
+  // applyRouteMetadata replaced it. Crawlers that do not execute JS — including
+  // the AI crawlers robots.txt explicitly allows — only ever saw the wrong one.
+  // Canonicals are now written per route at runtime from SITE_ORIGIN.
   {
     tag: "script",
     url: "https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=67d0a8a9156b7b7bd46ffdfd",

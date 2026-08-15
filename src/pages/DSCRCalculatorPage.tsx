@@ -561,7 +561,9 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             valueNum={dscr}
             track2Num={dual.track2}
             sub={`${fmt(rent)} rent ÷ ${fmt(pitia)} payment`}
-            chip={{ label: dual.qualifiesButDangerous ? "QUALIFIES — BUT" : verdictLabel, color: dual.qualifiesButDangerous ? risk.dangerOnLight : zoneColor }}
+            // dangerOnDark, not dangerOnLight: the verdict chip now paints on
+            // #003738, where dangerOnLight (#a64949) would be 2.36:1.
+            chip={{ label: dual.qualifiesButDangerous ? "QUALIFIES — BUT" : verdictLabel, color: dual.qualifiesButDangerous ? risk.dangerOnDark : zoneColor }}
           />
         </div>
       </section>

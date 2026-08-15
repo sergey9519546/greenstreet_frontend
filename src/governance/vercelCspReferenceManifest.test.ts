@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { build } from "vite";
 
+import { SITE_ORIGIN } from "../seo/routeMetadata";
+
 type CspDirective = "font-src" | "script-src" | "style-src";
 
 type HtmlReference = {
@@ -72,18 +74,23 @@ function relationTokens(attributes: Record<string, string | true>): string[] {
     : [];
 }
 
-function canonicalOrigin(references: readonly HtmlReference[]): string {
-  const canonicalUrls = references
-    .filter((reference) => reference.tag === "link" && relationTokens(reference.attributes).includes("canonical"))
-    .map((reference) => reference.url);
-
-  expect(canonicalUrls).toHaveLength(1);
-  return new URL(canonicalUrls[0]).origin;
+function canonicalOrigin(): string {
+  // Was scraped out of index.html's <link rel="canonical">. That tag has been
+  // removed: it hardcoded the homepage URL, and index.html is served for all 72
+  // routes, so every tool page and blog post shipped a canonical pointing at
+  // "/" until the bundle booted and applyRouteMetadata rewrote it. A crawler
+  // that does not execute JS — including the AI crawlers robots.txt explicitly
+  // allows — reads that as "this page duplicates the homepage".
+  //
+  // SITE_ORIGIN is the real single source of truth for the public origin and is
+  // what applyRouteMetadata builds its canonicals from. Reading it directly
+  // drops the second, hand-maintained copy instead of reinstating it.
+  return new URL(SITE_ORIGIN).origin;
 }
 
 function currentCspRequirements(html: string): CspRequirement[] {
   const references = extractHttpReferences(html);
-  const pageOrigin = canonicalOrigin(references);
+  const pageOrigin = canonicalOrigin();
   const requirements = new Map<string, CspRequirement>();
 
   const addRequirement = (directive: CspDirective, origin: string) => {

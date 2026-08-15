@@ -716,7 +716,19 @@ input:focus-visible,
 [tabindex]:focus-visible,
 .w-checkbox:has(:focus-visible) .w-checkbox-input--inputType-custom,
 .w-radio:has(:focus-visible) .w-form-formradioinput--inputType-custom {
-  outline: 2px solid var(--color-lemon-lime) !important;
+  /* Was --color-lemon-lime (#d8d958): 8.72:1 on the dark app ground, but
+     1.28:1 on pistachio, 1.20:1 on mint and 1.50:1 on white. So the focus ring
+     was effectively invisible on the sticky nav, every marketing form, and
+     .gs-num — the primary calculator number input, which always paints on a
+     light field. SC 1.4.11 needs 3:1 against adjacent colours.
+
+     #039692 is the one value that clears the bar on BOTH grounds (3.10:1 on
+     cream, 3.61:1 on dark), so the ring does not have to be scoped per
+     surface. It is also already what <select> and <textarea> receive from the
+     fallback further down this file, so this unifies the app rather than
+     introducing a new colour. Not a box-shadow ring — DESIGN_SOURCE_OF_TRUTH
+     forbids shadows. */
+  outline: 2px solid #039692 !important;
   outline-offset: 2px !important;
 }
 

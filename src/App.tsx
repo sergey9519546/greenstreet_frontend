@@ -132,7 +132,16 @@ function warmAllRoutes() {
   if (_warmed || typeof window === "undefined") return;
   _warmed = true;
 
-  const entries = Object.entries(routeModules);
+  // ComplianceDashboard is excluded on purpose. import() EVALUATES a module, it
+  // does not merely fetch it, so warming it ran firebase's initializeApp/
+  // getAuth/getFirestore on every page view — including marketing landings that
+  // never touch Firebase. Its static closure is firebase + vendor + motion +
+  // icons: 1,183 KB raw / ~317 KB gzip, pulled and executed for one
+  // authenticated route nobody arrives on from search. The CLIENT_WORKSPACE
+  // gate below only guards rendering, not the import.
+  const entries = Object.entries(routeModules).filter(
+    ([name]) => name !== "ComplianceDashboard",
+  );
   const failures: string[] = [];
   Promise.all(
     entries.map(([name, load]) =>
