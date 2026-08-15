@@ -97,7 +97,7 @@ export default function GoLanding(p: GoLandingProps) {
         <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(64px,9vh,128px) ${dc.pad} clamp(56px,7vh,96px)` }}>
           <div style={{ maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,80px)", alignItems: "center" }} className="dc-hero">
             <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 26 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 999, marginBottom: 26 }}>
                 {p.eyebrow}
               </div>
               <h1 style={{ fontSize: "clamp(28px,7vw,104px)", fontWeight: 600, lineHeight: 1.04, letterSpacing: "-0.04em", margin: "0 0 26px" }}>{p.title}</h1>

@@ -523,7 +523,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
         <div className="gs-dot-grid"></div>
         <div id="gs-hero-inner" className="dc-hero" style={{ position: 'relative', width: '100%', maxWidth: '1320px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.08fr 0.92fr', gap: 'clamp(32px,5vw,72px)', alignItems: 'center' }}>
           <div id="gs-hero-content">
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', padding: '6px 13px', borderRadius: 100, marginBottom: 24 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', padding: '6px 13px', borderRadius: 999, marginBottom: 24 }}>
               DSCR Engine · Deterministic core
             </div>
             <H1 style={{ fontSize: 'clamp(28px,7vw,108px)', lineHeight: 1.04, letterSpacing: '-0.04em', marginBottom: 26, color: PISTACHIO }}>
@@ -846,7 +846,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#eeefd3', lineHeight: 1.2 }}>
                       {lr.name}
                       {i === yourTierIdx && (
-                        <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: MIDNIGHT, background: swatch.emerald, borderRadius: 100, padding: '2px 8px' }}>your tier</span>
+                        <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: MIDNIGHT, background: swatch.emerald, borderRadius: 999, padding: '2px 8px' }}>your tier</span>
                       )}
                     </span>
                     <Mono style={{ fontSize: lr.ok ? 14 : 12, fontWeight: 700, color: lr.ok ? LEMON : 'rgba(238,239,211,0.5)' }}>{lr.ok ? lr.rate : lr.req}</Mono>
@@ -870,7 +870,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
                 {/* ── TIER 1 · VERDICT (dominant) ── */}
                 <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(28px,3vw,40px)', border: `1px solid ${zoneColor}55` }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: zoneChipBg, border: `1px solid ${zoneColor}`, borderRadius: 100, padding: '6px 14px', marginBottom: 12 }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: zoneChipBg, border: `1px solid ${zoneColor}`, borderRadius: 999, padding: '6px 14px', marginBottom: 12 }}>
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: zoneColor, display: 'inline-block' }}></span>
                     <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: zoneColor }}>{verdictLabel}</span>
                   </div>
@@ -1134,7 +1134,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                                   <Mono style={{ fontSize: 12, color: fix.track2Impact >= 0 ? risk.positive : risk.dangerOnDark }}>
                                     Track 2: {fix.track2Impact >= 0 ? '+' : ''}{fix.track2Impact.toFixed(2)}x
                                   </Mono>
-                                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: fix.risk === 'LOW' ? risk.positive : fix.risk === 'MODERATE' ? LEMON : risk.dangerOnDark, background: 'rgba(238,239,211,0.06)', borderRadius: 100, padding: '2px 8px' }}>
+                                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: fix.risk === 'LOW' ? risk.positive : fix.risk === 'MODERATE' ? LEMON : risk.dangerOnDark, background: 'rgba(238,239,211,0.06)', borderRadius: 999, padding: '2px 8px' }}>
                                     {fix.risk} risk
                                   </span>
                                 </div>
@@ -1239,7 +1239,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                                   <td style={{ padding: '10px', fontWeight: 600, color: PISTACHIO }}>
                                     {opt.name}
                                     {isMatch && (
-                                      <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' as const, color: MIDNIGHT, background: swatch.emerald, borderRadius: 100, padding: '2px 6px' }}>your tier</span>
+                                      <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' as const, color: MIDNIGHT, background: swatch.emerald, borderRadius: 999, padding: '2px 6px' }}>your tier</span>
                                     )}
                                   </td>
                                   <td style={{ padding: '10px' }}>

@@ -114,7 +114,7 @@ export default function QualifyWidget({
             alignItems: "center",
             gap: 6,
             padding: "12px 22px",
-            borderRadius: 9999,
+            borderRadius: 999,
             background: swatch.lemon,
             color: swatch.midnight,
             border: "none",

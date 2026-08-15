@@ -62,7 +62,7 @@ export default function VacationHomesPage({
         <div className="gs-dot-grid" />
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For Vacation &amp; Second Homes</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 999, marginBottom: 24 }}>For Vacation &amp; Second Homes</div>
             <H1 style={{ margin: "0 0 18px", maxWidth: "14ch" }}>The getaway that pays for itself.</H1>
             <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
               Keep the weeks you want. Rent the rest. A second home financed as an investment qualifies on the nights you let — so your escape carries part of its own payment.
@@ -71,7 +71,7 @@ export default function VacationHomesPage({
           </div>
           <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.5vw,30px)" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE, marginBottom: 14 }}>Your month, split</div>
-            <div style={{ display: "flex", height: 22, borderRadius: 100, overflow: "hidden", marginBottom: 8 }}>
+            <div style={{ display: "flex", height: 22, borderRadius: 999, overflow: "hidden", marginBottom: 8 }}>
               <div style={{ width: `${(useNights / 30) * 100}%`, background: dc.lemon, transition: "width .25s" }} />
               <div style={{ width: `${(rentNights / 30) * 100}%`, background: BLUE, transition: "width .25s" }} />
             </div>

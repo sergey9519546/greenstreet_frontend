@@ -34,9 +34,9 @@ import BottomCTA from "../design/BottomCTA";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
 
 // ── tokens ──────────────────────────────────────────────────────────────────
-// Two surfaces only (DESIGN_SOURCE_OF_TRUTH §2): #003738 band, #004041 card fill.
+// Two surfaces only (DESIGN_SOURCE_OF_TRUTH §2): #003738 band, #003738 card fill.
 const BAND = dc.dark;          // #003738 — the section ground
-const CARD = swatch.darkTeal;  // #004041 — card fill ONLY, never a band
+const CARD = swatch.darkTeal;  // #003738 — card fill ONLY, never a band
 const HAIRLINE = "1px solid rgba(238,239,211,0.16)";
 const INK = dc.cream;
 const INK_DIM = dc.ink.secondary;
@@ -468,7 +468,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                 display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600,
                 letterSpacing: "0.06em", textTransform: "uppercase", color: INK_DIM,
                 background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)",
-                borderRadius: 100, padding: "7px 14px", marginBottom: 24,
+                borderRadius: 999, padding: "7px 14px", marginBottom: 24,
               }}
             >
               Decision engine · preliminary screen
@@ -653,7 +653,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                       style={{
                         display: "inline-flex", alignItems: "center", gap: 8,
                         background: result.verdict.verdict === "PROCEED" ? "rgba(77,189,151,0.12)" : result.verdict.verdict === "RESTRUCTURE" ? risk.cautionBg : risk.dangerBg,
-                        border: `1px solid ${verdictColor(result.verdict.verdict)}`, borderRadius: 100, padding: "6px 14px", marginBottom: 12,
+                        border: `1px solid ${verdictColor(result.verdict.verdict)}`, borderRadius: 999, padding: "6px 14px", marginBottom: 12,
                       }}
                     >
                       <span style={{ width: 8, height: 8, borderRadius: "50%", background: verdictColor(result.verdict.verdict), display: "inline-block" }} />

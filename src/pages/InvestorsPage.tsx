@@ -148,7 +148,7 @@ export default function InvestorsPage({
         <div className="gs-dot-grid" />
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, background: "rgba(216,217,88,0.1)", border: "1px solid rgba(216,217,88,0.3)", padding: "6px 14px", borderRadius: 100, marginBottom: 24 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, background: "rgba(216,217,88,0.1)", border: "1px solid rgba(216,217,88,0.3)", padding: "6px 14px", borderRadius: 999, marginBottom: 24 }}>
               The DSCR Investor Operating System
             </div>
             <H1 style={{ margin: "0 0 18px", maxWidth: "16ch" }}>Scale your rental portfolio without DTI limits.</H1>

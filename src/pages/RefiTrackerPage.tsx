@@ -365,7 +365,7 @@ export default function RefiTrackerPage({
                 color: "rgba(238,239,211,0.62)",
                 background: "rgba(238,239,211,0.06)",
                 border: "1px solid rgba(238,239,211,0.18)",
-                borderRadius: 100,
+                borderRadius: 999,
                 padding: "7px 14px",
                 marginBottom: 24,
               }}
@@ -571,7 +571,7 @@ export default function RefiTrackerPage({
       </section>
 
       {/* ── TOOL ──
-          This section was #003a39 and its cards were #004041, sitting on the
+          This section was #003a39 and its cards were #003738, sitting on the
           page's #003738 ground: three greens within six RGB points of each
           other, stacked. Read as one muddy field rather than three surfaces.
           DESIGN_SOURCE_OF_TRUTH allows exactly two surfaces — #003738 dark and

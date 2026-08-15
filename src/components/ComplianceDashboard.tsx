@@ -43,7 +43,7 @@ const EMBEDDED_TOOL_TABS = new Set([
 const T = {
   // Surfaces — DARK workspace ("all green"): midnight page, darker-teal cards.
   pageBg: swatch.midnight,                  // #003738 dark page
-  cardBg: "#064a4c",                         // panel clearly lifted off the midnight page
+  cardBg: "#003738",                         // panel clearly lifted off the midnight page
   cardBorder: "rgba(238,239,211,0.18)",      // readable border on dark
   inputBg: "rgba(238,239,211,0.06)",
   inputBorder: "rgba(238,239,211,0.2)",
@@ -53,7 +53,7 @@ const T = {
   muted: "rgba(238,239,211,0.72)",
   faint: "rgba(238,239,211,0.62)",
   // Sidebar — a touch darker than the page so it reads as a panel
-  sidebarBg: "#00292a",
+  sidebarBg: "#003738",
   sidebarText: swatch.pistachio,
   sidebarActive: "rgba(216,217,88,0.16)",    // lemon-tinted active
   // Danger / warn — dark-friendly tints
@@ -706,7 +706,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           }}
           onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(238,239,211,0.06)"; }}
           onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
-          {active && <span style={{ position: "absolute", left: 0, top: 9, bottom: 9, width: 3, borderRadius: 99, background: swatch.lemon }} />}
+          {active && <span style={{ position: "absolute", left: 0, top: 9, bottom: 9, width: 3, borderRadius: 999, background: swatch.lemon }} />}
           <span style={{ color: active ? swatch.lemon : "rgba(238,239,211,0.62)", display: "flex", alignItems: "center" }}>{icon}</span>
           <span className="flex-1">{label}</span>
           {count !== undefined && count > 0 && (
@@ -730,7 +730,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           title="Back to greenstreet.finance"
           onMouseEnter={e => e.currentTarget.style.opacity = "0.82"}
           onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
-          <span style={{ width: 34, height: 34, borderRadius: 9, background: "#00201f", display: "grid", placeItems: "center", border: "1px solid rgba(238,239,211,0.12)", flexShrink: 0 }}>
+          <span style={{ width: 34, height: 34, borderRadius: 9, background: "#003738", display: "grid", placeItems: "center", border: "1px solid rgba(238,239,211,0.12)", flexShrink: 0 }}>
             <span style={{ color: swatch.lemon, fontWeight: 900, fontSize: 17, letterSpacing: "-0.04em" }}>G</span>
           </span>
           <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.05 }}>
@@ -821,7 +821,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         <div className="flex flex-1">
           {/* Desktop sidebar */}
           <aside className="hidden md:flex flex-col w-[256px] shrink-0 p-5 overflow-y-auto sticky top-0"
-            style={{ background: "#00292a", borderRight: "1px solid rgba(238,239,211,0.16)", height: "100vh" }}>
+            style={{ background: "#003738", borderRight: "1px solid rgba(238,239,211,0.16)", height: "100vh" }}>
             <SidebarContent />
           </aside>
 

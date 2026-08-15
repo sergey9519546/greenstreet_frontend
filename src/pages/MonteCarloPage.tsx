@@ -419,7 +419,7 @@ export default function MonteCarloPage({
   const cta = { label: "Run simulation →", href: "#mc-tool", onClick: scrollToTool };
 
   return (
-    <DcShell onNavigate={onNavigate} accent="#004041" navLinks={navLinks} cta={cta}>
+    <DcShell onNavigate={onNavigate} accent="#003738" navLinks={navLinks} cta={cta}>
       <style>{`
         @media (max-width: 991px) {
           .mc-3step { grid-template-columns: 1fr !important; }
@@ -458,7 +458,7 @@ export default function MonteCarloPage({
               display: "inline-flex", alignItems: "center", gap: 8,
               fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
               textTransform: "uppercase", color: "rgba(238,239,211,0.62)",
-              background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24,
+              background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 999, marginBottom: 24,
             }}>
               Monte Carlo · Vasicek SOFR · <span data-count={simulations}>{simulations}</span> paths
             </div>
@@ -621,7 +621,7 @@ export default function MonteCarloPage({
                           background: on ? dc.lemon : "rgba(238,239,211,0.05)",
                           color: on ? dc.dark : "rgba(238,239,211,0.82)",
                           border: `1px solid ${on ? dc.lemon : "rgba(238,239,211,0.14)"}`,
-                          borderRadius: 100, padding: "8px 15px", cursor: "pointer",
+                          borderRadius: 999, padding: "8px 15px", cursor: "pointer",
                           fontSize: 12.5, fontWeight: 600, letterSpacing: "-0.01em",
                           transition: "background 0.18s, color 0.18s, border-color 0.18s",
                         }}

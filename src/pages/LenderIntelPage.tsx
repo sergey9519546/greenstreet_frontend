@@ -165,7 +165,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
   return (
     <DcShell
       onNavigate={onNavigate}
-      accent="#004041"
+      accent="#003738"
       navLinks={[
         { label: "Calculator", view: "dscr-calculator" },
         { label: "Buy-or-Pass", view: "decision-support" },

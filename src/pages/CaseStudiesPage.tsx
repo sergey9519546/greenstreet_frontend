@@ -54,7 +54,7 @@ function HyperframeScene({
           sandbox="allow-scripts"
           scrolling="no"
           loading="lazy"
-          style={{ ...cover, border: "none", background: "#00302e" }}
+          style={{ ...cover, border: "none", background: "#003738" }}
         />
       )}
     </>
@@ -381,7 +381,7 @@ function StudyRow({
     >
       {/* Photo panel — big index + client wordmark composited over the scene */}
       <div className="cs-photo" style={{ order: photoLeft ? 0 : 1, ...rise(0) }}>
-        <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
+        <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#003738" }}>
           {s.scene && !reduce ? (
             // Live HyperFrames composition — the authored HTML/GSAP runs in a
             // sandboxed iframe (lazy: mounts only once the row reveals). Reduced
@@ -521,7 +521,7 @@ function StudyDetail({
 
             {/* 16:9 media panel — the study's animated explainer (poster fallback) */}
             <div className="cs-detail-media">
-              <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
+              <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#003738" }}>
                 {s.scene && !reduce ? (
                   <HyperframeScene
                     sceneKey={s.scene}

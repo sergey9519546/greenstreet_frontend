@@ -128,7 +128,7 @@ export default function PerfectPropertyPage({
               background: "rgba(216,217,88,0.1)",
               border: "1px solid rgba(216,217,88,0.3)",
               padding: "6px 14px",
-              borderRadius: 100,
+              borderRadius: 999,
               marginBottom: 20,
             }}
           >
@@ -319,7 +319,7 @@ export default function PerfectPropertyPage({
 
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 11, color: "rgba(238,239,211,0.6)", textTransform: "uppercase" }}>Track 1 DSCR</div>
-                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.track1Dscr >= 1.0 ? dc.emerald : "#e57373" }}>
+                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.track1Dscr >= 1.0 ? dc.emerald : "#e88a8a" }}>
                   {engineResults.track1Dscr.toFixed(2)}x
                 </Mono>
               </div>
@@ -367,7 +367,7 @@ export default function PerfectPropertyPage({
                 <div style={{ fontSize: 11, fontWeight: 700, color: dc.lemon, textTransform: "uppercase", marginBottom: 6 }}>
                   Track 2: Investor Net Carry
                 </div>
-                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.netCashFlowMo >= 0 ? dc.emerald : "#e57373", marginBottom: 6 }}>
+                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.netCashFlowMo >= 0 ? dc.emerald : "#e88a8a", marginBottom: 6 }}>
                   {fmt$(engineResults.netCashFlowMo)}<span style={{ fontSize: 14, color: "rgba(238,239,211,0.6)" }}>/mo</span>
                 </Mono>
                 <div style={{ fontSize: 13, color: "rgba(238,239,211,0.75)" }}>

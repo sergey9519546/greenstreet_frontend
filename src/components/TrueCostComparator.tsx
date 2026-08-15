@@ -151,7 +151,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
           const recoupColor =
             tc?.pointsRecoupVerdict === "GREEN" ? dc.emerald
               : tc?.pointsRecoupVerdict === "YELLOW" ? "#b8901f"
-                : "#c0554f";
+                : "#a64949";
           const recoupNote =
             !tc || r.upfront === 0 || tc.pointsPct === 0
               ? null
@@ -163,7 +163,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
               <div style={{ flex: "2 1 200px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 15, fontWeight: 700, color: dc.dark }}>{r.label}</span>
-                  {best && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream, background: dc.rain, borderRadius: 100, padding: "3px 9px" }}>Recommended</span>}
+                  {best && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream, background: dc.rain, borderRadius: 999, padding: "3px 9px" }}>Recommended</span>}
                 </div>
                 <div style={{ fontSize: 12, color: "rgba(0,55,56,0.55)" }}>{r.rate}% · interest {fmt(r.interestPaid)} · upfront {fmt(r.upfront)} · prepay {fmt(r.prepayPenalty)}</div>
                 {recoupNote && (

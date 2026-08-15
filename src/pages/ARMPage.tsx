@@ -339,7 +339,7 @@ export default function ARMPage({
               color: "rgba(238,239,211,0.62)",
               background: "rgba(238,239,211,0.06)",
               border: "1px solid rgba(238,239,211,0.18)",
-              borderRadius: 100,
+              borderRadius: 999,
               padding: "7px 14px",
               marginBottom: 24,
             }}
@@ -438,7 +438,7 @@ export default function ARMPage({
             </div>
 
             {/* Adjusts. Was `dc.rain` (#006565) — a near-teal that barely reads as
-                distinct from the page ground (#003738/#004041), defeating the point
+                distinct from the page ground (#003738/#003738), defeating the point
                 of a 3-segment legend: Fixed/First-reset/Adjusts should each read as
                 a different phase at a glance. `dc.cream` on dark text reuses tokens
                 already in the palette instead of adding a 4th hue, and gives the

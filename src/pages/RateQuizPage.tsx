@@ -738,7 +738,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 gap: 8,
                 background: "rgba(238,239,211,0.06)",
                 border: "1px solid rgba(238,239,211,0.14)",
-                borderRadius: 99,
+                borderRadius: 999,
                 padding: "6px 14px",
                 marginBottom: 12,
               }}
@@ -844,7 +844,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                       style={{
                         flex: 1,
                         height: 4,
-                        borderRadius: 99,
+                        borderRadius: 999,
                         background:
                           i < step ? swatch.emerald : i === step ? swatch.lemon : "rgba(238,239,211,0.14)",
                         transition: "background .3s ease",
@@ -944,7 +944,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     gap: 8,
                     background: "rgba(238,239,211,0.06)",
                     border: "1px solid rgba(238,239,211,0.14)",
-                    borderRadius: 99,
+                    borderRadius: 999,
                     padding: "6px 14px",
                   }}
                 >

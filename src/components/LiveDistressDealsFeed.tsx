@@ -118,7 +118,7 @@ export function LiveDistressDealsFeed({
                 background: "rgba(216,217,88,0.1)",
                 border: "1px solid rgba(216,217,88,0.25)",
                 padding: "4px 12px",
-                borderRadius: 100,
+                borderRadius: 999,
                 marginBottom: 12,
               }}
             >
@@ -162,11 +162,11 @@ export function LiveDistressDealsFeed({
                         style={{
                           fontSize: 10,
                           fontWeight: 700,
-                          color: "#e57373",
+                          color: "#e88a8a",
                           background: "rgba(229,115,115,0.12)",
                           border: "1px solid rgba(229,115,115,0.3)",
                           padding: "3px 10px",
-                          borderRadius: 100,
+                          borderRadius: 999,
                           textTransform: "uppercase",
                         }}
                       >
@@ -196,13 +196,13 @@ export function LiveDistressDealsFeed({
                       </div>
                       <div>
                         <span style={{ display: "block", fontSize: 10, color: "rgba(238,239,211,0.5)", textTransform: "uppercase" }}>Track 1 DSCR</span>
-                        <Mono style={{ fontSize: 16, fontWeight: 700, color: m.track1Dscr >= 1.0 ? dc.emerald : "#e57373" }}>
+                        <Mono style={{ fontSize: 16, fontWeight: 700, color: m.track1Dscr >= 1.0 ? dc.emerald : "#e88a8a" }}>
                           {m.track1Dscr.toFixed(2)}x
                         </Mono>
                       </div>
                       <div>
                         <span style={{ display: "block", fontSize: 10, color: "rgba(238,239,211,0.5)", textTransform: "uppercase" }}>Net Carry</span>
-                        <Mono style={{ fontSize: 16, fontWeight: 700, color: m.track2CashFlow >= 0 ? dc.emerald : "#e57373" }}>
+                        <Mono style={{ fontSize: 16, fontWeight: 700, color: m.track2CashFlow >= 0 ? dc.emerald : "#e88a8a" }}>
                           {fmt$(m.track2CashFlow)}/mo
                         </Mono>
                       </div>
@@ -287,7 +287,7 @@ export function LiveDistressDealsFeed({
           >
             <div
               style={{
-                background: "#002829",
+                background: "#003738",
                 border: `1.5px solid ${dc.lemon}`,
                 borderRadius: radius.md,
                 padding: "28px 32px",

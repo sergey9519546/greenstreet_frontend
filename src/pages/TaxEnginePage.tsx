@@ -213,7 +213,7 @@ export default function TaxEnginePage({
                 background: "rgba(238,239,211,0.06)",
                 border: "1px solid rgba(238,239,211,0.18)",
                 padding: "7px 14px",
-                borderRadius: 100,
+                borderRadius: 999,
                 marginBottom: 24,
               }}
             >
