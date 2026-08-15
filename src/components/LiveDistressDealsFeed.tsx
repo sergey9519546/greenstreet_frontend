@@ -213,7 +213,7 @@ export function LiveDistressDealsFeed({
                   <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                     <button
                       type="button"
-                      onClick={() => onNavigate("tools/perfect-property")}
+                      onClick={() => onNavigate("perfect-property")}
                       style={{
                         flex: 1,
                         background: dc.lemon,

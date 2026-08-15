@@ -738,6 +738,14 @@ export default function App() {
           window.location.href = "https://www.greenstreet.finance";
         }
         return null;
+      default:
+        // Without this the switch fell off the end and returned undefined, so
+        // <>{undefined}</> rendered NOTHING: a blank dark screen with the URL
+        // already rewritten. Twelve CTAs were passing a path ("tools/returns")
+        // where a PageView ("returns") was required, and every one of them
+        // destroyed the page instead of failing visibly. Rendering the
+        // not-found page makes a bad view survivable and obvious.
+        return <NotFoundPage key={pathname} onNavigate={goTo} />;
     }
   };
 

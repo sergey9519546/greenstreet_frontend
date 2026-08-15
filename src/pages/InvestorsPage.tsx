@@ -111,8 +111,8 @@ export default function InvestorsPage({
 
   const navLinks = [
     { label: "DSCR Calc", view: "dscr-calculator" },
-    { label: "STR Tool", view: "tools/str-underwriting" },
-    { label: "Tax Engine", view: "tools/tax-engine" },
+    { label: "STR Tool", view: "str-underwriting" },
+    { label: "Tax Engine", view: "tax-engine" },
     { label: "Rate Quiz", view: "rate-quiz" },
     { label: "Portfolio", view: "portfolio" },
   ];
@@ -319,11 +319,11 @@ export default function InvestorsPage({
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
             {[
               { title: "DSCR Coverage & Rates", desc: "Calculate exact coverage ratios, monthly PITIA, and lender rate pricing.", view: "dscr-calculator", btn: "Run Calculator →" },
-              { title: "Short-Term Rental Tool", desc: "Underwrite Airbnbs and resort cabins using AirDNA projections or 12-mo actuals.", view: "tools/str-underwriting", btn: "Underwrite STR →" },
+              { title: "Short-Term Rental Tool", desc: "Underwrite Airbnbs and resort cabins using AirDNA projections or 12-mo actuals.", view: "str-underwriting", btn: "Underwrite STR →" },
               { title: "50-State Penalty Rules", desc: "Check state-by-state prepayment penalty legal caps, thresholds, and LLC exemptions.", view: "state-laws", btn: "View State Laws →" },
-              { title: "Cost Seg & Tax Engine", desc: "Estimate Year-1 OBBBA 100% bonus depreciation and passive loss tax offsets.", view: "tools/tax-engine", btn: "Run Tax Engine →" },
-              { title: "10-Yr Cash Flow & IRR", desc: "Project multi-year cash-on-cash yield, equity accumulation, and IRR waterfall.", view: "tools/returns", btn: "Model Returns →" },
-              { title: "Commercial 5+ & Mixed-Use", desc: "Underwrite commercial multi-family and mixed-use storefront properties.", view: "tools/commercial-dscr", btn: "Commercial DSCR →" },
+              { title: "Cost Seg & Tax Engine", desc: "Estimate Year-1 OBBBA 100% bonus depreciation and passive loss tax offsets.", view: "tax-engine", btn: "Run Tax Engine →" },
+              { title: "10-Yr Cash Flow & IRR", desc: "Project multi-year cash-on-cash yield, equity accumulation, and IRR waterfall.", view: "returns", btn: "Model Returns →" },
+              { title: "Commercial 5+ & Mixed-Use", desc: "Underwrite commercial multi-family and mixed-use storefront properties.", view: "commercial-dscr", btn: "Commercial DSCR →" },
             ].map((tool) => (
               <div key={tool.view} style={{ background: "rgba(238,239,211,0.04)", padding: "22px", borderRadius: radius.md, border: "1px solid rgba(238,239,211,0.12)", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 16 }}>
                 <div>
@@ -362,7 +362,7 @@ export default function InvestorsPage({
 
       <BottomCTA onNavigate={onNavigate} cards={[
         { bg: dc.lemon, fg: dc.dark, blurb: "Run your next property's rent through Greenstreet — 60 seconds, zero credit impact.", title: "Price My Deal Now", view: "dscr-calculator" },
-        { bg: dc.mintBg, fg: dc.dark, blurb: "Underwrite short-term rental revenue with AirDNA projections and 12-month actuals.", title: "Run STR Scenario", view: "tools/str-underwriting" },
+        { bg: dc.mintBg, fg: dc.dark, blurb: "Underwrite short-term rental revenue with AirDNA projections and 12-month actuals.", title: "Run STR Scenario", view: "str-underwriting" },
       ]} />
     </DcShell>
   );

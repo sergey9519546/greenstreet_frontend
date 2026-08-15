@@ -96,9 +96,9 @@ export default function PerfectPropertyPage({
       accent={dc.lemon}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "STR Tool", view: "tools/str-underwriting" },
-        { label: "Tax Engine", view: "tools/tax-engine" },
-        { label: "Returns", view: "tools/returns" },
+        { label: "STR Tool", view: "str-underwriting" },
+        { label: "Tax Engine", view: "tax-engine" },
+        { label: "Returns", view: "returns" },
         { label: "State Laws", view: "state-laws" },
       ]}
       cta={{ label: "Price This Deal →", view: "dscr-calculator" }}
@@ -449,7 +449,7 @@ export default function PerfectPropertyPage({
         onNavigate={onNavigate}
         cards={[
           { bg: dc.lemon, fg: dc.dark, blurb: "Run your property's rent through the Greenstreet DSCR engine — 60 seconds, no credit pull.", title: "Price My Deal Now", view: "dscr-calculator" },
-          { bg: dc.mintBg, fg: dc.dark, blurb: "Underwrite short-term rental revenue with AirDNA projections and 12-month actuals.", title: "Run STR Underwriting", view: "tools/str-underwriting" },
+          { bg: dc.mintBg, fg: dc.dark, blurb: "Underwrite short-term rental revenue with AirDNA projections and 12-month actuals.", title: "Run STR Underwriting", view: "str-underwriting" },
         ]}
       />
     </DcShell>

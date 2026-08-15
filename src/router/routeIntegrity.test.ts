@@ -386,3 +386,50 @@ describe("routeIntegrity — invariant 4: no dead internal links in shipped mark
     });
   }
 });
+
+/**
+ * Invariant 5: no CTA hands a PATH where a PageView is required.
+ *
+ * The four invariants above all validate the route TABLE. None of them looked
+ * at the string literals call sites actually pass to onNavigate() or to a
+ * `view:` prop — and that is exactly where the next instance of this bug
+ * appeared. Twelve CTAs across three files passed "tools/str-underwriting"
+ * (the PATH) where "str-underwriting" (the VIEW) was required.
+ *
+ * It failed silently and catastrophically: renderPage's switch had no default,
+ * so an unknown view fell off the end and returned undefined, <>{undefined}</>
+ * rendered nothing, and the visitor got a blank dark screen with the URL
+ * already rewritten to "/". Four of the six cards in the Investors tool suite
+ * destroyed the page. renderPage has a default now, but this pins the actual
+ * defect rather than only its blast radius.
+ */
+describe("routeIntegrity — invariant 5: navigation targets are views, not paths", () => {
+  const SOURCES = import.meta.glob("../**/*.{ts,tsx}", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+  }) as Record<string, string>;
+
+  it("never passes a slash-bearing string where a view is required", () => {
+    const offenders: string[] = [];
+    const pattern = /(?:onNavigate\(\s*|view:\s*)["'`]([^"'`]+)["'`]/g;
+
+    for (const [file, text] of Object.entries(SOURCES)) {
+      if (file.includes(".test.")) continue;
+      for (const match of text.matchAll(pattern)) {
+        const target = match[1];
+        // A view is a bare identifier. Anything containing "/" is a path and no
+        // case in renderPage can ever match it.
+        if (target.includes("/")) offenders.push(`${file}: "${target}"`);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("reads a non-trivial number of source files", () => {
+    // Guards the guard: a glob that silently matched nothing would make the
+    // assertion above vacuously pass.
+    expect(Object.keys(SOURCES).length).toBeGreaterThan(50);
+  });
+});
