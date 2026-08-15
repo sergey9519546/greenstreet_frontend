@@ -64,7 +64,9 @@ export default function PerfectPropertyPage({
     // CQR (Certainty-Equivalent Score) Math
     const baseCqr = Math.min(99, Math.max(45, (track1Dscr * 40) + (track2Dscr > 1.0 ? 30 : 10) + (ltv <= 75 ? 20 : 10)));
 
-    // Monte Carlo Exceedance Probability (Simulated 10,000 runs)
+    // Exceedance probability — a closed-form clamp, NOT a simulation. This
+    // comment used to claim "Simulated 10,000 runs", and the user-facing copy
+    // echoed it. There is no sampling loop here; it is one linear expression.
     const exceedanceProb = Math.min(99.4, Math.max(55.0, 75 + (track1Dscr - 1.0) * 45));
 
     // OBBBA Year-1 Cost Segregation Depreciation
@@ -331,7 +333,7 @@ export default function PerfectPropertyPage({
 
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 11, color: "rgba(238,239,211,0.6)", textTransform: "uppercase" }}>Track 1 DSCR</div>
-                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.track1Dscr >= 1.0 ? dc.emerald : "#e88a8a" }}>
+                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.track1Dscr >= 1.0 ? dc.emerald : risk.dangerOnDark }}>
                   {engineResults.track1Dscr.toFixed(2)}x
                 </Mono>
               </div>

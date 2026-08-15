@@ -10,7 +10,7 @@ import PropertyTypesGallery from "../components/PropertyTypesGallery";
 // We keep the import for the per-row scrollTrigger config below.
 
 // ── Tool definitions — alternating 2-col feature rows ────────────────────────
-// Panel colour sets rotate across the 11 tools so adjacent rows never share the
+// Panel colour sets rotate across the tools so adjacent rows never share the
 // same background.  contentOrder / visualOrder alternate so text swaps sides.
 interface Tool {
   title: string;
@@ -219,6 +219,13 @@ const SPECIAL_TOOLS = [
     href: "/tools/structure-optimizer",
     label: "Optimize structure",
     stat: "03",
+    // The only one of these four with a page of its own. resolve.ts maps the
+    // other three hrefs to "portal", so the shared onNavigate("portal") below
+    // is correct for them — but it swallowed this card too, leaving
+    // StructureOptimizerPage unreachable from the page that advertises it.
+    // NB: a VIEW, not a path. Passing "tools/structure-optimizer" blanks the
+    // app; routeIntegrity invariant 5 fails on it.
+    view: "structure-optimizer",
   },
   {
     title: "Scenario History",
@@ -228,6 +235,11 @@ const SPECIAL_TOOLS = [
     stat: "04",
   },
 ] as const;
+
+// Derived, not typed by hand. The hero asserted "11 tools" in three places
+// while the page rendered 18 — a count kept as prose drifts the moment a tool
+// is added, which is exactly what happened when three were.
+const TOOL_COUNT = TOOLS.length + SPECIAL_TOOLS.length;
 
 // ── Feature row ───────────────────────────────────────────────────────────────
 // Each row is a 2-col grid that alternates text/visual side.
@@ -430,7 +442,11 @@ function SpecialToolCard({
         </p>
       </div>
       <button
-        onClick={() => onNavigate("portal")}
+        // Route to the card's own destination when it has one. Three of the
+        // four special tools genuinely resolve to "portal" in resolve.ts, so
+        // that stays their target; Structure Optimizer has its own page and
+        // was being swallowed by the blanket navigation.
+        onClick={() => onNavigate(("view" in tool ? tool.view : "portal") as never)}
         style={{
           marginTop: 30,
           justifySelf: "start",
@@ -510,7 +526,7 @@ export default function ProductsPage({
                 marginBottom: 18,
               }}
             >
-              11 tools · one engine
+              {TOOL_COUNT} tools · one engine
             </div>
             <H1 style={{ margin: 0 }}>
               The DSCR Engine
@@ -524,7 +540,7 @@ export default function ProductsPage({
                 margin: "clamp(24px,3vw,36px) 0 0",
               }}
             >
-              Eleven tools for modeling DSCR rental-loan scenarios — from a
+              {TOOL_COUNT} tools for modeling DSCR rental-loan scenarios — from a
               60-second deal check to a full after-tax returns model. Every tool
               runs off the same deterministic core: versioned math, statutory
               citations, no AI-generated numbers. Run a quick deal check, layer in
@@ -532,7 +548,7 @@ export default function ProductsPage({
               a preliminary estimate, not a quote or approval. Start anywhere.
             </Lead>
           </div>
-          <MotionWorkbench mode="sim" value="11" label="Connected tools" />
+          <MotionWorkbench mode="sim" value={String(TOOL_COUNT)} label="Connected tools" />
         </div>
       </section>
 
