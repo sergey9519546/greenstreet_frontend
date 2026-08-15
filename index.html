@@ -654,7 +654,7 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 }
 
 
-.swiper-slide{-webkit-transform: translate3d(0, 0, 0);}
+
 
 
 
@@ -686,7 +686,7 @@ margin-bottom: calc(0.45rem - var(--border-width--main));
 }
 
 .nav-logo path {fill: currentColor}
-.swiper-slide{-webkit-transform: translate3d(0, 0, 0);}
+
 
 .w-richtext figure{max-width: none}
 .w-richtext figure div {width: 100%}
@@ -1342,7 +1342,11 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
 <script src="https://cdn.prod.website-files.com/gsap/3.15.0/Observer.min.js"></script>
 <script src="https://cdn.prod.website-files.com/gsap/3.15.0/Flip.min.js"></script>
 <script type="text/javascript">gsap.registerPlugin(ScrollTrigger, Observer, Flip);</script>
-<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+<!-- Swiper 8 removed: the homepage carousels were deleted, so the
+     bundle (~150KB, render-blocking, third-party) loaded on every page
+     view with zero .swiper-container / .swiper-slide elements to drive.
+     The init below iterates swiper elements and therefore never runs.
+     Re-add this tag if a carousel ever returns. -->
 
 <script>
       // Shared lifecycle registry for the embedded marketing scripts so React
