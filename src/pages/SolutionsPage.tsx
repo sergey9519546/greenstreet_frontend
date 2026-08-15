@@ -17,6 +17,13 @@ interface Segment {
   gridline: string;
   statBg: string;
   stats: { v: string; k: string }[];
+  /** True when `stats[].v` are category words ("STR", "Dual-Track") rather
+   *  than measured figures. Segment 1 and segment 3 show real numbers
+   *  (<60s, $25M, 1.49x...); segment 2 has no committed figure for these four
+   *  cells. Rendering words in the same 30px tabular-mono cells as real
+   *  numbers falsely implies they were measured — this flag routes them
+   *  through a labeled-fact layout instead of inventing a statistic. */
+  statsAreLabels?: boolean;
   /** Optional DSCR value to show a gauge + flame in the stat panel */
   dscrPreview?: number;
 }
@@ -55,6 +62,8 @@ const SEGMENTS: Segment[] = [
     gridline: "rgba(238,239,211,0.12)",
     statBg: dc.teal,
     dscrPreview: 1.18,
+    // Category words, not figures — see `statsAreLabels` above.
+    statsAreLabels: true,
     stats: [
       { v: "STR", k: "income accepted" },
       { v: "Cross-border", k: "provider-specific review" },
@@ -148,45 +157,101 @@ function StatPanel({ seg }: { seg: Segment }) {
         )}
       </div>
 
-      {/* Stat grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 1,
-          background: seg.gridline,
-          borderRadius: dc.r.sm,
-          overflow: "hidden",
-          flex: 1,
-        }}
-      >
-        {seg.stats.map((st) => (
-          <div key={st.k} style={{ background: seg.statBg, padding: "16px 14px" }}>
-            <Mono
-              style={{
-                display: "block",
-                fontSize: "clamp(18px,2.2vw,30px)",
-                fontWeight: 700,
-                color: seg.panelAccent,
-                lineHeight: 1,
-              }}
-            >
-              {st.v}
-            </Mono>
+      {/* Stat grid — two layouts share the panel shell so all four segments
+          still read as one system. `statsAreLabels` segments (category
+          words, no real figure) get a labeled-fact list instead of the
+          2x2 grid of large tabular-mono numerals real measurements use
+          below, so nothing here visually claims to be a stat we measured. */}
+      {seg.statsAreLabels ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            background: seg.gridline,
+            borderRadius: dc.r.sm,
+            overflow: "hidden",
+            flex: 1,
+          }}
+        >
+          {seg.stats.map((st) => (
             <div
+              key={st.k}
               style={{
-                fontSize: 12,
-                fontWeight: 500,
-                color: seg.panelBody,
-                marginTop: 3,
-                letterSpacing: "-0.01em",
+                background: seg.statBg,
+                padding: "12px 14px",
+                display: "flex",
+                flexWrap: "wrap" as const,
+                alignItems: "baseline",
+                justifyContent: "space-between",
+                gap: 8,
               }}
             >
-              {st.k}
+              <span
+                style={{
+                  fontFamily: dc.sans,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  letterSpacing: "-0.01em",
+                  color: seg.panelAccent,
+                }}
+              >
+                {st.v}
+              </span>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: seg.panelBody,
+                  textAlign: "right" as const,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {st.k}
+              </span>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 1,
+            background: seg.gridline,
+            borderRadius: dc.r.sm,
+            overflow: "hidden",
+            flex: 1,
+          }}
+        >
+          {seg.stats.map((st) => (
+            <div key={st.k} style={{ background: seg.statBg, padding: "16px 14px" }}>
+              <Mono
+                style={{
+                  display: "block",
+                  fontSize: "clamp(18px,2.2vw,30px)",
+                  fontWeight: 700,
+                  color: seg.panelAccent,
+                  lineHeight: 1,
+                }}
+              >
+                {st.v}
+              </Mono>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: seg.panelBody,
+                  marginTop: 3,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {st.k}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -452,7 +517,10 @@ export default function SolutionsPage({
                 marginBottom: 16,
               }}
             >
-              Rate estimate
+              {/* Was "Rate estimate" — mirrors RateQuizPage's own eyebrow
+                  ("Pricing status"): the quiz explicitly does not generate
+                  a rate, so the teaser shouldn't promise one either. */}
+              Pricing status
             </div>
             <h2
               style={{
@@ -464,7 +532,10 @@ export default function SolutionsPage({
                 color: dc.cream,
               }}
             >
-              Five questions. Real rate tier.
+              {/* Was "Five questions. Real rate tier." — RateQuizPage.tsx:167-168
+                  now states outright that this screen "does not generate a
+                  program match or rate quote," so the teaser can't promise one. */}
+              Five questions. An illustrative scenario.
             </h2>
             <p
               style={{
@@ -478,9 +549,9 @@ export default function SolutionsPage({
               }}
             >
               Property type, LTV (how the loan compares to the property value),
-              DSCR, FICO, and state. Get a preliminary rate tier and your matched
-              Greenstreet program in under a minute. No email, no credit pull, no
-              commitment.
+              DSCR, FICO, and state. See an illustrative scenario — not a
+              program match or rate quote — in under a minute. No email, no
+              credit pull, no commitment.
             </p>
             {/* Dominant lemon CTA */}
             <button

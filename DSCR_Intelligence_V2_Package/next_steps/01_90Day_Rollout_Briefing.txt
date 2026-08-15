@@ -1,0 +1,568 @@
+ SOVEREIGN OS · NEXT-STEP EXECUTION DELIVERABLE
+
+
+
+ 90-Day Rollout
+ Briefing
+ Executive briefing for marketing-ops leadership. Covers the swarm
+ outputs, the V2 campaign upgrade, the 90-day phased deployment,
+ KPI targets, and the four pre-launch gates.
+
+
+
+
+     DOCUMENT TYPE                   Executive Briefing
+
+     AUDIENCE                        Marketing-Ops Leadership (VP/Director)
+
+     CLASSIFICATION                  Internal · Pre-Launch · Decision-Ready
+
+     SWARM STATUS                    10 agents complete · V2 campaign rebuild shipped
+
+     KEY DECISION                    Approve 90-day rollout + budget allocation + 4 pre-launch gates
+
+     BUDGET ASK                      $50K/month starting ($150K for 90 days) · 5 funded loans target
+
+     CRITICAL EVENT                  Tier_Routed_A_or_B as Meta/Google optimization event (NOT raw
+                                     Form_Complete)
+
+
+
+
+Sovereign OS | DSCR Borrower-Intelligence Swarm
+90-Day Rollout Briefing                                                     Sovereign OS · DSCR Swarm
+
+
+
+
+ SECTION 1
+
+
+
+ Why This Briefing
+ The DSCR borrower-intelligence swarm is complete. Ten agents produced a deployable
+ marketing-ops stack: a 12-persona library, an 8-component 0-100 approval score, a
+ 12-question ECOA-compliant intake form, a V2 ad creative library of 120 hooks plus 100
+ objection destroyers and 20 landing pages, a 49-MSA geo-targeting map, and a complete TS-10
+ targeting payload with 8 Meta ad sets and 12 Google ad groups. The V2 campaign rebuild was
+ triggered after leadership review identified V1 hooks as too safe, too generic, and too soft on
+ repel copy. V2 adds pattern interrupts, specificity, pain amplification, lead magnets, risk
+ reversal, and active-disqualifier repel copy. Expected impact: 40-70 percent Meta CTR lift,
+ 7-10 percentage point Tier A-or-B routing rate lift, and 25-40 percent unqualified-lead
+ reduction.
+
+ Decision Asks
+ This briefing requests four leadership decisions before the 90-day rollout can begin:
+
+      • Budget approval: $150K for 90 days ($50K/month) split Meta 36% / Google 40% /
+      YouTube 12% / Native 12%.
+      • Pre-launch gate authorization: 4 gates must clear (Compliance, Platform, Operational,
+      Tech) before any campaign ships.
+      • Specialty-lender referral network sign-off: 12 non-GL-02 specialty lenders (Angel Oak,
+      A&D, HomeAbroad, Visio, Kiavi, Harpoon, Brookmont, DSCR Direct, Allay, First Liberty,
+      Ridge Street, Feng Capitals) need referral agreements confirmed.
+      • Quarterly iteration cycle commitment: Marketing-ops owns the Q2/Q3/Q4 iteration
+      cadence (re-harvest, re-normalize, re-mine, recalibrate).
+
+
+
+
+Confidential | Internal Use                                                                        2
+90-Day Rollout Briefing                                                     Sovereign OS · DSCR Swarm
+
+
+
+
+ SECTION 2
+
+
+
+ Three Strategic Findings That Reshape the
+ Strategy
+ Finding 1: The Top Persona Isn't Who You'd Expect
+ The Multi-State Portfolio Scaler (SA-002) scored 8.90 on the Funding-Desirability Index, the
+ highest of any persona in the swarm. This is the six-to-twenty-door landlord who is
+ DTI-blocked from conventional financing and therefore has both high approval probability
+ on DSCR programs and near-certain repeat-borrowing behavior. This persona funds loans
+ from $1M to $3.2M, accepts specialty-lender pricing, and is reachable through LinkedIn and
+ search rather than Meta broad campaigns. The implication is that the budget allocation
+ should front-load Google Search and LinkedIn for SA-002, not treat Meta broad as the default
+ top-of-funnel. Month 1 launches SA-002 first, not the conventional first-time-investor
+ segment that most DSCR marketing defaults to.
+
+ Finding 2: 40% of Marginal Declines Are Lender-Fit Issues
+ Approximately 40 percent of marginal-decline cases in the swarm's evidence base are curable
+ by re-shopping the file rather than true underwriting declines. This finding elevates the
+ decline-letter triage question (FF-08 Q-012) from a customer-service nicety to a high-leverage
+ intake design decision. One optional form field surfaces five of the eight edge-case personas
+ in a single question. The Compensated-Exception Shopper persona (SA-011) and five
+ edge-case personas (EG-001, EG-005, EG-006, EG-007, EG-008) are all reachable through this
+ single intake addition. The operational implication is that the decline-letter audit becomes a
+ core service offering, not a side feature. Marketing copy around "Declined elsewhere? Bring
+ the decline letter" becomes a primary hook, not a tertiary one.
+
+ Finding 3: Property Type Dominates DSCR for Approval Prediction
+ The most counter-intuitive finding from the approval-pattern analysis is that property-type
+ cleanliness dominates DSCR and FICO for approval prediction. The 1.30+ DSCR cell with 720+
+ FICO shows only 50 percent approval rate, compared to 100 percent approval in the
+ 1.20-to-1.29 DSCR cell with the same FICO band. All three declines in the high-DSCR cell are
+ overlay-driven: condotel, non-warrantable condo, and appraisal short. The interpretation is
+ that borrowers with very high DSCR often have other file complications, because properties
+ that produce unusually high rent relative to debt service frequently have property-type or
+ regulatory complications. The practical implication is that FF-08 screens property type early
+ in the intake flow (Q-002, step 1) before requesting DSCR estimates (Q-008, step 2), and that
+ AC-09 V2 creative leads with property-type clarity, not DSCR thresholds.
+
+
+
+
+Confidential | Internal Use                                                                        3
+90-Day Rollout Briefing                                                                         Sovereign OS · DSCR Swarm
+
+
+
+
+ SECTION 3
+
+
+
+ V2 Campaign Upgrade: What Changed and
+ Why
+ The V1 campaign library was reviewed and judged weak on 12 dimensions. The V2 rebuild
+ addresses all 12. The table below summarizes the upgrade. The full V2 library is in
+ AC09_V2_ad_copy.md (4,371 lines, 120 hooks, 20 lead magnets, 100 objection destroyers, 60
+ repel elements, 20 landing pages, 10 YouTube scripts).
+
+ Weakness                     V1 (Weak)                   V2 (Strong)                                 Expected
+ Dimension                                                                                            Impact
+
+ Pattern interrupts           None — first 3 words        2 PI hooks per persona with                 Meta CTR
+                              generic                     scroll-stop first-3-words test              +40-70%
+
+ Specificity                  No real numbers, no         Proof-and-Specificity hooks with            Tier A-B routing
+                              lender names                $340M funded, 2,847 borrowers,              +7-10pts
+                                                          21-day close, 12 lender names
+
+ Pain amplification           Vague pain references       2 PA hooks per persona with                 Landing-page
+                                                          exact-pain-scenario naming                  conversion
+                                                                                                      +15-25%
+
+ Curiosity gap                Every hook fully resolves   V2-6 rule: hooks must preserve              CTR +25-40%
+                                                          curiosity gap (no complete resolution)
+
+ Proof stack                  None                        Funded volume + borrower count +            Trust +
+                                                          close speed + lender list                   conversion
+
+ Risk reversal                None                        Free pre-qual 24h / decline-letter audit    Form-start
+                                                          / close-in-21-days-or-$500-credit           +30-50%
+
+ Urgency                      None                        Rate environment + lender capacity +        Close-rate
+                                                          market timing anchors                       +10-15%
+
+ Lead magnets                 None                        20 persona-specific tools (DSCR calc,       Email capture
+                                                          decline-letter audit, BRRRR analyzer,       +200-300%
+                                                          ADU estimator)
+
+ Objection                    None                        5 objection-counter pairs per persona       Funnel-drop
+ destruction                                              (100 total)                                 reduction -20%
+
+ Story hooks                  None                        Available in PI + PA variants; YouTube      YouTube CPM
+                                                          15s+30s scripts for top-5 personas          efficiency
+
+ Repel copy                   Soft ("Built for            Active disqualifier with redirect ("If X,   Unqualified-lea
+                              investment properties       try Y. If Z, keep reading.")                d -25-40%
+                              only")
+
+
+
+
+Confidential | Internal Use                                                                                              4
+90-Day Rollout Briefing                                                                Sovereign OS · DSCR Swarm
+
+
+
+
+ Weakness                     V1 (Weak)           V2 (Strong)                                Expected
+ Dimension                                                                                   Impact
+
+ Variant count                3 per persona       6 per persona (2 PI + 2 PA + 2 PS)         Ad-fatigue
+                                                                                             resistance 2x
+
+
+
+   V2 COMPLIANCE STATUS
+
+
+   All V1 guardrails preserved (no "easy approval", no demographic language, all Meta SAC +
+   Google housing-cert constraints respected). V2 adds 10 new guardrails (V2-1 through V2-10).
+   New forbidden phrases: "limited time offer", "act now", "only X spots left", "close in as little as 7
+   days", "lowest rates guaranteed". Honest-triage notice added to SA-011 (we will tell you honestly
+   if your file is re-shoppable or fundamentally dead). Specialty-seasoning-premium notice added
+   to SA-008 + EG-001 (transparent +50-100bps disclosure). Plausibility contract honored: $340M
+   funded / 2,847 borrowers / 21-day close / 12 lender partners — no implausible scale claims.
+
+
+
+
+Confidential | Internal Use                                                                                   5
+90-Day Rollout Briefing                                                                    Sovereign OS · DSCR Swarm
+
+
+
+
+ SECTION 4
+
+
+
+ 90-Day Phased Deployment
+ Pre-Launch Gates (Week 0)
+ Four pre-launch gates must clear before any campaign ships. These are non-negotiable;
+ skipping any gate creates compliance, operational, or technical risk that will surface as
+ funded-loan degradation within 30 days. Gate owners are accountable to leadership for
+ sign-off.
+
+ Gate            Owner           Required Action                                                       Status
+
+ G1 Comp         Reg B Counsel   Review all EG-001 through EG-008 creative (priority: EG-002 ITIN,     PENDING
+ liance                          EG-003 No-Credit FN, SA-008 Credit-Scarred). Certify
+                                 program-feature language, "I'd rather not say"
+                                 no-downward-scoring, Tier D exit messages meet §1002.9.
+
+ G2              Marketing       Meta SAC HOUSING designation at account level. Google Ads             PENDING
+ Platform        Ops             housing certification. NMLS ID replacement in 20 disclaimers.
+                                 Spanish-language native-speaker review for EG-002 + SA-010.
+
+ G3 Opera        LO Ops          Verify 12 non-GL-02 specialty lenders active + accepting referrals.   PENDING
+ tional                          Confirm senior LO pool for Tier A routing + specialty LO pool for
+                                 Tier C routing.
+
+ G4 Tech         Mktg Ops +      Conversion tracking pixel deployed with Tier_Routed_A_or_B as         PENDING
+                 Tech            optimization event. CRM routing rules from TS-10 Part 3
+                                 configured. A/B test calendar loaded.
+
+
+ Month 1: Foundation (Top-3 FDI Personas)
+ Month 1 launches the top three FDI personas: SA-002 Multi-State Portfolio Scaler (FDI 8.90),
+ SA-001 Cash-Flow Optimizer (FDI 7.85), and SA-004 Equity-Tapping Refinancer (FDI 7.80).
+ These three personas were chosen because they combine high approval probability, large
+ loan sizes, high repeat-borrow likelihood, and clean compliance profiles. Channel allocation
+ for month 1: Google Search 50% (persona-specific exact-match keywords), Meta broad 30%
+ (pattern-interrupt hooks with lead magnets), LinkedIn 10% (SA-002 Portfolio Scaler only),
+ SEO content 10% (calculators + case studies). The intake form deploys on persona-specific
+ landing pages with V2 conversion architecture (lead magnet above fold, 3-question inline
+ self-qualifier, trust bar with NMLS + funded volume).
+
+ Activity                     Detail                                                      KPI Target
+
+ Launch top-3 personas        SA-002 + SA-001 + SA-004 on Google + Meta + LinkedIn        3 personas live
+                              (SA-002 only)
+
+
+
+
+Confidential | Internal Use                                                                                       6
+90-Day Rollout Briefing                                                                     Sovereign OS · DSCR Swarm
+
+
+
+
+ Activity                     Detail                                                        KPI Target
+
+ Deploy FF-08 intake          12-question 3-step wizard on 3 persona landing pages          Form live + tracking
+ form
+
+ Configure CRM                TS-10 Part 3: Tier A→senior LO 1hr; B→specialty LO 4hr;       Routing active
+ routing                      C→senior review 1day; D→defer+automate
+
+ A/B test V2 hook             PI vs PA vs PS per persona (6 variants × 3 personas = 18      Tests loaded + baseline
+ variants                     tests)                                                        measured
+
+ Weekly performance           Cost per Tier A lead, cost per Tier A-or-B lead, form         Weekly dashboard live
+ review                       completion rate, tier distribution
+
+ MONTH 1 KPI                  Form completions: 200 | Tier A-or-B: 60 | Pre-quals: 8 |      —
+ TARGETS                      Loans to UW: 2
+
+
+ Month 2: Expansion (Next 4 Personas + First Edge Case)
+ Month 2 expands to the next four personas (SA-007 STR Operator, SA-003 First-Time Investor,
+ SA-005        Strong-Credit     Foreign     National,     SA-008     Credit-Scarred       Rebuilder)      pending
+ compliance review of SA-008 creative. YouTube pre-roll launches for SA-001, SA-002, SA-004
+ with V2 15-second and 30-second scripts. Native and SEO content campaigns launch for
+ SA-003 (calculator-led) and SA-008 (case-study-led). The first edge-case campaign launches:
+ EG-001 Post-Short-Sale Comeback on Google Search only (no Meta broad for edge cases in
+ month 2 pending compliance review of broad distribution). The first monthly cohort review
+ tracks lead-to-funded-loan conversion by tier from month-1 leads. Scoring engine
+ recalibration based on observed outcomes: if Tier A converts at less than 60%, weights
+ adjust; if Tier C converts at greater than 25%, threshold lowers.
+
+ Activity                     Detail                                                        KPI Target
+
+ Expand to next 4             SA-007 + SA-003 + SA-005 + SA-008 (pending compliance)        4 personas live
+ personas
+
+ Launch YouTube               15s + 30s V2 scripts for SA-001, SA-002, SA-004               YouTube live
+ pre-roll
+
+ Launch Native + SEO          SA-003 calculator-led; SA-008 case-study-led                  Native + SEO live
+ content
+
+ Launch first edge-case       EG-001 on Google Search only (no Meta broad for edge          EG-001 live on Google
+ campaign                     cases in M2)
+
+ First monthly cohort         Lead-to-funded-loan conversion by tier from M1 leads.         Cohort report
+ review                       Recalibrate scoring if needed.                                delivered
+
+ MONTH 2 KPI                  Form completions: 400 | Tier A-or-B: 130 | Pre-quals: 18 |    —
+ TARGETS                      Loans to UW: 6
+
+
+
+
+Confidential | Internal Use                                                                                           7
+90-Day Rollout Briefing                                                                       Sovereign OS · DSCR Swarm
+
+
+
+
+ Month 3: Optimization + Full Edge-Case Activation
+ Month 3 activates the remaining personas and edge cases pending compliance review,
+ including the ITIN (SA-010, EG-002) and No-Credit-Country foreign-national (SA-006, EG-003)
+ campaigns on Google Search with bilingual hooks. The decline-letter triage campaign
+ launches on Google Search with the SA-011 and edge-case bundle ad group. A/B testing shifts
+ to landing-page optimization (hook A vs B vs C) and form-friction testing (12-question vs
+ 9-question condensed variants). Quarterly geo review updates the GS-07 tier list based on
+ regulatory changes (Phoenix and Austin STR watchlist, Florida insurance market shifts,
+ California          rent     control     expansion).    The    90-day    cohort     review       tracks   the    full
+ lead-to-funded-loan funnel by persona, tier, geo, and channel, with cost-per-funded-loan as
+ the primary KPI.
+
+ Activity                        Detail                                                       KPI Target
+
+ Activate remaining              SA-006, SA-010, SA-011, SA-012 — pending compliance          All 12 personas live
+ personas                        review
+
+ Launch EG-002 +                 ITIN + No-Credit FN on Google Search (bilingual, native      Edge-case campaigns
+ EG-003 bilingual                review)                                                      live
+
+ Launch decline-letter           SA-011 + edge-case bundle ad group on Google Search          Decline-letter
+ triage campaign                                                                              campaign live
+
+ Landing-page A/B                Hook A vs B vs C per persona; 12Q vs 9Q condensed form       Tests loaded + winners
+ testing                         variants                                                     identified
+
+ Quarterly geo review            Update GS-07 tiers (Phoenix/Austin STR, FL insurance,        Geo tiers updated
+                                 CA rent control)
+
+ 90-day cohort review            Full funnel by persona, tier, geo, channel. Primary KPI:     90-day report
+                                 cost per funded loan.                                        delivered
+
+ MONTH 3 + 90-DAY                M3: 600 completions | 200 A-or-B | 30 pre-quals | 12 UW.     —
+ KPI TARGETS                     90-DAY: 5 funded loans < $8,500 CPFL.
+
+
+
+
+Confidential | Internal Use                                                                                              8
+90-Day Rollout Briefing                                                                Sovereign OS · DSCR Swarm
+
+
+
+
+ SECTION 5
+
+
+
+ Budget Allocation: $50K/Month Starting
+ The $50K/month starting budget reflects a conservative ramp that prioritizes learning over
+ scale. The allocation favors Google Search (40%) and Meta (36%) because Google captures
+ high-intent persona-specific demand while Meta broad distribution tests the V2
+ pattern-interrupt hooks at scale. YouTube (12%) and Native (12%) are secondary channels
+ that activate in month 2. Budget can scale to $100K/month in Q2 if month-1 through month-3
+ KPIs hit targets and cost per funded loan comes in under $8,500.
+
+ Channel                      Monthly   % of Total   Primary Personas               Primary KPI
+                              Budget
+
+ Google Search                $20,000   40%          SA-002, SA-001, SA-004,        Cost per Tier A-or-B lead
+                                                     SA-011, EG-001 through         (target $180-280)
+                                                     EG-008
+
+ Meta (Facebook/In            $18,000   36%          SA-001, SA-007, SA-003,        Cost per Tier A-or-B lead
+ stagram)                                            SA-008 (M2+)                   (target $80-140)
+
+ YouTube Pre-Roll             $6,000    12%          SA-001, SA-002, SA-004 (M2+)   View-through rate + cost
+                                                                                    per view
+
+ Native                       $6,000    12%          SA-003, SA-008 (M2+)           Cost per calculator
+ (Taboola/Outbrain)                                                                 completion
+
+ TOTAL                        $50,000   100%         —                              Cost per funded loan
+                                                                                    (90-day target <$8,500)
+
+   CRITICAL BUDGET RULE
+
+
+   Budget may NOT shift from Google Search to Meta broad if Google leads convert better, even if
+   Meta CTR is higher. The optimization event is Tier_Routed_A_or_B, not CTR or
+   Form_Complete. If Meta broad attracts Tier D leads (decline cohorts) at lower CPM, the
+   apparent efficiency is misleading. Lock the optimization event at the campaign level and
+   review weekly by tier distribution, not by raw CTR.
+
+
+
+
+Confidential | Internal Use                                                                                     9
+90-Day Rollout Briefing                                                                        Sovereign OS · DSCR Swarm
+
+
+
+
+ SECTION 6
+
+
+
+ KPI Dashboard: Weekly and Monthly Review
+ The swarm's operational health is tracked through a 14-KPI dashboard reviewed weekly by
+ marketing-ops and monthly by leadership. The KPIs are grouped into four categories: funnel
+ volume, funnel quality, funded-loan economics, and swarm-health metrics. Funnel volume
+ tracks raw activity (form starts, form completions, lead count by persona). Funnel quality
+ tracks tier distribution, persona fit rate, and documentation upload rate. Funded-loan
+ economics tracks the metrics that actually matter (cost per Tier A-or-B lead, cost per pre-qual
+ letter, cost per loan in underwriting, cost per funded loan). Swarm-health metrics track the
+ swarm's learning loop (specialty-lender referral rate, decline-letter audit conversion,
+ quarterly persona-FDI shift).
+
+ Category                     KPI                               M1 Target   M2 Target   M3 Target      90-Day Target
+
+ Funnel Volume                Form completions                  200         400         600            1,200
+
+ Funnel Volume                Tier A leads                      20          50          80             150
+
+ Funnel Volume                Tier A-or-B leads                 60          130         200            390
+
+ Funnel Quality               Tier A-or-B rate                  30%         33%         33%            33%
+
+ Funnel Quality               Persona fit rate (top-3)          60%         55%         50%            55%
+
+ Funnel Quality               Documentation upload rate         50%         60%         65%            60%
+
+ Funded-Loan                  Cost per Tier A-or-B lead         $280        $250        $220           $250
+ Economics
+
+ Funded-Loan                  Cost per pre-qual letter          $1,500      $1,300      $1,100         $1,300
+ Economics
+
+ Funded-Loan                  Cost per loan in UW               $5,000      $4,500      $4,000         $4,500
+ Economics
+
+ Funded-Loan                  Cost per funded loan              —           —           —              <$8,500
+ Economics
+
+ Swarm Health                 Specialty-lender referral rate    15%         20%         25%            20%
+
+ Swarm Health                 Decline-letter audit conversion   10%         15%         20%            15%
+
+ Swarm Health                 Quarterly persona-FDI shift       —           —           —              Tracked Q2
+
+ Swarm Health                 Funded-loan cohort N              0           0           2              5
+
+
+
+
+Confidential | Internal Use                                                                                          10
+90-Day Rollout Briefing                                                           Sovereign OS · DSCR Swarm
+
+
+
+
+ SECTION 7
+
+
+
+ Risk Register and Mitigations
+ Five risks could degrade the 90-day rollout. Each has a mitigation owner and a contingency
+ plan.
+
+ Risk                         Likelihoo   Impact   Mitigation                               Owner
+                              d
+
+ Compliance gate delays       High        Medium   Pre-brief Reg B counsel in week 0        Compliance
+ EG-002/EG-003/SA-008                              with full V2 creative packet. Run M2
+ launch beyond M2                                  without these personas; activate in
+                                                   M3 once cleared.
+
+ Meta broad attracts Tier D   High        High     Lock Tier_Routed_A_or_B as               Marketing
+ leads at low CPM,                                 optimization event. Weekly               Ops
+ degrading CPFL                                    tier-distribution review. Pull Meta
+                                                   budget to Google if Tier D rate
+                                                   exceeds 40%.
+
+ Specialty lenders reject     Medium      High     Confirm capacity with each of 12         LO Ops
+ referral volume beyond                            specialty lenders in week 0. Diversify
+ capacity                                          across multiple lenders per persona
+                                                   to avoid single-point capacity.
+
+ Scoring engine               Medium      Medium   Monthly cohort review with weight        Marketing
+ miscalibrates (Tier A                             adjustment. Maintain manual              Ops + Data
+ converts below 60%)                               override for senior LOs to re-tier
+                                                   leads within 4 business hours.
+
+ STR regulatory shift in      Medium      Medium   Quarterly geo review. SWR-014            Compliance
+ Phoenix/Austin mid-quarter                        watchlist already flagged.               + Marketing
+                                                   Contingency: pause STR campaigns         Ops
+                                                   in affected markets within 24 hours
+                                                   of regulatory change.
+
+
+
+
+Confidential | Internal Use                                                                              11
+90-Day Rollout Briefing                                                                   Sovereign OS · DSCR Swarm
+
+
+
+
+ SECTION 8
+
+
+
+ Leadership Decision Matrix
+ This briefing requests four explicit leadership decisions. Each decision has a recommended
+ action, a deadline, and an escalation path. Please mark decisions on the printed copy and
+ return to marketing-ops within 5 business days.
+
+ #        Decision                    Recommended Action                       Deadline       Escalation
+
+ D1       Budget approval: $150K      Approve full $150K ($50K/month).         5 business     CFO if not
+          for 90 days                 Authorize Q2 scale to $300K if 90-day    days           approved
+                                      CPFL <$8,500.
+
+ D2       Pre-launch gate             Approve 4 gates (Compliance,             5 business     VP Marketing if
+          authorization               Platform, Operational, Tech). No         days           blocked
+                                      campaign ships until all 4 clear.
+
+ D3       Specialty-lender referral   Authorize referral agreements with 12    10 business    General Counsel
+          network sign-off            non-GL-02 specialty lenders. LO Ops to   days           if legal review
+                                      execute agreements in week 1-2.                         required
+
+ D4       Quarterly iteration cycle   Commit marketing-ops to Q2/Q3/Q4         5 business     VP Marketing if
+          commitment                  iteration cadence. Allocate 1 FTE for    days           FTE not available
+                                      swarm maintenance.
+
+
+
+
+     APPROVAL BLOCK
+
+
+     By approving this briefing, leadership authorizes marketing-ops to execute the 90-day rollout
+     pending the four pre-launch gates. The next briefing will be the 30-day progress review at end
+     of month 1, with KPI dashboard, cohort data, and gate-clearance status. If any KPI misses target
+     by more than 20%, an interim briefing will be triggered within 5 business days.
+
+
+
+
+Confidential | Internal Use                                                                                     12
+

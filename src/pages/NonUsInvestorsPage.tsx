@@ -208,9 +208,19 @@ export default function NonUsInvestorsPage({
   const dscr = pitia > 0 ? rent / pitia : 0;
   const ltv = 100 - downPct;
   const ltvOk = ltv <= 75;
-  const go = dscr >= 1.0 && ltvOk;
-  const verdict = go ? "QUALIFIES" : dscr >= 1.0 ? "LOWER LTV" : "BELOW 1.0x";
-  const vColor = go ? dc.emerald : dscr >= 1.0 ? dc.lemon : RED;
+  // COMPLIANCE (see the block comment at the top of this file, lines 33-40):
+  // this page may never render an approval verdict on a borrower's file.
+  // "QUALIFIES" was exactly that word, and the shipped default inputs
+  // (rent 4000 / price 560000 / down 25% / rate 7.5%) clear both the DSCR
+  // and LTV checks, so it rendered green on first paint before a visitor
+  // touched a single field. The pill now states the one thing this page is
+  // allowed to state — an ARITHMETIC RESULT, whether the computed DSCR
+  // clears the 1.00x floor — not a decision about the borrower. LTV-cap
+  // status is its own fact, already shown as its own stat below; it does
+  // not get folded back into a single approve/deny word.
+  const dscrClears = dscr >= 1.0;
+  const dscrLabel = dscrClears ? "DSCR ≥ 1.00X" : "DSCR BELOW 1.00X";
+  const vColor = dscrClears ? dc.emerald : RED;
 
   const num = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
     <CurrencyInput
@@ -456,11 +466,16 @@ export default function NonUsInvestorsPage({
             <div className="dc-results-first" style={{ background: dc.dark, borderRadius: radius.lg, border: `1px solid ${vColor}55`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 8, background: `${vColor}22`, border: `1px solid ${vColor}`, borderRadius: 999, padding: "6px 14px", marginBottom: 18 }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: vColor }} />
-                <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: vColor }}>{verdict}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: vColor }}>{dscrLabel}</span>
               </div>
               <Mono style={{ fontSize: "clamp(30px,8vw,96px)", fontWeight: 700, letterSpacing: "-0.04em", color: vColor, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "44ch" }}>
-                {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {go ? "Rent covers the loan and the LTV fits — this is fundable. Example: $4,000 rent vs ~$3,000 payment is a strong 1.33x." : dscr >= 1.0 ? "Rent covers the loan, but lower the LTV to ≤75% for the non-US investor program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
+                {/* "this is fundable" was the same approval-shaped claim as
+                    the old QUALIFIES pill, just in prose instead of a badge.
+                    State the two facts (payment coverage, LTV cap) and stop
+                    there — no fundability conclusion drawn on the borrower's
+                    behalf. */}
+                {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {dscrClears && ltvOk ? "Rent covers the full payment and the LTV is within the 75% cap. Example: $4,000 rent vs ~$3,000 payment is a 1.33x DSCR." : dscrClears ? "Rent covers the loan, but lower the LTV to ≤75% for the non-US investor program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
               </div>
               <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
                 <div><Mono style={{ fontSize: 22, fontWeight: 700, color: ltvOk ? dc.emerald : dc.lemon, display: "block" }}>{ltv}%</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>LTV (cap ≈75%)</div></div>

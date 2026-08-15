@@ -12,7 +12,8 @@ import { risk } from "../theme";
 const RED     = risk.danger;
 const ORANGE  = risk.warning;
 const YELLOW  = dc.lemon;   // warn signal — bright on the dark canvas
-const YELLOW_DARK = dc.lemon;
+// YELLOW_DARK removed: it existed only for the now-deleted ProbCard component
+// and had no other reference in the file.
 const BLUE    = "#7ec8d3";  // sky-blue — the rates / SOFR / uncertainty color
 
 function pColor(p: number, warnAt: number, errorAt: number): string {
@@ -130,45 +131,10 @@ function DscrSpreadBar({ p10, median, p90, animate }: { p10: number; median: num
   );
 }
 
-// ─── P-probability card ───────────────────────────────────────────────────────
-function ProbCard({
-  title, value, color, sub, dark = false, flame,
-}: { title: string; value: string; color: string; sub: string; dark?: boolean; flame?: React.ReactNode }) {
-  const [ref, shown] = useRevealOnView<HTMLDivElement>();
-  return (
-    <div
-      ref={ref}
-      style={{
-        background: dark ? dc.dark : "#fff",
-        borderRadius: dc.r.md, padding: "clamp(22px,3vw,36px)",
-        border: dark ? "none" : "1px solid rgba(0,55,56,0.1)",
-        textAlign: "center",
-        opacity: shown ? 1 : 0,
-        transform: shown ? "none" : "translateY(10px)",
-        transition: "opacity 0.4s ease, transform 0.4s ease",
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <div style={{
-          fontSize: 11, fontWeight: 600, letterSpacing: "0.06em",
-          textTransform: "uppercase", color: dark ? YELLOW_DARK : dc.rain,
-        }}>
-          {title}
-        </div>
-        {flame && <div>{flame}</div>}
-      </div>
-      <Mono style={{
-        fontSize: "clamp(30px,6vw,80px)", fontWeight: 600,
-        letterSpacing: "-0.04em", color, lineHeight: 1, display: "block",
-      }}>
-        {value}
-      </Mono>
-      <div style={{ fontSize: 12, fontWeight: 500, color: dark ? "rgba(238,239,211,0.62)" : "rgba(0,55,56,0.5)", marginTop: 10, lineHeight: 1.45 }}>
-        {sub}
-      </div>
-    </div>
-  );
-}
+// Removed: unused `ProbCard` component (previously here, "P-probability card").
+// Defined but never referenced anywhere in the repo — grepped src/ and the
+// whole tree, only its own definition matched. Dead leftover from an earlier
+// layout; the page's live probability display uses other components now.
 
 // ─── collapsible details disclosure ──────────────────────────────────────────
 function Disclosure({ label, children }: { label: string; children: React.ReactNode }) {
@@ -366,9 +332,10 @@ export default function MonteCarloPage({
   const dscrMin    = result?.dscrStats.min    ?? 0;
   const dscrMax    = result?.dscrStats.max    ?? 0;
 
-  const sofrY1  = result ? result.sofrAtHorizon.year1.mean.toFixed(2)  + "%" : "—";
-  const sofrY5  = result ? result.sofrAtHorizon.year5.mean.toFixed(2)  + "%" : "—";
-  const sofrY10 = result ? result.sofrAtHorizon.year10.mean.toFixed(2) + "%" : "—";
+  // Removed: sofrY1/sofrY5/sofrY10 (formatted "X.XX%" strings) were computed
+  // here but never rendered anywhere in this file or referenced elsewhere in
+  // the repo — grep confirmed only their own definitions matched. The fan
+  // chart below reads the raw sofrAtHorizon values directly instead.
 
   // Fan-chart points: today's rate, then the engine's horizon percentiles.
   const fanPoints: FanPoint[] = result

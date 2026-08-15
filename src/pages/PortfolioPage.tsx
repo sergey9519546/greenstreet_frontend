@@ -302,13 +302,19 @@ export default function PortfolioPage({
       `}</style>
 
       {/* ── TOOL ─────────────────────────────────────────────────────────── */}
+      {/* No hero section precedes this one (unlike ARMPage/RefiTrackerPage,
+          which open on an id="*-hero" section with no borderTop, then a tool
+          section with this same borderTop as the hero/tool separator). This
+          page's very first section is the tool itself, carrying its own
+          heading below ("Blended DSCR"), so the borderTop had nothing above
+          it to separate from — it rendered as a stray hairline directly
+          under the nav. Removed rather than building a new hero section. */}
       <section
         id="pf-tool"
         style={{
           background: dc.dark,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
-          borderTop: `1px solid ${dc.faded}`,
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>

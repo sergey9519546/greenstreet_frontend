@@ -429,19 +429,27 @@ export default function STRUnderwritingPage({
         .str-field{display:flex;align-items:center;background:${dc.teal};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 12px;transition:border-color .15s;}
         .str-field:focus-within{border-color:${dc.lemon};outline:2px solid ${dc.lemon};outline-offset:1px;}
         .str-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.36);}
-        @media(max-width:991px){.str-hero-grid{grid-template-columns:1fr !important;} .str-tool-grid{grid-template-columns:1fr !important;} .str-3col{grid-template-columns:1fr 1fr !important;}}
-        @media(max-width:767px){.str-3col{grid-template-columns:1fr !important;}}
-        @media(max-width:479px){.str-worlds{grid-template-columns:1fr !important;}}
+        /* Removed: media-query rules for .str-hero-grid, .str-tool-grid, .str-3col,
+           .str-worlds — none of those classes are applied anywhere in this file
+           (only .str-field/.str-num are), so all four selectors matched zero
+           elements. Dead leftovers from an earlier layout. */
       `}</style>
 
       {/* ══ TOOL — dark teal, matches mockup #003a39 ══════════════════════ */}
+      {/* No hero section precedes this one (unlike ARMPage/RefiTrackerPage,
+          which open on an id="*-hero" section with no borderTop, then a tool
+          section with this same borderTop as the hero/tool separator). This
+          page folds its opening copy (eyebrow + h1 below) into the tool
+          section itself, so the borderTop had nothing above it to separate
+          from — it rendered as a stray hairline directly under the nav.
+          Removed rather than building a new hero section, since this section
+          already carries a proper heading (see "Underwritten DSCR" below). */}
       <section
         id="str-tool"
         style={{
           background: dc.dark,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
-          borderTop: "1px solid rgba(238,239,211,0.07)",
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>

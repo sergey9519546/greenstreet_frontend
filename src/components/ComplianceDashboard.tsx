@@ -1430,9 +1430,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                               <PrimaryBtn onClick={() => switchTab("analyze")}>Open Deal Workspace →</PrimaryBtn>
                             </div>
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {[1,2,3].map(i => <Skeleton key={i} h={160} rounded={radius.md} />)}
-                          </div>
+                          {/* Removed: 3 ungated Skeleton placeholders that pulsed forever (no
+                              isRunning/data gate exists for this tab — the optimizer has no live
+                              state here, it's permanently "temporarily held" per the copy above).
+                              Left over from a refactor; every other Skeleton in this file is gated. */}
                         </div>
                       </Card>
                     </TabPane>
