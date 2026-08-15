@@ -19,6 +19,7 @@ import BottomCTA from "../design/BottomCTA";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
 import { PremiumSlider } from "../components/ui/PremiumSlider";
 import { ControlTooltip } from "../components/ui/ControlTooltip";
+import { track, AnalyticsEvent } from "../lib/analytics";
 import {
   type DealSnapshot,
   type CalcTab,
@@ -125,6 +126,17 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     return () => {
       if (persistTimer.current) clearTimeout(persistTimer.current);
     };
+  }, [deal]);
+
+  // Engagement signal: someone actually drove the tool rather than bouncing off
+  // the page. Debounced well past the input cadence so a single session of
+  // typing counts once, not once per keystroke. Carries the tool and the tab
+  // only — no price, rent or rate, which are the visitor's own deal terms.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      track(AnalyticsEvent.ToolResult, { tool: "dscr-calculator", tab: deal.tab });
+    }, 4000);
+    return () => clearTimeout(timer);
   }, [deal]);
 
   const applyDealPatch = useCallback((patch: Partial<DealSnapshot>) => {

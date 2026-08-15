@@ -16,6 +16,7 @@ import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
 import Notice from "./ui/Notice";
 import { captureException } from "../monitoring/sentry";
+import { track, AnalyticsEvent } from "../lib/analytics";
 import { qualify, fmtUsd, fmtRateRange, PPP_STATE_LAWS } from "../engine";
 import type {
   QuickDscrTier,
@@ -2188,6 +2189,11 @@ export default function QualifyModal({ open, onClose, initialDraft = null }: Qua
         throw new Error(`Lead endpoint returned ${response.status}`);
       }
       if (formGeneration !== formGenerationRef.current) return;
+      // The conversion event. Fired only after the intake route accepted the
+      // lead, so it counts deliveries and not attempts. Deliberately carries no
+      // property of any kind — name, email, phone and the loan scenario are all
+      // PII and none of them belong in an analytics payload.
+      track(AnalyticsEvent.LeadSubmitted);
       setStep(5);
     } catch (err) {
       if (formGeneration !== formGenerationRef.current) return;
