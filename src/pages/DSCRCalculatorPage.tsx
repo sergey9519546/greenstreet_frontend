@@ -552,9 +552,6 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <div><Mono style={{ fontSize: 'clamp(24px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>&lt;2s</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>to a priced deal</div></div>
             </div>
           </div>
-          {/* chip uses dangerOnLight: it sits on the mint hero card, where the
-              base danger red measures 2.75:1 as text — under the 4.5:1 AA
-              floor. The light-ground pair clears at 4.59:1. */}
           <HeroProof
             eyebrow="Live preview"
             value={`${dscr.toFixed(2)}x`}

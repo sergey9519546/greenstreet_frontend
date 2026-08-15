@@ -751,7 +751,7 @@ input:focus-visible,
      fallback further down this file, so this unifies the app rather than
      introducing a new colour. Not a box-shadow ring — DESIGN_SOURCE_OF_TRUTH
      forbids shadows. */
-  outline: 2px solid #039692 !important;
+  outline: 2px solid var(--color-light-green) !important;
   outline-offset: 2px !important;
 }
 

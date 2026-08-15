@@ -34,6 +34,17 @@ export function LiveDistressDealsFeed({
       });
       if (response.ok) {
         setDispatchedDeals((prev) => new Set(prev).add(deal.id));
+      } else if (response.status === 401) {
+        // /api/sdr/dispatch now requires authentication, and this page is
+        // public. That is deliberate: the endpoint writes into the outreach
+        // queue that outbound email to the property owner is driven from, so an
+        // anonymous visitor was able to make the company mail a distressed
+        // homeowner. Say so plainly instead of reporting a generic failure —
+        // the request did not fail, it was refused.
+        alert(
+          "Sending outreach requires a signed-in Greenstreet account. " +
+            "This deal was not contacted.",
+        );
       } else {
         console.error("Failed to dispatch SDR email", await response.text());
         alert("Failed to dispatch SDR sequence. Check console.");
