@@ -411,7 +411,6 @@ export default function PerfectPropertyPage({
                   border: "none",
                   cursor: "pointer",
                   fontFamily: dc.sans,
-                  boxShadow: "0 4px 14px rgba(216,217,88,0.3)",
                 }}
               >
                 Price Live Loan Package →

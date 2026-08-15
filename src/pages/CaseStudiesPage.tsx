@@ -408,7 +408,7 @@ function StudyRow({
           {!(s.scene && !reduce) && (
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(140deg, rgba(0,55,56,0.34) 0%, rgba(0,55,56,0) 42%, rgba(0,55,56,0.88) 100%)" }} />
           )}
-          <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,22px)", left: "clamp(16px,1.8vw,26px)", fontSize: "clamp(22px,3.4vw,50px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.88)", lineHeight: 1, textShadow: "0 2px 16px rgba(0,26,24,0.6)" }}>{s.num}</Mono>
+          <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,22px)", left: "clamp(16px,1.8vw,26px)", fontSize: "clamp(22px,3.4vw,50px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.88)", lineHeight: 1 }}>{s.num}</Mono>
           {!(s.scene && !reduce) && (
             <div style={{ position: "absolute", left: "clamp(16px,1.8vw,24px)", right: "clamp(16px,1.8vw,24px)", bottom: "clamp(14px,1.6vw,20px)" }}>
               <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream }}>{s.company}</div>

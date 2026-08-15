@@ -1,6 +1,7 @@
 {
-  "source": "src/marketing/home-markup.html reviewed 2026-08-14 after labelling the bare overlay links and repointing audience tiles to their own pages",
-  "sha256": "841ce0d92c7754b89a440d5794e9362654d0de1af8ff0e1a54c18ecfc8e3fd0e",
+  "source": "src/marketing/home-markup.html reviewed 2026-08-15 after removing the blurred lemon glow orb (.gs-rate-widget-card:after) and collapsing the last #004041 to #003738",
+  "_hashIsNotEnforced": "No test asserts this value. It drifted silently and had to be recomputed by hand on 2026-08-15 — treat it as a record of the last review, not a guard against change.",
+  "sha256": "f9f258e145a5cfde65873aadc20fb626c430883ee280b55229e63bce7da3b560",
   "requiredMarkers": [
     "class=\"page_wrap\"",
     "class=\"nav-wrap\"",

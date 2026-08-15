@@ -289,7 +289,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
             </div>
             {/* floating verdict badge */}
-            <div className="da-verdict-badge gs-reveal" style={{ position: "absolute", bottom: -20, left: -20, background: dc.lemon, borderRadius: 12, padding: "20px 24px", zIndex: 2, boxShadow: "0 12px 32px rgba(0,0,0,0.18)", border: "1px solid rgba(0,0,0,0.05)" }}>
+            <div className="da-verdict-badge gs-reveal" style={{ position: "absolute", bottom: -20, left: -20, background: dc.lemon, borderRadius: 12, padding: "20px 24px", zIndex: 2, border: "1px solid rgba(0,0,0,0.05)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.6)", marginBottom: 3 }}>Deal verdict</div>
               <Mono style={{ display: "block", fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor, marginTop: 3 }}>{vLabel}</div>
@@ -545,7 +545,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
 
               {/* AI UNDERWRITER CREDIT MEMO */}
-              <div className="gs-reveal print-card" style={{ background: `linear-gradient(145deg, ${swatch.white} 0%, rgba(238,239,211,0.2) 100%)`, borderRadius: radius.md, padding: "clamp(24px,3vw,32px)", border: `1.5px solid ${swatch.midnightFaded}`, boxShadow: "0 4px 12px rgba(0,55,56,0.03)" }}>
+              <div className="gs-reveal print-card" style={{ background: `linear-gradient(145deg, ${swatch.white} 0%, rgba(238,239,211,0.2) 100%)`, borderRadius: radius.md, padding: "clamp(24px,3vw,32px)", border: `1.5px solid ${swatch.midnightFaded}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: dc.rain }}>
                     🧠 AI Underwriter Credit Memo

@@ -31,7 +31,7 @@ const TIER_META: Record<Tier, { label: string; color: string; copy: string }> = 
 
 const MAP_CSS = `
   .gs-sm-map-shell{position:relative;width:100%;min-height:26rem;}
-  .gs-sm-map-shell svg{width:100%;height:auto;display:block;overflow:visible;filter:drop-shadow(0 1.25rem 1.875rem rgba(0,55,56,.12));}
+  .gs-sm-map-shell svg{width:100%;height:auto;display:block;overflow:visible;}
   .gs-sm-state{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:fill .18s ease,filter .18s ease,stroke-width .18s ease,transform .18s ease;}
   .gs-sm-state:hover,.gs-sm-state:focus-visible{filter:brightness(1.12);stroke-width:2.2px;outline:none;transform:translateY(-1px) scale(1.008);}
   .gs-sm-tip{position:absolute;z-index:5;pointer-events:none;transform:translate(14px,14px);background:#003738;color:#eeefd3;border-radius:.65rem;padding:.75rem .85rem;min-width:11rem;border:1px solid rgba(238,239,211,.16);opacity:0;transition:opacity .12s ease;}

@@ -278,7 +278,6 @@ export function LiveDistressDealsFeed({
               right: 0,
               bottom: 0,
               background: "rgba(0, 40, 41, 0.85)",
-              backdropFilter: "blur(6px)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -294,7 +293,6 @@ export function LiveDistressDealsFeed({
                 padding: "28px 32px",
                 maxWidth: 600,
                 width: "100%",
-                boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
               }}
             >
               <div style={{ fontSize: 11, fontWeight: 700, color: dc.lemon, textTransform: "uppercase", marginBottom: 8 }}>

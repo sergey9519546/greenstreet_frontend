@@ -156,7 +156,7 @@ export default function InvestorsPage({
               Conventional lenders cap how many doors you can own based on your personal W-2 income and DTI. Greenstreet DSCR programs qualify each property strictly on its rental coverage, credit score, liquid reserves, and business-purpose LLC vesting.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 28px", borderRadius: radius.sm, fontFamily: font.family, boxShadow: "0 4px 14px rgba(216,217,88,0.3)" }}>
+              <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 28px", borderRadius: radius.sm, fontFamily: font.family }}>
                 Run Scenario Tool →
               </button>
               <button onClick={() => onNavigate("rate-quiz")} style={{ background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, border: "1.5px solid rgba(238,239,211,0.4)", cursor: "pointer", padding: "14px 24px", borderRadius: radius.sm, fontFamily: font.family }}>
@@ -164,7 +164,7 @@ export default function InvestorsPage({
               </button>
             </div>
           </div>
-          <div style={{ background: "rgba(0,55,56,0.6)", borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.18)", padding: "clamp(20px,2.5vw,30px)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}>
+          <div style={{ background: "rgba(0,55,56,0.6)", borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.18)", padding: "clamp(20px,2.5vw,30px)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[{ v: doors.length, l: "doors in model" }, { v: blended.toFixed(2) + "x", l: "blended DSCR" }, { v: fmt$(cashFlow) + "/mo", l: "net cash flow" }, { v: "ZERO", l: "DTI / Tax Returns" }].map((t, i) => (
               <div key={i} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "16px 14px", border: "1px solid rgba(238,239,211,0.1)" }}>
                 <Mono style={{ fontSize: 26, fontWeight: 700, color: i === 3 ? dc.lemon : dc.cream, display: "block", lineHeight: 1 }}>{t.v}</Mono>

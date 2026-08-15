@@ -100,7 +100,6 @@ export default function DSCRInvestorMindsetSection({
             borderRadius: radius.lg,
             border: "1px solid rgba(238, 239, 211, 0.16)",
             padding: "clamp(24px, 4vw, 44px)",
-            boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
           }}
         >
           {/* TAB 1: COVERAGE TIERS & LTV */}
