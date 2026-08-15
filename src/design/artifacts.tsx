@@ -32,10 +32,12 @@ function ensureCss() {
   const el = document.createElement("style");
   el.setAttribute("data-gs-artifacts", "1");
   el.textContent = `
-.gsa-needle{transform-origin:50% 100%;transition:transform .55s cubic-bezier(.34,1.3,.5,1);}
-.gsa-beam{transform-origin:50% 50%;transition:transform .5s cubic-bezier(.34,1.2,.5,1);}
+.gsa-needle{transform-origin:50% 100%;transition:transform .55s cubic-bezier(.34,1.3,.5,1);will-change:transform;}
+.gsa-beam{transform-origin:50% 50%;transition:transform .5s cubic-bezier(.34,1.2,.5,1);will-change:transform;}
 .gsa-pan{transition:transform .5s cubic-bezier(.34,1.2,.5,1);}
-.gsa-fill{transition:width .5s ease;}
+/* .gsa-fill kept as a class hook only — nothing currently sets width on it;
+   any future fill must use scaleX (see .gsa-meter-fill), never width. */
+.gsa-fill{transform-origin:left center;}
 /* Perpetual "hyperflame" motion (flicker/orbit/bob/redraw/pulse) removed per
    design taste — these render STATIC now; only interaction-driven transitions
    (needle/beam/pan/fill, above) still animate on value change. */
@@ -51,7 +53,13 @@ function ensureCss() {
    than its card. --gsa-meter-w keeps it from exceeding its own \`size\`. */
 .gsa-meter-root{margin:0 auto;}
 @media (max-width:460px){.gsa-meter-root{width:100% !important;max-width:var(--gsa-meter-w,100%) !important;}}
-.gsa-meter-fill,.gsa-meter-mark{transition:width .46s cubic-bezier(.22,.68,.3,1),left .46s cubic-bezier(.22,.68,.3,1);}
+/* Compositor-only: the fill is a fixed-width bar scaled from a LEFT origin
+   (never width), the marker is a fixed-position mark moved with translateX
+   (never left) — see hyperframes-animation rules/stat-bars-and-fills.md. Both
+   share one cubic-bezier so the fill edge and the "here" marker move together. */
+.gsa-meter-fill{transform-origin:left center;will-change:transform;}
+.gsa-meter-mark{will-change:transform;}
+.gsa-meter-fill,.gsa-meter-mark{transition:transform .46s cubic-bezier(.22,.68,.3,1);}
 /* While dragging, the meter must track the pointer with no easing lag. */
 .gsa-meter-live .gsa-meter-fill,.gsa-meter-live .gsa-meter-mark{transition:none;}
 @media (prefers-reduced-motion: reduce){
@@ -180,6 +188,13 @@ export function ClaudeDscrGauge({
     setBoxW(el.getBoundingClientRect().width);
     return () => ro.disconnect();
   }, []);
+
+  // NB: no second ResizeObserver for the track. An earlier revision measured the
+  // track so the value marker could be positioned in pixels, which was solving
+  // the wrong problem — the marker is now translated by a percentage of a
+  // full-width rail (see its comment below), so there is no width to measure and
+  // nothing to keep in sync. boxW below stays because the AXIS LABELS genuinely
+  // need the root's pixel width.
 
   const span = max - min || 1;
   const posOf = (v: number) => Math.max(0, Math.min(1, (v - min) / span));
@@ -357,33 +372,65 @@ export function ClaudeDscrGauge({
       >
         {/* The scale itself */}
         <div ref={trackRef} style={{ position: "relative", width: "100%", height: trackH, background: swatch.pistachioFaded, borderRadius: 2 }}>
+          {/* Fill is a full-width bar SCALED from the left — never a width
+              tween (compositor-only: transform, not layout). */}
           <div
             className="gsa-meter-fill"
-            style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct * 100}%`, background: col, borderRadius: 2 }}
+            style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "100%", background: col, borderRadius: 2, transform: `scaleX(${pct})` }}
           />
           {/* Caliper marks: two segments framing the threshold, above and below
               the track. They never cross the fill, so they stay readable at any
-              value without fighting it for contrast. */}
+              value without fighting it for contrast. Static once laid out (min/
+              max/thresholds rarely change), so a plain percentage position is
+              fine here — nothing transitions this property. */}
           {marks.map((m) => (
             <React.Fragment key={m.name}>
               <div style={{ position: "absolute", left: `${posOf(m.at) * 100}%`, top: -tick, width: 2, height: tick, marginLeft: -1, background: onDark.dim }} />
               <div style={{ position: "absolute", left: `${posOf(m.at) * 100}%`, top: trackH, width: 2, height: tick, marginLeft: -1, background: onDark.dim }} />
             </React.Fragment>
           ))}
-          {/* Current value marker — the one element that reads as "here". */}
+          {/* Current value marker — the one element that reads as "here".
+
+              Positioned by a full-width RAIL translated by a PERCENTAGE OF
+              ITSELF. A percentage translateX resolves against the translated
+              element's own width, so a rail that is width:100% of the track
+              moves in exact track-percentages — resolution-independent, and
+              still a compositor-only transform.
+
+              This is deliberately not translateX in pixels. The fill beside it
+              is scaleX(pct) of a 100%-wide bar, so the fill re-resolves itself
+              on any container change for free. A pixel marker cannot: it depends
+              on a measured width, and the moment that measurement is stale the
+              two disagree. Measured at 375px with a pixel marker: the fill edge
+              sat at 147.8px and the marker at 164.2px, 16.4px apart, because the
+              marker still held the 300px desktop measurement. Percentages remove
+              the measurement from the equation entirely — there is no width to
+              go stale. */}
           <div
             className="gsa-meter-mark"
             style={{
               position: "absolute",
-              left: `${pct * 100}%`,
+              left: 0,
               top: -(tick + 1),
-              width: 4,
-              marginLeft: -2,
+              width: "100%",
               height: trackH + (tick + 1) * 2,
-              background: onDark.primary,
-              borderRadius: 2,
+              transform: `translateX(${(pct * 100).toFixed(3)}%)`,
+              pointerEvents: "none",
             }}
-          />
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: 4,
+                marginLeft: -2,
+                height: "100%",
+                background: onDark.primary,
+                borderRadius: 2,
+              }}
+            />
+          </div>
         </div>
       </div>
 
