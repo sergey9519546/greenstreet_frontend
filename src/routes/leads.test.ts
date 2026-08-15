@@ -8,6 +8,7 @@ import { errorHandler } from "../middleware/error";
 import { logger } from "../logger";
 import {
   createStorageOnlyLeadDeliveryRecorder,
+  createLeadDeliveryRecorder,
   createLeadsRouter,
   LeadSubmissionSchema,
   persistLeadIdempotently,
@@ -183,6 +184,156 @@ describe("optional lead delivery", () => {
     expect(create).toHaveBeenCalledTimes(1);
   });
 
+});
+
+describe("webhook lead delivery", () => {
+  const leadOf = () => {
+    const { website: _website, ...lead } = LeadSubmissionSchema.parse({
+      ...VALID,
+      phone: "+1 202 555 0188",
+    });
+    return lead;
+  };
+  const WEBHOOK = "https://hooks.example.com/lead";
+
+  it("posts the lead and records it delivered", async () => {
+    const { store, collection, create } = fakeDeliveryStore();
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+
+    const outcome = await createLeadDeliveryRecorder({
+      store: store as never,
+      fetchImpl: fetchImpl as never,
+      env: { LEAD_DELIVERY_WEBHOOK_URL: WEBHOOK } as NodeJS.ProcessEnv,
+    })(leadOf());
+
+    expect(outcome).toEqual({ status: "delivered" });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(WEBHOOK);
+    expect(init.method).toBe("POST");
+    // The lead itself is the payload — routing it to a human is the point.
+    expect(String(init.body)).toContain(VALID.submissionId);
+    expect(collection).toHaveBeenCalledWith("leadDelivery");
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ channel: "webhook", status: "delivered", attemptCount: 1 }),
+    );
+  });
+
+  it("sends a bearer token only when one is configured", async () => {
+    const withToken = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    await createLeadDeliveryRecorder({
+      store: fakeDeliveryStore().store as never,
+      fetchImpl: withToken as never,
+      env: {
+        LEAD_DELIVERY_WEBHOOK_URL: WEBHOOK,
+        LEAD_DELIVERY_WEBHOOK_TOKEN: "s3cret",
+      } as NodeJS.ProcessEnv,
+    })(leadOf());
+
+    const headers = (withToken.mock.calls[0][1] as RequestInit).headers as Record<string, string>;
+    expect(headers.authorization).toBe("Bearer s3cret");
+
+    const withoutToken = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+    await createLeadDeliveryRecorder({
+      store: fakeDeliveryStore().store as never,
+      fetchImpl: withoutToken as never,
+      env: { LEAD_DELIVERY_WEBHOOK_URL: WEBHOOK } as NodeJS.ProcessEnv,
+    })(leadOf());
+
+    const bare = (withoutToken.mock.calls[0][1] as RequestInit).headers as Record<string, string>;
+    expect(bare.authorization).toBeUndefined();
+  });
+
+  it.each([
+    ["a non-2xx response", { ok: false, status: 500 }, undefined],
+    ["a transport failure", undefined, new Error("ECONNREFUSED")],
+  ])("still records the lead when the webhook fails with %s", async (_label, resolved, rejected) => {
+    const { store, create } = fakeDeliveryStore();
+    const fetchImpl = rejected
+      ? vi.fn().mockRejectedValue(rejected)
+      : vi.fn().mockResolvedValue(resolved);
+
+    const outcome = await createLeadDeliveryRecorder({
+      store: store as never,
+      fetchImpl: fetchImpl as never,
+      env: { LEAD_DELIVERY_WEBHOOK_URL: WEBHOOK } as NodeJS.ProcessEnv,
+    })(leadOf());
+
+    // A failed delivery must never throw: persistLeadIdempotently already
+    // stored the lead, and the intake route answers 202 on that basis.
+    expect(outcome).toEqual({ status: "failed" });
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ channel: "webhook", status: "failed" }),
+    );
+  });
+
+  it("keeps PII out of the failure log", async () => {
+    const warn = vi.spyOn(logger, "warn").mockImplementation(() => logger);
+    const lead = leadOf();
+
+    await createLeadDeliveryRecorder({
+      store: fakeDeliveryStore().store as never,
+      fetchImpl: vi.fn().mockResolvedValue({ ok: false, status: 500 }) as never,
+      env: { LEAD_DELIVERY_WEBHOOK_URL: WEBHOOK } as NodeJS.ProcessEnv,
+    })(lead);
+
+    const logged = JSON.stringify(warn.mock.calls);
+    expect(logged).not.toContain(VALID.name);
+    expect(logged).not.toContain(VALID.email.toLowerCase());
+    expect(logged).not.toContain(lead.phone);
+    warn.mockRestore();
+  });
+
+  it.each([
+    ["http, which would put borrower PII in clear text", "http://hooks.example.com/lead"],
+    ["embedded credentials, which every proxy would log", "https://user:pw@hooks.example.com/l"],
+    ["an unparseable value", "not-a-url"],
+  ])("refuses to deliver over %s and falls back to storage-only", async (_label, url) => {
+    const { store, create } = fakeDeliveryStore();
+    const fetchImpl = vi.fn();
+    vi.spyOn(logger, "error").mockImplementation(() => logger);
+
+    const outcome = await createLeadDeliveryRecorder({
+      store: store as never,
+      fetchImpl: fetchImpl as never,
+      env: { LEAD_DELIVERY_WEBHOOK_URL: url } as NodeJS.ProcessEnv,
+    })(leadOf());
+
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(outcome).toEqual({ status: "not_configured" });
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ channel: "none" }));
+    vi.restoreAllMocks();
+  });
+
+  it("behaves exactly as before when no webhook is configured", async () => {
+    const { store, create } = fakeDeliveryStore();
+    const fetchImpl = vi.fn();
+
+    const outcome = await createLeadDeliveryRecorder({
+      store: store as never,
+      fetchImpl: fetchImpl as never,
+      env: {} as NodeJS.ProcessEnv,
+    })(leadOf());
+
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(outcome).toEqual({ status: "not_configured" });
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ attemptCount: 0, channel: "none", status: "not_configured" }),
+    );
+  });
+
+  it("bounds the request so a hung webhook cannot hold the intake response open", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 200 });
+
+    await createLeadDeliveryRecorder({
+      store: fakeDeliveryStore().store as never,
+      fetchImpl: fetchImpl as never,
+      env: { LEAD_DELIVERY_WEBHOOK_URL: WEBHOOK } as NodeJS.ProcessEnv,
+    })(leadOf());
+
+    const init = fetchImpl.mock.calls[0][1] as RequestInit;
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
 });
 
 describe("anonymous lead intake route", () => {
