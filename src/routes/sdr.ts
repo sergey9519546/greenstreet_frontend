@@ -4,13 +4,18 @@ import { logger } from "../logger";
 import { getAdminFirestore } from "../services/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
 
-const SdrDispatchSchema = z.object({
-  dealId: z.string().min(1),
-  address: z.string().min(1),
-  city: z.string(),
-  state: z.string(),
-  estimatedValue: z.number().positive(),
-  distressReason: z.string().optional(),
+// Every string is capped. These records are the queue that outbound email is
+// meant to be built from (see the dispatch comment below), so an uncapped field
+// is an uncapped email body, and an uncapped Firestore write besides. The only
+// other ceiling is express.json({limit:"100kb"}), which one field can consume
+// entirely.
+export const SdrDispatchSchema = z.object({
+  dealId: z.string().min(1).max(128),
+  address: z.string().min(1).max(200),
+  city: z.string().max(100),
+  state: z.string().max(64),
+  estimatedValue: z.number().positive().finite().max(1_000_000_000),
+  distressReason: z.string().max(500).optional(),
 });
 
 export const sdrRouter = Router();
@@ -44,7 +49,12 @@ sdrRouter.post("/dispatch", async (req, res) => {
       .collection("sdr_outreach")
       .add(outreachRecord);
 
-    logger.info({ dealId, address }, "AI SDR email dispatched to orchestration queue");
+    // Deliberately not logging `address`: it is a real distressed-property
+    // street address, the pino redact list (src/logger.ts) does not cover it,
+    // and a serverless aggregator retains whatever reaches stdout. dealId is
+    // enough to correlate a dispatch with its record. Same reasoning as
+    // error.ts ("Never pass the raw error or request into the logger").
+    logger.info({ dealId }, "AI SDR email dispatched to orchestration queue");
 
     res.status(202).json({ success: true, message: "SDR Outreach Sequence Triggered" });
   } catch (error) {

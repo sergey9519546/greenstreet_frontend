@@ -144,3 +144,33 @@ describe("hosting content security policy", () => {
     }
   });
 });
+
+describe("server bundles do not publish their source maps", () => {
+  // dist/ IS the published web root (dist/robots.txt is served as /robots.txt),
+  // and Vercel resolves real files before the SPA rewrite — so a .map emitted
+  // beside dist/server.cjs is downloadable at /server.cjs.map, and esbuild
+  // source maps embed full sourcesContent. server.ts also serves dist/ via
+  // express.static, so the standalone host exposes the same files.
+  //
+  // .vercelignore lists dist/**/*.map and does NOT prevent this: it filters the
+  // upload, and the build regenerates the maps into the output afterwards.
+  // Asserting on the build script rather than on dist/ keeps this test honest
+  // when no build has run.
+  it("emits no --sourcemap for bundles written into the published output", () => {
+    const pkg = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    ) as { scripts: Record<string, string> };
+
+    const distBundles = pkg.scripts.build
+      .split("&&")
+      .filter((step) => step.includes("esbuild") && step.includes("--outfile=dist/"));
+
+    expect(distBundles.length, "expected the three dist/ esbuild steps").toBe(3);
+    for (const step of distBundles) {
+      const outfile = /--outfile=(\S+)/.exec(step)?.[1];
+      expect(step, `${outfile} still emits a publicly reachable source map`).not.toContain(
+        "--sourcemap",
+      );
+    }
+  });
+});

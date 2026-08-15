@@ -151,7 +151,12 @@ app.use(
     recordDeliveryStatus: createStorageOnlyLeadDeliveryRecorder(),
   }),
 );
-app.use("/api/sdr", apiLimiter, sdrRouter);
+// /api/sdr writes to the outreach queue that outbound email campaigns are
+// driven from. It mounted with a rate limiter but no auth guard, which made it
+// an anonymous write into a production collection — and, once the Instantly/
+// n8n wiring in sdr.ts lands, attacker-controlled text in outbound mail sent
+// from our domain. requireAuth for the same reason /api/narrate has it.
+app.use("/api/sdr", apiLimiter, requireAuth, sdrRouter);
 // /api/narrate calls a paid third-party LLM. Beyond rate limiting, it must
 // never be reachable anonymously: requireAuth (src/middleware/auth.ts) 401s
 // any request that verifyFirebaseToken did not attach a user to (real, or the

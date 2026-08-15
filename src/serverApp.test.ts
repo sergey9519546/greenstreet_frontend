@@ -212,6 +212,23 @@ describe("server API preservation contracts", () => {
     expectNoSyntheticPii(body);
   });
 
+  // /api/sdr/dispatch shipped with a rate limiter but no auth guard, so anyone
+  // could write into the outreach queue that outbound email is driven from.
+  // A 202 here means the guard came back off.
+  it("keeps the anonymous SDR outreach queue unreachable", async () => {
+    const response = await postJson("/api/sdr/dispatch", {
+      dealId: "probe",
+      address: "1 Test St",
+      city: "Austin",
+      state: "TX",
+      estimatedValue: 400000,
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.status).not.toBe(202);
+    expectApiSecurityHeaders(response);
+  });
+
   it("enforces durable narration quota after authentication before model access", async () => {
     firebaseAdmin.verifyIdToken.mockResolvedValueOnce({ uid: "narration-test-user" });
     anthropic.create.mockResolvedValueOnce({
