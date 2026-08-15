@@ -492,7 +492,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             </div>
 
             {/* ── PROGRAM LIST ── */}
-            <div ref={listRef} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div ref={listRef} className="dc-results-first" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {scored.map((p, i) => {
                 const statusColor = p.fits ? dc.emerald : p.passed >= 3 ? swatch.lemon : risk.danger;
                 const statusLabel = p.fits ? "FITS" : p.passed >= 3 ? `${4 - p.passed} miss` : "NO FIT";

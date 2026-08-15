@@ -419,7 +419,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             </div>
 
             {/* ── RESULTS ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <div className="dc-results-first" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
               {/* BIG VERDICT — with DscrGauge + BalanceScale + RiskFlame */}
               <div className="gs-reveal" style={{ background: verdictBg, border: `2px solid ${verdictBorder}`, borderRadius: radius.md, padding: "clamp(24px,3vw,36px)" }}>

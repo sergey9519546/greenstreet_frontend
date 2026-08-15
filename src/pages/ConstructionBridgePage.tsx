@@ -325,7 +325,7 @@ export default function ConstructionBridgePage({
             </div>
 
             {/* ── RESULTS — dark cards on the dark band ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div className="dc-results-first" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {result ? (
                 <>
                   <Card tone="raised" pad="clamp(24px,2.6vw,32px)">

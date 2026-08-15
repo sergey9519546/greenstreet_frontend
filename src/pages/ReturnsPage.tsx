@@ -552,7 +552,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             </div>
 
             {/* ── RESULTS ────────────────────────────────────────────── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <div className="dc-results-first" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
               {/* Big IRR card — centered headline + symmetric metric grid */}
               <div style={{

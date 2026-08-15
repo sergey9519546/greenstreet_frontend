@@ -453,7 +453,7 @@ export default function NonUsInvestorsPage({
               ))}
               <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>Scroll over any field to adjust. Taxes &amp; insurance estimated into the payment.</div>
             </div>
-            <div style={{ background: dc.dark, borderRadius: radius.lg, border: `1px solid ${vColor}55`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div className="dc-results-first" style={{ background: dc.dark, borderRadius: radius.lg, border: `1px solid ${vColor}55`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 8, background: `${vColor}22`, border: `1px solid ${vColor}`, borderRadius: 100, padding: "6px 14px", marginBottom: 18 }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: vColor }} />
                 <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: vColor }}>{verdict}</span>

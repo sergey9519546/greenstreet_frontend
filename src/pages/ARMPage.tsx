@@ -791,7 +791,7 @@ export default function ARMPage({
 
             {/* ── RESULTS ── */}
             {result ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div className="dc-results-first" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
                 {/* Payment comparison tiles */}
                 <div
@@ -1153,6 +1153,7 @@ export default function ARMPage({
               </div>
             ) : (
               <div
+                className="dc-results-first"
                 style={{
                   background: dc.dark,
                   borderRadius: dc.r.lg,
@@ -1161,7 +1162,7 @@ export default function ARMPage({
                   border: `1px solid ${dc.faded}`,
                 }}
               >
-                <p style={{ color: risk.danger, margin: 0 }}>Engine returned no result — adjust inputs.</p>
+                <p style={{ color: risk.dangerOnDark, margin: 0 }}>Engine returned no result — adjust inputs.</p>
               </div>
             )}
 

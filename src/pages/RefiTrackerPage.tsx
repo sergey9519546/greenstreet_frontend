@@ -687,7 +687,7 @@ export default function RefiTrackerPage({
             </div>
 
             {/* ── RESULTS ── */}
-            <div>
+            <div className="dc-results-first">
               {/* Score card */}
               <div
                 style={{

@@ -630,7 +630,7 @@ export default function STRUnderwritingPage({
             </div>
 
             {/* ── RESULTS ────────────────────────────────────────────── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <div className="dc-results-first" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               {!result ? (
                 <div
                   style={{

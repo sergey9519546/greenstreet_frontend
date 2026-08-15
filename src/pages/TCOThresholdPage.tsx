@@ -306,6 +306,7 @@ export default function TCOThresholdPage({
 
             {/* RIGHT · readout — DARK card so the risk ramp reads at AA contrast */}
             <div
+              className="dc-results-first"
               style={{
                 background: dc.teal,
                 border: `1px solid ${HAIRLINE_ON_DARK}`,
