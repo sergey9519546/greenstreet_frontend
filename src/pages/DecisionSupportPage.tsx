@@ -492,7 +492,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ marginBottom: 34 }}>
             <Eyebrow color={dc.lemon}>Live decision-support engine</Eyebrow>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 10px", color: INK }}>
+            <h2 style={{ fontSize: "clamp(23px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 10px", color: INK }}>
               Verdict:{" "}
               <span style={{ color: result ? verdictColor(heroVerdict) : dc.lemon }}>{heroVerdict}</span>
             </h2>
@@ -670,7 +670,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                         This is a preliminary modeled screen, not a lender approval, rate lock, legal conclusion, or commitment to lend.
                       </p>
                     )}
-                    <Mono style={{ display: "block", fontSize: "clamp(42px,5vw,64px)", fontWeight: 600, letterSpacing: "-0.02em", color: verdictColor(result.verdict.verdict), lineHeight: 1, marginBottom: 14 }}>
+                    <Mono style={{ display: "block", fontSize: "clamp(28px,5vw,64px)", fontWeight: 600, letterSpacing: "-0.02em", color: verdictColor(result.verdict.verdict), lineHeight: 1, marginBottom: 14 }}>
                       {result.verdict.verdict}
                     </Mono>
                     <div style={{ background: BAND, border: HAIRLINE, borderRadius: radius.sm, padding: "12px 16px" }}>
@@ -705,7 +705,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, textAlign: "center" }}>
                       <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: INK_DIM }}>Track 2 monthly carry</div>
-                      <Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1, color: result.track2MonthlyCashFlow >= 0 ? dc.emerald : risk.dangerOnDark }}>
+                      <Mono style={{ fontSize: "clamp(23px,3.4vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1, color: result.track2MonthlyCashFlow >= 0 ? dc.emerald : risk.dangerOnDark }}>
                         {money(result.track2MonthlyCashFlow)}
                       </Mono>
                       <span style={{ fontSize: 11, color: INK_DIM, lineHeight: 1.45 }}>
@@ -966,7 +966,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                     <div style={{ fontSize: 11, color: INK_DIM, marginBottom: 10, lineHeight: 1.45 }}>
                       A: after-tax IRR ≥15% and Track 2 ≥1.10 · B: ≥12% and Track 2 ≥1.00 · C: ≥8% · D: below 8% · F: negative
                     </div>
-                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 600, color: gradeColor(result.verdict.returnGrade), lineHeight: 1 }}>
+                    <Mono style={{ display: "block", fontSize: "clamp(30px,7vw,80px)", fontWeight: 600, color: gradeColor(result.verdict.returnGrade), lineHeight: 1 }}>
                       {result.verdict.returnGrade}
                     </Mono>
                     <div style={{ fontSize: 11.5, color: INK_DIM, marginTop: 8, lineHeight: 1.5 }}>{result.verdict.returnGradeReason}</div>
@@ -976,7 +976,7 @@ export default function DecisionSupportPage({ onNavigate }: { onBack?: () => voi
                     <div style={{ fontSize: 11, color: INK_DIM, marginBottom: 10, lineHeight: 1.45 }}>
                       A separate 0–100 weighting of cash flow, feasibility, reserves, exit liquidity and rate risk. It informs; it does not decide.
                     </div>
-                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 600, color: result.acq.score >= 75 ? dc.emerald : result.acq.score >= 60 ? risk.warning : risk.dangerOnDark, lineHeight: 1 }}>
+                    <Mono style={{ display: "block", fontSize: "clamp(30px,7vw,80px)", fontWeight: 600, color: result.acq.score >= 75 ? dc.emerald : result.acq.score >= 60 ? risk.warning : risk.dangerOnDark, lineHeight: 1 }}>
                       {Math.round(result.acq.score)}
                     </Mono>
                     <div style={{ fontSize: 12, color: INK_DIM, marginTop: 8 }}>{result.acq.band}</div>

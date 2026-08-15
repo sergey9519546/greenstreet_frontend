@@ -179,7 +179,7 @@ export default function InvestorsPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}`, borderTop: "1px solid rgba(238,239,211,0.1)" }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: tracking.caps, textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Door-by-Door Underwriting</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 12px", maxWidth: "22ch" }}>Each property qualifies on its own rent.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(22px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 12px", maxWidth: "22ch" }}>Each property qualifies on its own rent.</h2>
           <p className="gs-reveal" style={{ fontSize: 16, color: onDark.secondary, margin: "0 0 30px", maxWidth: "66ch", lineHeight: 1.5 }}>
             Adjust any property's monthly rent and payment below. The 1.00x line marks exact debt service coverage. Adding a new door brings its own rent without impacting any existing property's DSCR.
           </p>
@@ -288,7 +288,7 @@ export default function InvestorsPage({
 
             <div className="dn-summary" style={{ background: SURFACE, borderRadius: radius.lg, border: `1px solid ${HAIRLINE}`, padding: "clamp(22px,2.6vw,30px)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: tracking.caps, textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Portfolio Summary</div>
-              <Mono style={{ fontSize: "clamp(44px,6vw,68px)", fontWeight: 700, color: dc.lemon, lineHeight: 1, display: "block" }}>{doors.length}</Mono>
+              <Mono style={{ fontSize: "clamp(28px,6vw,68px)", fontWeight: 700, color: dc.lemon, lineHeight: 1, display: "block" }}>{doors.length}</Mono>
               <div style={{ fontSize: 13, color: onDark.secondary, marginTop: 6, marginBottom: 20, lineHeight: 1.45 }}>doors modeled — zero personal DTI math</div>
               {[{ l: "Blended DSCR", v: blended.toFixed(2) + "x", c: blended >= 1.0 ? dc.emerald : RED }, { l: "Total cash flow", v: fmt$(cashFlow) + "/mo", c: cashFlow >= 0 ? dc.emerald : RED }, { l: "Gross rent", v: fmt$(totalRent) + "/mo", c: dc.cream }].map((r) => (
                 <div key={r.l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: `1px solid ${HAIRLINE}` }}>
@@ -313,7 +313,7 @@ export default function InvestorsPage({
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 40 }}>
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>Instant Institutional Analysis</div>
-            <h2 style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 700, color: dc.cream, margin: 0 }}>Greenstreet Investor Scenario Suite</h2>
+            <h2 style={{ fontSize: "clamp(21px,3.2vw,44px)", fontWeight: 700, color: dc.cream, margin: 0 }}>Greenstreet Investor Scenario Suite</h2>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>

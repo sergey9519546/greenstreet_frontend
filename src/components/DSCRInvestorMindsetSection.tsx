@@ -43,7 +43,7 @@ export default function DSCRInvestorMindsetSection({
           >
             The DSCR Investor Underwriting Standard
           </div>
-          <H2 style={{ color: dc.cream, fontSize: "clamp(32px, 4.5vw, 56px)", marginBottom: 16, lineHeight: 1.05 }}>
+          <H2 style={{ color: dc.cream, fontSize: "clamp(24px, 4.5vw, 56px)", marginBottom: 16, lineHeight: 1.05 }}>
             Everything a DSCR Investor Needs to Know
           </H2>
           <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "66ch", margin: "0 auto" }}>

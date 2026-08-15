@@ -284,7 +284,7 @@ function FeatureRow({
         )}
         <h2
           style={{
-            fontSize: "clamp(28px, 3.4vw, 46px)",
+            fontSize: "clamp(22px, 3.4vw, 46px)",
             fontWeight: 600,
             letterSpacing: "-0.03em",
             lineHeight: 1.04,
@@ -366,7 +366,7 @@ function FeatureRow({
           >
             <Mono
               style={{
-                fontSize: "clamp(40px, 5.5vw, 84px)",
+                fontSize: "clamp(26px, 5.5vw, 84px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
                 color: tool.panelAccent,
@@ -415,7 +415,7 @@ function SpecialToolCard({
       <div>
         <h3
           style={{
-            fontSize: "clamp(25px,2.6vw,36px)",
+            fontSize: "clamp(20px,2.6vw,36px)",
             lineHeight: 1,
             letterSpacing: "-0.02em",
             fontWeight: 600,
@@ -596,7 +596,7 @@ export default function ProductsPage({
               </div>
               <h2
                 style={{
-                  fontSize: "clamp(34px,4.4vw,64px)",
+                  fontSize: "clamp(24px,4.4vw,64px)",
                   lineHeight: 1.1,
                   letterSpacing: "-0.02em",
                   fontWeight: 600,
@@ -656,7 +656,7 @@ export default function ProductsPage({
           <div>
             <h2
               style={{
-                fontSize: "clamp(28px,3.8vw,52px)",
+                fontSize: "clamp(22px,3.8vw,52px)",
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,

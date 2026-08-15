@@ -837,7 +837,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               }}>
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "rgba(238,239,211,0.55)" }}>Workspace</div>
-                <div className="font-bold mt-0.5" style={{ fontSize: "clamp(18px, 2vw, 24px)", letterSpacing: "-0.03em", color: T.ink }}>
+                <div className="font-bold mt-0.5" style={{ fontSize: "clamp(17px, 2vw, 24px)", letterSpacing: "-0.03em", color: T.ink }}>
                   {viewTitle[activeTab] ?? "Dashboard"}
                 </div>
               </div>
@@ -864,7 +864,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         ] as const).map(({ label, value, delta, deltaColor }) => (
                           <WhiteCard key={label} style={{ padding: "20px 20px 16px" }}>
                             <div className="text-[11px] font-semibold uppercase tracking-[0.04em] mb-2" style={{ color: T.faint }}>{label}</div>
-                            <div className="font-bold font-mono" style={{ fontSize: "clamp(24px, 2.4vw, 32px)", letterSpacing: "-0.03em", color: T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+                            <div className="font-bold font-mono" style={{ fontSize: "clamp(20px, 2.4vw, 32px)", letterSpacing: "-0.03em", color: T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</div>
                             <div className="text-[12px] font-medium mt-1.5" style={{ color: deltaColor }}>{delta}</div>
                           </WhiteCard>
                         ))}

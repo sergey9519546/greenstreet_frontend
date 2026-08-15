@@ -232,7 +232,7 @@ export default function TCOThresholdPage({
             <div style={{ ...eyebrowOnDark, marginBottom: 12 }}>Live converter</div>
             <H2
               style={{
-                fontSize: "clamp(28px,3.4vw,44px)",
+                fontSize: "clamp(22px,3.4vw,44px)",
                 letterSpacing: "-0.035em",
                 lineHeight: 1.05,
                 margin: "0 0 10px",
@@ -327,14 +327,14 @@ export default function TCOThresholdPage({
                     decimals={2}
                     suffix="x"
                     style={{
-                      fontSize: "clamp(44px,5vw,64px)",
+                      fontSize: "clamp(28px,5vw,64px)",
                       fontWeight: 700,
                       color: verdictInk,
                       lineHeight: 1,
                     }}
                   />
                 ) : (
-                  <Mono style={{ fontSize: "clamp(44px,5vw,64px)", fontWeight: 700, color: dc.cream, lineHeight: 1 }}>
+                  <Mono style={{ fontSize: "clamp(28px,5vw,64px)", fontWeight: 700, color: dc.cream, lineHeight: 1 }}>
                     —
                   </Mono>
                 )}
@@ -447,7 +447,7 @@ export default function TCOThresholdPage({
             <div style={{ ...eyebrowOnLight, marginBottom: 12 }}>Conversion reference</div>
             <H2
               style={{
-                fontSize: "clamp(26px,3vw,40px)",
+                fontSize: "clamp(21px,3vw,40px)",
                 letterSpacing: "-0.035em",
                 lineHeight: 1.05,
                 margin: "0 0 10px",

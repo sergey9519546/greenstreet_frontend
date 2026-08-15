@@ -499,7 +499,7 @@ export default function StressMatrixPage({
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: LEMON, marginBottom: 12 }}>
               Guided stress simulator · preliminary estimate
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 10px", color: CREAM }}>
+            <h2 style={{ fontSize: "clamp(23px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 10px", color: CREAM }}>
               Base{" "}
               <Mono style={{ color: CREAM }}>{baseDSCR.toFixed(2)}x</Mono>
               {" · "}

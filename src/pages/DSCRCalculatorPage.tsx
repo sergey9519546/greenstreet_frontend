@@ -526,7 +526,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', padding: '6px 13px', borderRadius: 100, marginBottom: 24 }}>
               DSCR Engine · Deterministic core
             </div>
-            <H1 style={{ fontSize: 'clamp(46px,7vw,108px)', lineHeight: 1.04, letterSpacing: '-0.04em', marginBottom: 26, color: PISTACHIO }}>
+            <H1 style={{ fontSize: 'clamp(28px,7vw,108px)', lineHeight: 1.04, letterSpacing: '-0.04em', marginBottom: 26, color: PISTACHIO }}>
               DSCR Calculator:<br/>see if rent<br/>covers the loan.
             </H1>
             <Lead style={{ color: 'rgba(238,239,211,0.68)', maxWidth: '46ch', marginBottom: 34 }}>
@@ -547,9 +547,9 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               )}
             </div>
             <div style={{ display: 'flex', gap: 'clamp(24px,4vw,52px)', flexWrap: 'wrap' }}>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: swatch.emerald, lineHeight: 1 }}>7</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>Greenstreet programs</div></div>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: swatch.emerald, lineHeight: 1 }}>50</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>state rule sets</div></div>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>&lt;2s</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>to a priced deal</div></div>
+              <div><Mono style={{ fontSize: 'clamp(24px,4vw,50px)', fontWeight: 600, color: swatch.emerald, lineHeight: 1 }}>7</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>Greenstreet programs</div></div>
+              <div><Mono style={{ fontSize: 'clamp(24px,4vw,50px)', fontWeight: 600, color: swatch.emerald, lineHeight: 1 }}>50</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>state rule sets</div></div>
+              <div><Mono style={{ fontSize: 'clamp(24px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>&lt;2s</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>to a priced deal</div></div>
             </div>
           </div>
           {/* chip uses dangerOnLight: it sits on the mint hero card, where the
@@ -576,7 +576,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
           <div className="gs-reveal" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20, marginBottom: 34 }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 12 }}>Live deal desk</div>
-              <H2 style={{ fontSize: 'clamp(30px,3.8vw,54px)', letterSpacing: '-0.04em', lineHeight: 1.0, maxWidth: '18ch', color: PISTACHIO }}>Price the deal in real time.</H2>
+              <H2 style={{ fontSize: 'clamp(23px,3.8vw,54px)', letterSpacing: '-0.04em', lineHeight: 1.0, maxWidth: '18ch', color: PISTACHIO }}>Price the deal in real time.</H2>
               <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.55)', margin: '10px 0 0', maxWidth: '52ch', lineHeight: 1.45 }}>
                 {stateCode} · {fmt(price)} · {down}% down · {fmt(rent)}/mo rent · {rate.toFixed(3)}% — autosaved to this link.
               </p>
@@ -877,7 +877,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: zoneColor, display: 'inline-block' }}></span>
                     <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: zoneColor }}>{verdictLabel}</span>
                   </div>
-                  <div style={{ fontSize: 'clamp(20px,2vw,26px)', fontWeight: 600, color: zoneColor, letterSpacing: '-0.025em', marginBottom: 6, lineHeight: 1.15 }}>
+                  <div style={{ fontSize: 'clamp(18px,2vw,26px)', fontWeight: 600, color: zoneColor, letterSpacing: '-0.025em', marginBottom: 6, lineHeight: 1.15 }}>
                     {verdictHeadline}
                   </div>
                   <p style={{ fontSize: 'clamp(14px,1.2vw,16px)', fontWeight: 500, lineHeight: 1.55, color: 'rgba(238,239,211,0.72)', margin: '0 0 22px' }}>{verdictText}</p>
@@ -897,14 +897,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Binding constraint</div>
                       {dscr >= 1.0 ? (
                         <>
-                          <Mono style={{ fontSize: 'clamp(26px,3vw,38px)', fontWeight: 600, color: swatch.emerald, lineHeight: 1, display: 'block', marginBottom: 8 }}>+{headroomBps} bps</Mono>
+                          <Mono style={{ fontSize: 'clamp(21px,3vw,38px)', fontWeight: 600, color: swatch.emerald, lineHeight: 1, display: 'block', marginBottom: 8 }}>+{headroomBps} bps</Mono>
                           <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.7)', margin: 0, lineHeight: 1.5 }}>
                             Rate headroom before DSCR breaks 1.00x — the deal holds until the rate reaches ~{beRate.toFixed(2)}%. That's the number that governs this file, not the rate on the sheet.
                           </p>
                         </>
                       ) : (
                         <>
-                          <Mono style={{ fontSize: 'clamp(24px,2.8vw,34px)', fontWeight: 600, color: risk.dangerOnDark, lineHeight: 1.05, display: 'block', marginBottom: 8 }}>rent ≥ {fmt(pitia)}</Mono>
+                          <Mono style={{ fontSize: 'clamp(20px,2.8vw,34px)', fontWeight: 600, color: risk.dangerOnDark, lineHeight: 1.05, display: 'block', marginBottom: 8 }}>rent ≥ {fmt(pitia)}</Mono>
                           <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.7)', margin: 0, lineHeight: 1.5 }}>
                             To clear the 1.00x floor: rent must reach {fmt(pitia)}/mo{beRate > 0 ? `, or the rate drop to ~${beRate.toFixed(2)}%` : ''}. Today rent covers {dscr.toFixed(2)}x.
                           </p>
@@ -1186,7 +1186,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     ].map((m) => (
                       <div key={m.l}>
                         <div style={{ fontSize: 10.5, color: 'rgba(238,239,211,0.5)', marginBottom: 3, letterSpacing: '0.02em' }}>{m.l}</div>
-                        <Mono style={{ fontSize: 'clamp(18px,2vw,22px)', fontWeight: 700, color: m.v >= 1.0 ? risk.positive : risk.danger }}>{m.v.toFixed(2)}x</Mono>
+                        <Mono style={{ fontSize: 'clamp(17px,2vw,22px)', fontWeight: 700, color: m.v >= 1.0 ? risk.positive : risk.danger }}>{m.v.toFixed(2)}x</Mono>
                       </div>
                     ))}
                   </div>
@@ -1278,7 +1278,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(22px,2.5vw,30px)', border: `1px solid ${LEMON}66` }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 10 }}>The after-tax edge — what other brokers don&apos;t quote</div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
-                    <Mono style={{ fontSize: 'clamp(30px,3.4vw,44px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>≈{fmt(yr1Shelter)}</Mono>
+                    <Mono style={{ fontSize: 'clamp(23px,3.4vw,44px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>≈{fmt(yr1Shelter)}</Mono>
                     <span style={{ fontSize: 15, fontWeight: 600, color: 'rgba(238,239,211,0.8)' }}>sheltered in year one</span>
                   </div>
                   <p style={{ fontSize: 13.5, fontWeight: 500, color: 'rgba(238,239,211,0.65)', margin: '0 0 14px', lineHeight: 1.55, maxWidth: '62ch' }}>
@@ -1314,7 +1314,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       { v: returns && Number.isFinite(returns.leveredIRR) ? (returns.leveredIRR.toFixed(1) + '%') : '—', c: returns && returns.leveredIRR >= 12 ? risk.positive : returns && returns.leveredIRR >= 8 ? LEMON : risk.dangerOnDark, l: 'levered IRR (5-yr)', s: 'pre-tax · exit-sensitive' },
                     ].map((m, i) => (
                       <div key={i} style={{ background: PANEL, borderRadius: radius.sm, padding: '16px 18px', border: '1px solid rgba(238,239,211,0.08)' }}>
-                        <Mono style={{ fontSize: 'clamp(22px,2.2vw,28px)', fontWeight: 600, color: m.c, lineHeight: 1 }}>{m.v}</Mono>
+                        <Mono style={{ fontSize: 'clamp(19px,2.2vw,28px)', fontWeight: 600, color: m.c, lineHeight: 1 }}>{m.v}</Mono>
                         <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 6 }}>{m.l}</div>
                         <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 2 }}>{m.s}</div>
                       </div>
@@ -1442,7 +1442,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       width instead of being crushed into an unusable control. */}
                   <div className="maxprice-answer" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
                     <div>
-                      <Mono style={{ fontSize: 'clamp(42px,6vw,80px)', fontWeight: 600, color: PISTACHIO, lineHeight: 1, display: 'block' }}>{fmt(maxPrice)}</Mono>
+                      <Mono style={{ fontSize: 'clamp(28px,6vw,80px)', fontWeight: 600, color: PISTACHIO, lineHeight: 1, display: 'block' }}>{fmt(maxPrice)}</Mono>
                       <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 14 }}>at {target.toFixed(2)}x target · {mRate.toFixed(3)}% · {mDown}% down</div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.62)', margin: '10px 0 0', lineHeight: 1.5 }}>
                         Pay more than this and the rent won't cover the full monthly payment at the target ratio. Use this as your bid ceiling.

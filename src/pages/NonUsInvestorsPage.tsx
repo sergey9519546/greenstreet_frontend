@@ -397,7 +397,7 @@ export default function NonUsInvestorsPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vh,92px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 10 }}>Yes, you can</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.4vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 22px", maxWidth: "46ch" }}>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(22px,3.4vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 22px", maxWidth: "46ch" }}>
             Every reason you think you can't — answered.
           </h2>
           <div ref={fearRef} className="fn-fearwrap">
@@ -433,7 +433,7 @@ export default function NonUsInvestorsPage({
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ marginBottom: 32, maxWidth: "62ch" }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: ACCENT, marginBottom: 12 }}>Decided by the property, not your passport</div>
-            <h2 style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.05, margin: 0, color: dc.cream }}>
+            <h2 style={{ fontSize: "clamp(22px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.05, margin: 0, color: dc.cream }}>
               Check your buying power. Notice there's no income field.
             </h2>
           </div>
@@ -458,7 +458,7 @@ export default function NonUsInvestorsPage({
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: vColor }} />
                 <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: vColor }}>{verdict}</span>
               </div>
-              <Mono style={{ fontSize: "clamp(52px,8vw,96px)", fontWeight: 700, letterSpacing: "-0.04em", color: vColor, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
+              <Mono style={{ fontSize: "clamp(30px,8vw,96px)", fontWeight: 700, letterSpacing: "-0.04em", color: vColor, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "44ch" }}>
                 {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {go ? "Rent covers the loan and the LTV fits — this is fundable. Example: $4,000 rent vs ~$3,000 payment is a strong 1.33x." : dscr >= 1.0 ? "Rent covers the loan, but lower the LTV to ≤75% for the non-US investor program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
               </div>
@@ -475,7 +475,7 @@ export default function NonUsInvestorsPage({
       {/* ── HOW IT WORKS ── */}
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Four steps. You never have to fly here.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(21px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Four steps. You never have to fly here.</h2>
           <div className="gs-reveal dc-band-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {STEPS.map((s, i) => (
               <div key={s.t} style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", display: "flex", gap: 16 }}>
@@ -494,11 +494,11 @@ export default function NonUsInvestorsPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: ACCENT, marginBottom: 12 }}>What you'll likely qualify for</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Set your expectations up front.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(21px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Set your expectations up front.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
             {QUALIFY.map((q) => (
               <div key={q.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.2vw,28px)" }}>
-                <Mono style={{ fontSize: "clamp(24px,2.6vw,32px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{q.v}</Mono>
+                <Mono style={{ fontSize: "clamp(20px,2.6vw,32px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{q.v}</Mono>
                 <div style={{ fontSize: 13, fontWeight: 600, color: dc.cream, marginTop: 8 }}>{q.l}</div>
                 <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>{q.s}</div>
               </div>
@@ -513,7 +513,7 @@ export default function NonUsInvestorsPage({
             const selStyle: React.CSSProperties = { background: dc.teal, color: dc.cream, border: "1px solid rgba(238,239,211,0.22)", borderRadius: radius.sm, padding: "10px 12px", fontFamily: font.family, fontSize: 14, fontWeight: 600, minHeight: 44 };
             const stat = (v: string, l: string, c: string) => (
               <div style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.sm, padding: "16px 18px" }}>
-                <Mono style={{ fontSize: "clamp(20px,2.2vw,26px)", fontWeight: 700, color: c, display: "block", lineHeight: 1 }}>{v}</Mono>
+                <Mono style={{ fontSize: "clamp(18px,2.2vw,26px)", fontWeight: 700, color: c, display: "block", lineHeight: 1 }}>{v}</Mono>
                 <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{l}</div>
               </div>
             );
@@ -559,7 +559,7 @@ export default function NonUsInvestorsPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div className="gs-reveal" style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Why us, not a faceless platform</div>
-          <p style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.3, margin: 0, color: dc.cream }}>
+          <p style={{ fontSize: "clamp(18px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.3, margin: 0, color: dc.cream }}>
             A platform hands you a <span style={{ color: "rgba(238,239,211,0.62)" }}>form</span>. You get a <span style={{ color: dc.lemon }}>person</span> — in your language, from your first question to the keys, who has taken a non-U.S. file through closing before and tells you what the property has to prove.
           </p>
         </div>
@@ -568,7 +568,7 @@ export default function NonUsInvestorsPage({
       {/* ── FAQ ── */}
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>The questions you're Googling.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(21px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>The questions you're Googling.</h2>
           <div className="gs-reveal dc-band-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {FAQS.map((f) => (
               <div key={f.q} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(18px,2vw,24px)" }}>

@@ -165,7 +165,7 @@ function StatPanel({ seg }: { seg: Segment }) {
             <Mono
               style={{
                 display: "block",
-                fontSize: "clamp(20px,2.2vw,30px)",
+                fontSize: "clamp(18px,2.2vw,30px)",
                 fontWeight: 700,
                 color: seg.panelAccent,
                 lineHeight: 1,
@@ -235,7 +235,7 @@ function SegmentRow({
         </div>
         <h2
           style={{
-            fontSize: "clamp(28px,3.4vw,46px)",
+            fontSize: "clamp(22px,3.4vw,46px)",
             fontWeight: 600,
             letterSpacing: "-0.03em",
             lineHeight: 1.04,
@@ -456,7 +456,7 @@ export default function SolutionsPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(28px,3.4vw,46px)",
+                fontSize: "clamp(22px,3.4vw,46px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.05,

@@ -348,7 +348,7 @@ export default function LegalPage({
           </div>
           <H1
             style={{
-              fontSize: "clamp(40px,5vw,76px)",
+              fontSize: "clamp(26px,5vw,76px)",
               lineHeight: 1.04,
               letterSpacing: "-0.04em",
               marginBottom: 18,
@@ -436,7 +436,7 @@ export default function LegalPage({
               >
                 <H2
                   style={{
-                    fontSize: "clamp(22px,2.4vw,30px)",
+                    fontSize: "clamp(19px,2.4vw,30px)",
                     letterSpacing: "-0.03em",
                     marginBottom: 16,
                     color: MIDNIGHT,

@@ -158,7 +158,7 @@ function ProbCard({
         {flame && <div>{flame}</div>}
       </div>
       <Mono style={{
-        fontSize: "clamp(48px,6vw,80px)", fontWeight: 600,
+        fontSize: "clamp(30px,6vw,80px)", fontWeight: 600,
         letterSpacing: "-0.04em", color, lineHeight: 1, display: "block",
       }}>
         {value}
@@ -517,7 +517,7 @@ export default function MonteCarloPage({
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
               Live Monte Carlo engine
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 18px", color: dc.cream }}>
+            <h2 style={{ fontSize: "clamp(23px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 18px", color: dc.cream }}>
               <Mono>{simulations}</Mono> paths · <Mono>{horizonYears}</Mono>yr horizon
             </h2>
             <div className="gs-reveal" style={{
@@ -643,12 +643,12 @@ export default function MonteCarloPage({
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon }}>P(DSCR &lt; 1.0)</div>
                     <RiskFlame level={riskLevel} size={16} />
                   </div>
-                  <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: pD1Color, lineHeight: 1, display: "block" }}>{pD1.toFixed(1)}%</Mono>
+                  <Mono style={{ fontSize: "clamp(28px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: pD1Color, lineHeight: 1, display: "block" }}>{pD1.toFixed(1)}%</Mono>
                   <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance the property can't cover its costs in some rate futures — below 5% is comfortable, above 20% is high-risk.</div>
                 </div>
                 <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: "1px solid rgba(238,239,211,0.16)" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>P(DSCR &lt; 1.25)</div>
-                  <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: BLUE, lineHeight: 1, display: "block" }}>{pD125.toFixed(1)}%</Mono>
+                  <Mono style={{ fontSize: "clamp(28px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: BLUE, lineHeight: 1, display: "block" }}>{pD125.toFixed(1)}%</Mono>
                   <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance of missing the 1.25 cushion most lenders prefer — below 30% is acceptable.</div>
                 </div>
               </div>
@@ -748,7 +748,7 @@ export default function MonteCarloPage({
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
                 Ready to move forward?
               </div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+              <h2 style={{ fontSize: "clamp(22px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
                 Get a real rate on this deal.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>

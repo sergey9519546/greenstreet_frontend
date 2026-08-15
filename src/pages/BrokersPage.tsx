@@ -311,7 +311,7 @@ export default function BrokersPage({
           <div className="gs-reveal" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
             <h2
               style={{
-                fontSize: "clamp(28px,3.4vw,46px)",
+                fontSize: "clamp(22px,3.4vw,46px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
                 margin: "0 0 14px",
@@ -392,7 +392,7 @@ export default function BrokersPage({
                 <div style={{ paddingTop: 10 }}>
                   <h3
                     style={{
-                      fontSize: "clamp(21px,2.2vw,30px)",
+                      fontSize: "clamp(19px,2.2vw,30px)",
                       fontWeight: 600,
                       letterSpacing: "-0.03em",
                       margin: "0 0 12px",
@@ -472,7 +472,7 @@ export default function BrokersPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(28px,3.8vw,52px)",
+                fontSize: "clamp(22px,3.8vw,52px)",
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,

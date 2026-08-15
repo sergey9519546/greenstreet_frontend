@@ -318,7 +318,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           {/* Section header */}
           <div className="gs-reveal" style={{ marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Live deal analyzer</div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 14px" }}>Seven fields in. Full underwrite out.</h2>
+            <h2 style={{ fontSize: "clamp(23px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 14px" }}>Seven fields in. Full underwrite out.</h2>
             <p style={{ fontSize: 15, color: "rgba(0,55,56,0.6)", margin: 0, lineHeight: 1.6, maxWidth: "60ch" }}>
               Adjust any number and the DSCR, cash flow, and educational screening notes update instantly. Estimates are fine.
             </p>
@@ -427,7 +427,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <RiskFlame level={riskLevel} size={22} />
-                    <Mono style={{ fontSize: "clamp(48px,6vw,80px)", fontWeight: 600, letterSpacing: "-0.04em", color: dc.dark, lineHeight: 1 }}>
+                    <Mono style={{ fontSize: "clamp(30px,6vw,80px)", fontWeight: 600, letterSpacing: "-0.04em", color: dc.dark, lineHeight: 1 }}>
                       {dscr.toFixed(2)}x
                     </Mono>
                     <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: verdictColor, alignSelf: "flex-end", paddingBottom: 4 }}>
@@ -642,7 +642,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Next step</div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>Numbers modeled? Verify the scenario.</h2>
+              <h2 style={{ fontSize: "clamp(22px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>Numbers modeled? Verify the scenario.</h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
                 This screen organizes modeled inputs. A complete review still needs verified borrower, property, appraisal, reserves, transaction, and current program information.
               </p>

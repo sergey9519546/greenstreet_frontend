@@ -178,9 +178,9 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
           </Lead>
           <div style={{ display: "flex", gap: "clamp(20px,4vw,44px)", alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: "clamp(16px,3vw,32px)" }}>
-              <div><Mono data-count={researchedCount} style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>{researchedCount}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states researched</div></div>
-              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.risk.danger, lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
-              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.emerald, lineHeight: 1, display: "block" }}>{counts[0]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>clear to quote</div></div>
+              <div><Mono data-count={researchedCount} style={{ fontSize: "clamp(23px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>{researchedCount}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states researched</div></div>
+              <div><Mono style={{ fontSize: "clamp(23px,3.4vw,44px)", fontWeight: 600, color: dc.risk.danger, lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
+              <div><Mono style={{ fontSize: "clamp(23px,3.4vw,44px)", fontWeight: 600, color: dc.emerald, lineHeight: 1, display: "block" }}>{counts[0]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>clear to quote</div></div>
             </div>
             <div style={{ flex: 1, minWidth: 220, maxWidth: 320 }}>
               <input className="sl-input" value={q} onChange={(e) => onSearch(e.target.value)} placeholder="Jump to a state — type CA, TX, NJ…" />
@@ -264,7 +264,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
             {/* sticky detail panel */}
             <div style={{ background: dc.dark, borderRadius: 9, padding: 32, position: "sticky", top: 96 }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>{sel.code} · {sel.name}</div>
-              <div style={{ fontSize: "clamp(28px,3vw,40px)", fontWeight: 600, letterSpacing: "-0.03em", color: TIER_COLORS[sel.tier], lineHeight: 1.05, marginBottom: 20 }}>{TIER_LABELS[sel.tier]}</div>
+              <div style={{ fontSize: "clamp(22px,3vw,40px)", fontWeight: 600, letterSpacing: "-0.03em", color: TIER_COLORS[sel.tier], lineHeight: 1.05, marginBottom: 20 }}>{TIER_LABELS[sel.tier]}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {[
                   { k: "Prepayment penalty rules", v: sel.ppp, color: "#eeefd3", weight: 500 as const },

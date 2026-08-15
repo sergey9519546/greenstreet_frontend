@@ -766,7 +766,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
 
             <h1
               style={{
-                fontSize: "clamp(25px,3.4vw,40px)",
+                fontSize: "clamp(20px,3.4vw,40px)",
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
@@ -856,7 +856,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {/* Question heading */}
                 <h2
                   style={{
-                    fontSize: "clamp(22px,3vw,34px)",
+                    fontSize: "clamp(19px,3vw,34px)",
                     fontWeight: 600,
                     letterSpacing: "-0.03em",
                     lineHeight: 1.1,
@@ -1003,7 +1003,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
 
                 <h2
                   style={{
-                    fontSize: "clamp(22px,3.2vw,36px)",
+                    fontSize: "clamp(19px,3.2vw,36px)",
                     fontWeight: 600,
                     letterSpacing: "-0.03em",
                     lineHeight: 1.05,
@@ -1062,7 +1062,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     <Mono
                       style={{
                         display: "block",
-                        fontSize: "clamp(30px,4.5vw,52px)",
+                        fontSize: "clamp(23px,4.5vw,52px)",
                         fontWeight: 700,
                         letterSpacing: "-0.03em",
                         color: swatch.lemon,

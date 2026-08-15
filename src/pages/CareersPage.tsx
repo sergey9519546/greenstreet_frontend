@@ -294,7 +294,7 @@ export default function CareersPage({
           >
             <h2
               style={{
-                fontSize: "clamp(26px,3vw,40px)",
+                fontSize: "clamp(21px,3vw,40px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
                 margin: 0,
@@ -350,7 +350,7 @@ export default function CareersPage({
         >
           <h2
             style={{
-              fontSize: "clamp(26px,3vw,40px)",
+              fontSize: "clamp(21px,3vw,40px)",
               fontWeight: 600,
               letterSpacing: "-0.03em",
               margin: "0 0 40px",
@@ -441,7 +441,7 @@ export default function CareersPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(28px,3.6vw,50px)",
+                fontSize: "clamp(22px,3.6vw,50px)",
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,

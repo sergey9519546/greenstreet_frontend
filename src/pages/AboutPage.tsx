@@ -268,7 +268,7 @@ export default function AboutPage({
               </div>
               <h2
                 style={{
-                  fontSize: "clamp(28px,3.4vw,46px)",
+                  fontSize: "clamp(22px,3.4vw,46px)",
                   fontWeight: 600,
                   letterSpacing: "-0.03em",
                   lineHeight: 1.04,
@@ -323,7 +323,7 @@ export default function AboutPage({
               </div>
               <h2
                 style={{
-                  fontSize: "clamp(28px,3.4vw,46px)",
+                  fontSize: "clamp(22px,3.4vw,46px)",
                   fontWeight: 600,
                   letterSpacing: "-0.03em",
                   lineHeight: 1.04,
@@ -378,7 +378,7 @@ export default function AboutPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(28px,3.5vw,48px)",
+                fontSize: "clamp(22px,3.5vw,48px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.0,
@@ -462,7 +462,7 @@ export default function AboutPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(34px,5vw,76px)",
+                fontSize: "clamp(24px,5vw,76px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.0,
@@ -494,7 +494,7 @@ export default function AboutPage({
                   <span
                     style={{
                       fontFamily: dc.sans,
-                      fontSize: "clamp(28px,3.5vw,42px)",
+                      fontSize: "clamp(22px,3.5vw,42px)",
                       fontWeight: 600,
                       letterSpacing: "-0.03em",
                       color: dc.lemon,
@@ -551,7 +551,7 @@ export default function AboutPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(32px,4vw,56px)",
+                fontSize: "clamp(24px,4vw,56px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.0,
@@ -642,7 +642,7 @@ export default function AboutPage({
           <div>
             <p
               style={{
-                fontSize: "clamp(19px,1.7vw,26px)",
+                fontSize: "clamp(18px,1.7vw,26px)",
                 fontWeight: 600,
                 lineHeight: 1.25,
                 letterSpacing: "-0.03em",
@@ -671,7 +671,7 @@ export default function AboutPage({
               <span
                 style={{
                   fontFamily: dc.sans,
-                  fontSize: "clamp(28px,3.5vw,48px)",
+                  fontSize: "clamp(22px,3.5vw,48px)",
                   fontWeight: 600,
                   letterSpacing: "-0.04em",
                   color: dc.lemon,
@@ -733,7 +733,7 @@ export default function AboutPage({
           >
             <div
               style={{
-                fontSize: "clamp(24px,2.6vw,34px)",
+                fontSize: "clamp(20px,2.6vw,34px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.08,
@@ -780,7 +780,7 @@ export default function AboutPage({
           >
             <div
               style={{
-                fontSize: "clamp(24px,2.6vw,34px)",
+                fontSize: "clamp(20px,2.6vw,34px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.08,
@@ -796,7 +796,7 @@ export default function AboutPage({
                 gap: 8,
                 color: dc.lemon,
                 fontWeight: 700,
-                fontSize: "clamp(22px,2.6vw,32px)",
+                fontSize: "clamp(19px,2.6vw,32px)",
                 fontFamily: dc.mono,
                 letterSpacing: "-0.03em",
                 alignSelf: "flex-start",
