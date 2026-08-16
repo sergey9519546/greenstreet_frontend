@@ -165,7 +165,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
   return (
     <DcShell
       onNavigate={onNavigate}
-      accent="#004041"
+      accent="#003738"
       navLinks={[
         { label: "Calculator", view: "dscr-calculator" },
         { label: "Buy-or-Pass", view: "decision-support" },
@@ -296,7 +296,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
               Live program matcher
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 10px", lineHeight: 1.05, color: dc.cream }}>
+            <h2 style={{ fontSize: "clamp(23px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 10px", lineHeight: 1.05, color: dc.cream }}>
               <Mono style={{ fontWeight: 600, color: dc.lemon }}>{matchCount}</Mono> of {total} programs fit this deal
             </h2>
             <p style={{ fontSize: 17, fontWeight: 500, color: "rgba(238,239,211,0.65)", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
@@ -772,7 +772,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ marginBottom: 28, maxWidth: "62ch" }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Beyond the rate</div>
-            <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: 0, color: dc.dark, lineHeight: 1.05 }}>Two lenders, two rates — which actually costs less?</h2>
+            <h2 style={{ fontSize: "clamp(22px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: 0, color: dc.dark, lineHeight: 1.05 }}>Two lenders, two rates — which actually costs less?</h2>
           </div>
           <TrueCostComparator accent={dc.rain} />
         </div>
@@ -794,7 +794,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
               </div>
               <h2
                 style={{
-                  fontSize: "clamp(28px,3.5vw,48px)",
+                  fontSize: "clamp(22px,3.5vw,48px)",
                   fontWeight: 600,
                   letterSpacing: "-0.02em",
                   margin: "0 0 16px",

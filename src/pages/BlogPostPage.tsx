@@ -131,7 +131,7 @@ export default function BlogPostPage({
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 16 }}>
             404 · Article not found
           </div>
-          <h1 style={{ fontSize: "clamp(28px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, margin: "0 0 16px", lineHeight: 1.1 }}>
+          <h1 style={{ fontSize: "clamp(22px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, margin: "0 0 16px", lineHeight: 1.1 }}>
             That article doesn't exist.
           </h1>
           <p style={{ fontSize: 16, fontWeight: 500, color: "rgba(0,55,56,0.6)", lineHeight: 1.6, margin: "0 0 28px" }}>
@@ -229,7 +229,7 @@ export default function BlogPostPage({
           {/* H1 */}
           <h1
             style={{
-              fontSize: "clamp(34px,4.6vw,64px)",
+              fontSize: "clamp(24px,4.6vw,64px)",
               fontWeight: 600,
               lineHeight: 1.02,
               letterSpacing: "-0.04em",
@@ -358,7 +358,7 @@ export default function BlogPostPage({
             {/* Post-specific glyph */}
             <Mono
               style={{
-                fontSize: "clamp(56px,9vw,112px)",
+                fontSize: "clamp(32px,9vw,112px)",
                 fontWeight: 700,
                 color: (post as any).glyphColor ?? dc.cream,
                 lineHeight: 1,
@@ -631,7 +631,7 @@ export default function BlogPostPage({
         <div className="gs-reveal" style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <h2
             style={{
-              fontSize: "clamp(28px,3.6vw,48px)",
+              fontSize: "clamp(22px,3.6vw,48px)",
               fontWeight: 600,
               letterSpacing: "-0.02em",
               lineHeight: 1.02,
@@ -709,7 +709,7 @@ export default function BlogPostPage({
           <h2
             className="gs-reveal"
             style={{
-              fontSize: "clamp(22px,2.4vw,32px)",
+              fontSize: "clamp(19px,2.4vw,32px)",
               fontWeight: 600,
               letterSpacing: "-0.03em",
               margin: "0 0 32px",
@@ -752,7 +752,7 @@ export default function BlogPostPage({
                 >
                   <Mono
                     style={{
-                      fontSize: "clamp(24px,3vw,36px)",
+                      fontSize: "clamp(20px,3vw,36px)",
                       fontWeight: 600,
                       color: r.glyphColor,
                       letterSpacing: "-0.03em",

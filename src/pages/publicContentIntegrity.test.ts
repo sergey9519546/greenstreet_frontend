@@ -101,11 +101,33 @@ describe("public content integrity", () => {
     const heroScript = home.slice(start, home.indexOf("</script>", start));
 
     expect(start).toBeGreaterThanOrEqual(0);
+
+    // The actual contract: the hero collects no identity or contact data.
     expect(heroScript).not.toMatch(/gsl-name|gsl-email|given-name|autocomplete="email"/);
     expect(heroScript).not.toMatch(/\b(?:name|email)\s*:/);
-    expect(heroScript).toContain(
-      'new URLSearchParams({source:"home_hero",fico:fico.value,property:prop.value,scenario:programFor(fico.value,prop.value)||""})',
-    );
+
+    // This used to pin the exact `new URLSearchParams({source:"home_hero",...})`
+    // call. That was over-specification rather than a security property: it
+    // asserted one implementation, so it failed against a change that STRICTLY
+    // REDUCES exposure.
+    //
+    // The hero now hands off in memory through window.openQualify instead of
+    // navigating with the answers in a query string, so no visitor selection
+    // reaches a URL, a Referer header, or a server access log at all. Asserting
+    // that directly is stronger than the string it replaces.
+    expect(heroScript).not.toMatch(/URLSearchParams/);
+    expect(heroScript).toContain("window.openQualify");
+
+    // Only the closed propertyType enum may cross the handoff boundary. The
+    // runtime whitelist lives in src/conversion/qualificationScenario.ts.
+    expect(heroScript).not.toMatch(/openQualify\([^)]*(?:name|email|phone|ssn)/i);
+
+    // Any fallback navigation must be a bare path carrying no visitor data.
+    const navigations = heroScript.match(/location\.href\s*=\s*"[^"]*"/g) ?? [];
+    expect(navigations.length).toBeGreaterThan(0);
+    for (const nav of navigations) {
+      expect(nav).not.toMatch(/[?&]/);
+    }
   });
 
   it("describes the deal-analyzer handoff as another illustrative screen", () => {

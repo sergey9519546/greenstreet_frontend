@@ -208,9 +208,19 @@ export default function NonUsInvestorsPage({
   const dscr = pitia > 0 ? rent / pitia : 0;
   const ltv = 100 - downPct;
   const ltvOk = ltv <= 75;
-  const go = dscr >= 1.0 && ltvOk;
-  const verdict = go ? "QUALIFIES" : dscr >= 1.0 ? "LOWER LTV" : "BELOW 1.0x";
-  const vColor = go ? dc.emerald : dscr >= 1.0 ? dc.lemon : RED;
+  // COMPLIANCE (see the block comment at the top of this file, lines 33-40):
+  // this page may never render an approval verdict on a borrower's file.
+  // "QUALIFIES" was exactly that word, and the shipped default inputs
+  // (rent 4000 / price 560000 / down 25% / rate 7.5%) clear both the DSCR
+  // and LTV checks, so it rendered green on first paint before a visitor
+  // touched a single field. The pill now states the one thing this page is
+  // allowed to state — an ARITHMETIC RESULT, whether the computed DSCR
+  // clears the 1.00x floor — not a decision about the borrower. LTV-cap
+  // status is its own fact, already shown as its own stat below; it does
+  // not get folded back into a single approve/deny word.
+  const dscrClears = dscr >= 1.0;
+  const dscrLabel = dscrClears ? "DSCR ≥ 1.00X" : "DSCR BELOW 1.00X";
+  const vColor = dscrClears ? dc.emerald : RED;
 
   const num = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
     <CurrencyInput
@@ -226,7 +236,7 @@ export default function NonUsInvestorsPage({
   );
 
   const partnerTag = (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, background: "rgba(216,217,88,0.14)", borderRadius: 100, padding: "2px 8px", verticalAlign: "middle", marginLeft: 8 }}>Concierge · via partner</span>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, background: "rgba(216,217,88,0.14)", borderRadius: 999, padding: "2px 8px", verticalAlign: "middle", marginLeft: 8 }}>Concierge · via partner</span>
   );
 
   const navLinks = [
@@ -316,7 +326,7 @@ export default function NonUsInvestorsPage({
         <div className="gs-dot-grid" />
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 999, marginBottom: 24 }}>
               Non-US Investor Program
             </div>
             <H1 style={{ margin: "0 0 16px", maxWidth: "14ch" }}>Can foreign investors get a U.S. DSCR loan?</H1>
@@ -397,7 +407,7 @@ export default function NonUsInvestorsPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vh,92px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 10 }}>Yes, you can</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.4vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 22px", maxWidth: "46ch" }}>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(22px,3.4vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 22px", maxWidth: "46ch" }}>
             Every reason you think you can't — answered.
           </h2>
           <div ref={fearRef} className="fn-fearwrap">
@@ -433,7 +443,7 @@ export default function NonUsInvestorsPage({
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ marginBottom: 32, maxWidth: "62ch" }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: ACCENT, marginBottom: 12 }}>Decided by the property, not your passport</div>
-            <h2 style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.05, margin: 0, color: dc.cream }}>
+            <h2 style={{ fontSize: "clamp(22px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.05, margin: 0, color: dc.cream }}>
               Check your buying power. Notice there's no income field.
             </h2>
           </div>
@@ -454,13 +464,18 @@ export default function NonUsInvestorsPage({
               <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>Scroll over any field to adjust. Taxes &amp; insurance estimated into the payment.</div>
             </div>
             <div className="dc-results-first" style={{ background: dc.dark, borderRadius: radius.lg, border: `1px solid ${vColor}55`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 8, background: `${vColor}22`, border: `1px solid ${vColor}`, borderRadius: 100, padding: "6px 14px", marginBottom: 18 }}>
+              <div style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 8, background: `${vColor}22`, border: `1px solid ${vColor}`, borderRadius: 999, padding: "6px 14px", marginBottom: 18 }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: vColor }} />
-                <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: vColor }}>{verdict}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: vColor }}>{dscrLabel}</span>
               </div>
-              <Mono style={{ fontSize: "clamp(52px,8vw,96px)", fontWeight: 700, letterSpacing: "-0.04em", color: vColor, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
+              <Mono style={{ fontSize: "clamp(30px,8vw,96px)", fontWeight: 700, letterSpacing: "-0.04em", color: vColor, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "44ch" }}>
-                {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {go ? "Rent covers the loan and the LTV fits — this is fundable. Example: $4,000 rent vs ~$3,000 payment is a strong 1.33x." : dscr >= 1.0 ? "Rent covers the loan, but lower the LTV to ≤75% for the non-US investor program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
+                {/* "this is fundable" was the same approval-shaped claim as
+                    the old QUALIFIES pill, just in prose instead of a badge.
+                    State the two facts (payment coverage, LTV cap) and stop
+                    there — no fundability conclusion drawn on the borrower's
+                    behalf. */}
+                {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {dscrClears && ltvOk ? "Rent covers the full payment and the LTV is within the 75% cap. Example: $4,000 rent vs ~$3,000 payment is a 1.33x DSCR." : dscrClears ? "Rent covers the loan, but lower the LTV to ≤75% for the non-US investor program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
               </div>
               <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
                 <div><Mono style={{ fontSize: 22, fontWeight: 700, color: ltvOk ? dc.emerald : dc.lemon, display: "block" }}>{ltv}%</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>LTV (cap ≈75%)</div></div>
@@ -475,7 +490,7 @@ export default function NonUsInvestorsPage({
       {/* ── HOW IT WORKS ── */}
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Four steps. You never have to fly here.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(21px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Four steps. You never have to fly here.</h2>
           <div className="gs-reveal dc-band-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {STEPS.map((s, i) => (
               <div key={s.t} style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", display: "flex", gap: 16 }}>
@@ -494,11 +509,11 @@ export default function NonUsInvestorsPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: ACCENT, marginBottom: 12 }}>What you'll likely qualify for</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Set your expectations up front.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(21px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Set your expectations up front.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
             {QUALIFY.map((q) => (
               <div key={q.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.2vw,28px)" }}>
-                <Mono style={{ fontSize: "clamp(24px,2.6vw,32px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{q.v}</Mono>
+                <Mono style={{ fontSize: "clamp(20px,2.6vw,32px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{q.v}</Mono>
                 <div style={{ fontSize: 13, fontWeight: 600, color: dc.cream, marginTop: 8 }}>{q.l}</div>
                 <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>{q.s}</div>
               </div>
@@ -513,7 +528,7 @@ export default function NonUsInvestorsPage({
             const selStyle: React.CSSProperties = { background: dc.teal, color: dc.cream, border: "1px solid rgba(238,239,211,0.22)", borderRadius: radius.sm, padding: "10px 12px", fontFamily: font.family, fontSize: 14, fontWeight: 600, minHeight: 44 };
             const stat = (v: string, l: string, c: string) => (
               <div style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.sm, padding: "16px 18px" }}>
-                <Mono style={{ fontSize: "clamp(20px,2.2vw,26px)", fontWeight: 700, color: c, display: "block", lineHeight: 1 }}>{v}</Mono>
+                <Mono style={{ fontSize: "clamp(18px,2.2vw,26px)", fontWeight: 700, color: c, display: "block", lineHeight: 1 }}>{v}</Mono>
                 <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{l}</div>
               </div>
             );
@@ -559,7 +574,7 @@ export default function NonUsInvestorsPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div className="gs-reveal" style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Why us, not a faceless platform</div>
-          <p style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.3, margin: 0, color: dc.cream }}>
+          <p style={{ fontSize: "clamp(18px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.3, margin: 0, color: dc.cream }}>
             A platform hands you a <span style={{ color: "rgba(238,239,211,0.62)" }}>form</span>. You get a <span style={{ color: dc.lemon }}>person</span> — in your language, from your first question to the keys, who has taken a non-U.S. file through closing before and tells you what the property has to prove.
           </p>
         </div>
@@ -568,7 +583,7 @@ export default function NonUsInvestorsPage({
       {/* ── FAQ ── */}
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>The questions you're Googling.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(21px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>The questions you're Googling.</h2>
           <div className="gs-reveal dc-band-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {FAQS.map((f) => (
               <div key={f.q} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(18px,2vw,24px)" }}>

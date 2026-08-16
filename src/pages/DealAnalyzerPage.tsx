@@ -228,7 +228,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           }}
         >
           <div id="gs-hero-content">
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 999, marginBottom: 24 }}>
               Deal Analyzer &middot; Full underwrite
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
@@ -289,7 +289,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
             </div>
             {/* floating verdict badge */}
-            <div className="da-verdict-badge gs-reveal" style={{ position: "absolute", bottom: -20, left: -20, background: dc.lemon, borderRadius: 12, padding: "20px 24px", zIndex: 2, boxShadow: "0 12px 32px rgba(0,0,0,0.18)", border: "1px solid rgba(0,0,0,0.05)" }}>
+            <div className="da-verdict-badge gs-reveal" style={{ position: "absolute", bottom: -20, left: -20, background: dc.lemon, borderRadius: 12, padding: "20px 24px", zIndex: 2, border: "1px solid rgba(0,0,0,0.05)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.6)", marginBottom: 3 }}>Deal verdict</div>
               <Mono style={{ display: "block", fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor, marginTop: 3 }}>{vLabel}</div>
@@ -318,7 +318,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           {/* Section header */}
           <div className="gs-reveal" style={{ marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Live deal analyzer</div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 14px" }}>Seven fields in. Full underwrite out.</h2>
+            <h2 style={{ fontSize: "clamp(23px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 14px" }}>Seven fields in. Full underwrite out.</h2>
             <p style={{ fontSize: 15, color: "rgba(0,55,56,0.6)", margin: 0, lineHeight: 1.6, maxWidth: "60ch" }}>
               Adjust any number and the DSCR, cash flow, and educational screening notes update instantly. Estimates are fine.
             </p>
@@ -427,7 +427,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <RiskFlame level={riskLevel} size={22} />
-                    <Mono style={{ fontSize: "clamp(48px,6vw,80px)", fontWeight: 600, letterSpacing: "-0.04em", color: dc.dark, lineHeight: 1 }}>
+                    <Mono style={{ fontSize: "clamp(30px,6vw,80px)", fontWeight: 600, letterSpacing: "-0.04em", color: dc.dark, lineHeight: 1 }}>
                       {dscr.toFixed(2)}x
                     </Mono>
                     <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: verdictColor, alignSelf: "flex-end", paddingBottom: 4 }}>
@@ -545,7 +545,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
 
               {/* AI UNDERWRITER CREDIT MEMO */}
-              <div className="gs-reveal print-card" style={{ background: `linear-gradient(145deg, ${swatch.white} 0%, rgba(238,239,211,0.2) 100%)`, borderRadius: radius.md, padding: "clamp(24px,3vw,32px)", border: `1.5px solid ${swatch.midnightFaded}`, boxShadow: "0 4px 12px rgba(0,55,56,0.03)" }}>
+              <div className="gs-reveal print-card" style={{ background: `linear-gradient(145deg, ${swatch.white} 0%, rgba(238,239,211,0.2) 100%)`, borderRadius: radius.md, padding: "clamp(24px,3vw,32px)", border: `1.5px solid ${swatch.midnightFaded}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: dc.rain }}>
                     🧠 AI Underwriter Credit Memo
@@ -642,7 +642,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Next step</div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>Numbers modeled? Verify the scenario.</h2>
+              <h2 style={{ fontSize: "clamp(22px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>Numbers modeled? Verify the scenario.</h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
                 This screen organizes modeled inputs. A complete review still needs verified borrower, property, appraisal, reserves, transaction, and current program information.
               </p>

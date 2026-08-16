@@ -205,7 +205,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
           textTransform: "uppercase", marginBottom: "20px", opacity: 0.9,
         }}>Greenstreet Finance</div>
         <h1 style={{
-          fontSize: "clamp(36px, 5.5vw, 76px)", fontWeight: 600,
+          fontSize: "clamp(25px, 5.5vw, 76px)", fontWeight: 600,
           marginBottom: "20px", lineHeight: 1.06, letterSpacing: "-0.03em", maxWidth: "1000px",
         }}>
           {title}

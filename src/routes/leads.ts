@@ -90,12 +90,28 @@ interface LeadDeliveryStore {
 }
 
 export interface LeadDeliveryOutcome {
-  status: "not_configured" | "existing";
+  status: "not_configured" | "existing" | "delivered" | "failed";
 }
 
 export interface LeadDeliveryFactoryOptions {
   store?: LeadDeliveryStore;
+  /** Injectable for tests. Defaults to global fetch. */
+  fetchImpl?: typeof fetch;
+  /** Injectable for tests. Defaults to process.env. */
+  env?: NodeJS.ProcessEnv;
 }
+
+/**
+ * A webhook that has not returned within this budget is treated as failed.
+ *
+ * The delivery call is awaited rather than fired and forgotten: on a serverless
+ * host the instance can be frozen the moment the response is flushed, so an
+ * un-awaited request is not guaranteed to leave the machine. Awaiting makes it
+ * reliable; the timeout is what stops a slow endpoint from holding the intake
+ * 202 open. The lead is already durably stored either way — see
+ * persistLeadIdempotently, which runs first and owns the intake contract.
+ */
+const WEBHOOK_TIMEOUT_MS = 2_500;
 
 export interface LeadsRouterOptions {
   allowedOrigins: readonly string[];
@@ -161,6 +177,113 @@ export function createStorageOnlyLeadDeliveryRecorder(
     } catch (error) {
       // A retry must never reset a later/manual delivery result. Firestore's
       // atomic create preserves whichever status already owns this UUID.
+      if (isAlreadyExists(error)) return { status: "existing" };
+      throw error;
+    }
+  };
+}
+
+/**
+ * Resolves the operator-configured webhook, or null when delivery is off.
+ *
+ * The URL comes from the environment, never from a request, so this is not an
+ * SSRF surface. It is still validated: an http:// endpoint would put borrower
+ * PII on the wire in clear text, and embedded credentials would be logged by
+ * every proxy in the path.
+ */
+function resolveWebhook(env: NodeJS.ProcessEnv): { url: string; token?: string } | null {
+  const raw = env.LEAD_DELIVERY_WEBHOOK_URL?.trim();
+  if (!raw) return null;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    logger.error(
+      { route: "lead-intake", stage: "delivery-config" },
+      "LEAD_DELIVERY_WEBHOOK_URL is not a valid URL; lead delivery is disabled",
+    );
+    return null;
+  }
+
+  if (parsed.protocol !== "https:" || parsed.username || parsed.password) {
+    logger.error(
+      { route: "lead-intake", stage: "delivery-config", protocol: parsed.protocol },
+      "LEAD_DELIVERY_WEBHOOK_URL must be https and carry no credentials; lead delivery is disabled",
+    );
+    return null;
+  }
+
+  return { url: parsed.toString(), token: env.LEAD_DELIVERY_WEBHOOK_TOKEN?.trim() || undefined };
+}
+
+/**
+ * Delivers the lead to the operator's webhook and records the outcome.
+ *
+ * Falls back to the storage-only recorder when no webhook is configured, so an
+ * unconfigured deployment behaves exactly as it did before this existed.
+ *
+ * Works with anything that accepts a JSON POST — Slack, Make, n8n, Zapier, or a
+ * bespoke endpoint. The lead is sent as-is because routing it to a human IS the
+ * configured purpose; note that this necessarily sends borrower PII to whatever
+ * host the operator names, which is why the https check above is not optional.
+ */
+export function createLeadDeliveryRecorder(
+  options: LeadDeliveryFactoryOptions = {},
+): (lead: PublicLead) => Promise<LeadDeliveryOutcome> {
+  const env = options.env ?? process.env;
+  const webhook = resolveWebhook(env);
+  if (!webhook) return createStorageOnlyLeadDeliveryRecorder(options);
+
+  const doFetch = options.fetchImpl ?? fetch;
+
+  return async (lead) => {
+    let delivered = false;
+    try {
+      const response = await doFetch(webhook.url, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...(webhook.token ? { authorization: `Bearer ${webhook.token}` } : {}),
+        },
+        body: JSON.stringify({ type: "lead.created", lead }),
+        signal: AbortSignal.timeout(WEBHOOK_TIMEOUT_MS),
+      });
+      delivered = response.ok;
+      if (!response.ok) {
+        // Status only. A webhook error body can echo back the payload we just
+        // sent it, which is the borrower PII this route exists to protect.
+        logger.warn(
+          { route: "lead-intake", stage: "delivery", status: response.status },
+          "Lead delivery webhook returned a non-2xx status",
+        );
+      }
+    } catch (error) {
+      logger.warn(
+        {
+          route: "lead-intake",
+          stage: "delivery",
+          errorName: error instanceof Error ? error.name : "UnknownError",
+        },
+        "Lead delivery webhook did not complete",
+      );
+    }
+
+    const store = options.store ?? getAdminFirestore();
+    try {
+      await store
+        .collection("leadDelivery")
+        .doc(lead.submissionId)
+        .create({
+          attemptCount: 1,
+          channel: "webhook",
+          status: delivered ? "delivered" : "failed",
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      return { status: delivered ? "delivered" : "failed" };
+    } catch (error) {
+      // Same reasoning as the storage-only recorder: an atomic create means a
+      // retry of the same UUID never overwrites a later or manually-set result.
       if (isAlreadyExists(error)) return { status: "existing" };
       throw error;
     }

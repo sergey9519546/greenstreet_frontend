@@ -339,7 +339,7 @@ export default function ARMPage({
               color: "rgba(238,239,211,0.62)",
               background: "rgba(238,239,211,0.06)",
               border: "1px solid rgba(238,239,211,0.18)",
-              borderRadius: 100,
+              borderRadius: 999,
               padding: "7px 14px",
               marginBottom: 24,
             }}
@@ -408,7 +408,7 @@ export default function ARMPage({
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.7 }}>
                 {result ? `Years 1–${result.fixedYears}` : "Years 1–5"}
               </div>
-              <Mono style={{ display: "block", fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4 }}>
+              <Mono style={{ display: "block", fontSize: "clamp(18px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4 }}>
                 Fixed
               </Mono>
               <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.75, marginTop: 2 }}>
@@ -429,7 +429,7 @@ export default function ARMPage({
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.7 }}>
                 First reset
               </div>
-              <Mono style={{ display: "block", fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4 }}>
+              <Mono style={{ display: "block", fontSize: "clamp(18px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4 }}>
                 {result ? `+${result.cfg.initialCapPct.toFixed(1)}%` : "+2.0%"}
               </Mono>
               <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.75, marginTop: 2 }}>
@@ -438,7 +438,7 @@ export default function ARMPage({
             </div>
 
             {/* Adjusts. Was `dc.rain` (#006565) — a near-teal that barely reads as
-                distinct from the page ground (#003738/#004041), defeating the point
+                distinct from the page ground (#003738/#003738), defeating the point
                 of a 3-segment legend: Fixed/First-reset/Adjusts should each read as
                 a different phase at a glance. `dc.cream` on dark text reuses tokens
                 already in the palette instead of adding a 4th hue, and gives the
@@ -456,7 +456,7 @@ export default function ARMPage({
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.65 }}>
                 {result ? `Years ${result.fixedYears + 1}–30` : "Years 6–30"}
               </div>
-              <Mono style={{ display: "block", fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4, color: dc.dark }}>
+              <Mono style={{ display: "block", fontSize: "clamp(18px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4, color: dc.dark }}>
                 Adjusts
               </Mono>
               <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.7, marginTop: 2 }}>
@@ -548,7 +548,7 @@ export default function ARMPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(30px,3.8vw,52px)",
+                fontSize: "clamp(23px,3.8vw,52px)",
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
@@ -807,7 +807,7 @@ export default function ARMPage({
                 >
                   <div style={{ background: dc.dark, padding: 24 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.emerald, marginBottom: 10 }}>Fixed payment</div>
-                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: dc.cream, letterSpacing: "-0.02em" }}>
+                    <Mono style={{ display: "block", fontSize: "clamp(21px,3vw,36px)", fontWeight: 700, color: dc.cream, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piInitial)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
@@ -816,7 +816,7 @@ export default function ARMPage({
                   </div>
                   <div style={{ background: dc.dark, padding: 24 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.lemon, marginBottom: 10 }}>First reset (worst case)</div>
-                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.02em" }}>
+                    <Mono style={{ display: "block", fontSize: "clamp(21px,3vw,36px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piAtWorstFirstReset)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
@@ -825,7 +825,7 @@ export default function ARMPage({
                   </div>
                   <div style={{ background: dc.dark, padding: 24 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: risk.danger, marginBottom: 10 }}>Lifetime cap (absolute max)</div>
-                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: risk.dangerOnDark, letterSpacing: "-0.02em" }}>
+                    <Mono style={{ display: "block", fontSize: "clamp(21px,3vw,36px)", fontWeight: 700, color: risk.dangerOnDark, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piAtLifetimeCap)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
@@ -1172,7 +1172,7 @@ export default function ARMPage({
                 <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>
                   Maturity Risk Analysis
                 </div>
-                <h3 style={{ fontSize: "clamp(20px,2.4vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 12px", color: dc.cream }}>
+                <h3 style={{ fontSize: "clamp(18px,2.4vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 12px", color: dc.cream }}>
                   Can you refinance at ARM reset?
                 </h3>
                 <p style={{ fontSize: 14, color: "rgba(238,239,211,0.65)", margin: "0 0 20px", lineHeight: 1.55, maxWidth: "68ch" }}>
@@ -1252,7 +1252,7 @@ export default function ARMPage({
                   <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>
                     Full amortization schedule
                   </div>
-                  <h3 style={{ fontSize: "clamp(20px,2.4vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 12px", color: dc.cream }}>
+                  <h3 style={{ fontSize: "clamp(18px,2.4vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 12px", color: dc.cream }}>
                     Every year, IO through payoff — Base scenario (SOFR {result.base.sofr.toFixed(2)}%)
                   </h3>
                   <p style={{ fontSize: 14, color: "rgba(238,239,211,0.65)", margin: "0 0 20px", lineHeight: 1.55, maxWidth: "68ch" }}>

@@ -8,7 +8,7 @@ import { dscrRouter } from "./routes/dscr";
 import { narrateRouter } from "./routes/narrate";
 import {
   createLeadsRouter,
-  createStorageOnlyLeadDeliveryRecorder,
+  createLeadDeliveryRecorder,
 } from "./routes/leads";
 import { sdrRouter } from "./routes/sdr";
 import { verifyFirebaseToken, requireAuth } from "./middleware/auth";
@@ -148,7 +148,9 @@ app.use(
   leadLimiter,
   createLeadsRouter({
     allowedOrigins,
-    recordDeliveryStatus: createStorageOnlyLeadDeliveryRecorder(),
+    // Delivers to LEAD_DELIVERY_WEBHOOK_URL when set; otherwise records the
+    // truthful storage-only state exactly as before.
+    recordDeliveryStatus: createLeadDeliveryRecorder(),
   }),
 );
 // /api/sdr writes to the outreach queue that outbound email campaigns are

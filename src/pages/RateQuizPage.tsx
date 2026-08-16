@@ -738,7 +738,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 gap: 8,
                 background: "rgba(238,239,211,0.06)",
                 border: "1px solid rgba(238,239,211,0.14)",
-                borderRadius: 99,
+                borderRadius: 999,
                 padding: "6px 14px",
                 marginBottom: 12,
               }}
@@ -766,7 +766,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
 
             <h1
               style={{
-                fontSize: "clamp(25px,3.4vw,40px)",
+                fontSize: "clamp(20px,3.4vw,40px)",
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
@@ -844,7 +844,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                       style={{
                         flex: 1,
                         height: 4,
-                        borderRadius: 99,
+                        borderRadius: 999,
                         background:
                           i < step ? swatch.emerald : i === step ? swatch.lemon : "rgba(238,239,211,0.14)",
                         transition: "background .3s ease",
@@ -856,7 +856,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {/* Question heading */}
                 <h2
                   style={{
-                    fontSize: "clamp(22px,3vw,34px)",
+                    fontSize: "clamp(19px,3vw,34px)",
                     fontWeight: 600,
                     letterSpacing: "-0.03em",
                     lineHeight: 1.1,
@@ -944,7 +944,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     gap: 8,
                     background: "rgba(238,239,211,0.06)",
                     border: "1px solid rgba(238,239,211,0.14)",
-                    borderRadius: 99,
+                    borderRadius: 999,
                     padding: "6px 14px",
                   }}
                 >
@@ -1003,7 +1003,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
 
                 <h2
                   style={{
-                    fontSize: "clamp(22px,3.2vw,36px)",
+                    fontSize: "clamp(19px,3.2vw,36px)",
                     fontWeight: 600,
                     letterSpacing: "-0.03em",
                     lineHeight: 1.05,
@@ -1059,19 +1059,27 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     >
                       Pricing status
                     </div>
-                    <Mono
+                    {/* Not <Mono> any more. This slot was built for a rate range
+                        and carried every numeric cue — tabular figures, 52px,
+                        letter-spacing -0.03em — while holding the words "Not
+                        priced". Tight negative tracking on a 52px prose phrase
+                        reads as a broken number, not a status. The quiz no
+                        longer produces a rate (see :167), so the slot is now
+                        typeset as the status line it actually is: sans, sized
+                        to sit under the headline rather than impersonate one. */}
+                    <div
                       style={{
                         display: "block",
-                        fontSize: "clamp(30px,4.5vw,52px)",
+                        fontSize: "clamp(19px,2.6vw,30px)",
                         fontWeight: 700,
-                        letterSpacing: "-0.03em",
+                        letterSpacing: "-0.01em",
                         color: swatch.lemon,
-                        lineHeight: 1,
+                        lineHeight: 1.15,
                         marginBottom: 8,
                       }}
                     >
                       {result.rate}
-                    </Mono>
+                    </div>
                     <p
                       style={{
                         fontSize: 13,

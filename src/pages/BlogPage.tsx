@@ -1597,7 +1597,7 @@ function ArticleBody({ blocks }: { blocks: { p?: string; h?: string; q?: string;
     <>
       {blocks.map((b, i) => {
         if (b.h) return (
-          <h2 key={i} style={{ color: dc.dark, fontSize: "clamp(20px,2vw,26px)", fontWeight: 600, margin: "36px 0 14px", lineHeight: 1.15, letterSpacing: "-0.025em" }}>
+          <h2 key={i} style={{ color: dc.dark, fontSize: "clamp(18px,2vw,26px)", fontWeight: 600, margin: "36px 0 14px", lineHeight: 1.15, letterSpacing: "-0.025em" }}>
             {b.h}
           </h2>
         );
@@ -1607,7 +1607,7 @@ function ArticleBody({ blocks }: { blocks: { p?: string; h?: string; q?: string;
           </h3>
         );
         if (b.quote) return (
-          <blockquote key={i} style={{ borderLeft: `3px solid ${dc.lemon}`, padding: "14px 24px", margin: "32px 0", color: dc.dark, fontSize: "clamp(18px,1.6vw,22px)", lineHeight: 1.35, fontWeight: 600, letterSpacing: "-0.02em" }}>
+          <blockquote key={i} style={{ borderLeft: `3px solid ${dc.lemon}`, padding: "14px 24px", margin: "32px 0", color: dc.dark, fontSize: "clamp(17px,1.6vw,22px)", lineHeight: 1.35, fontWeight: 600, letterSpacing: "-0.02em" }}>
             {b.quote}
           </blockquote>
         );
@@ -1811,7 +1811,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" as const, color: dc.lemon, marginBottom: 16 }}>
               Featured · {FEATURED_POST.date}
             </div>
-            <h2 style={{ fontSize: "clamp(24px,2.8vw,38px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05, color: dc.cream, margin: "0 0 16px" }}>
+            <h2 style={{ fontSize: "clamp(20px,2.8vw,38px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05, color: dc.cream, margin: "0 0 16px" }}>
               {FEATURED_POST.title}
             </h2>
             <p style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: "0 0 24px", letterSpacing: "-0.01em", maxWidth: "48ch" }}>
@@ -1828,7 +1828,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
           </div>
           {/* Right panel — solid fill, flat 1px border, no glow */}
           <div style={{ background: dc.teal, border: "none", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 280 }}>
-            <Mono style={{ fontSize: "clamp(40px,5vw,72px)", fontWeight: 600, color: "rgba(216,217,88,0.9)", letterSpacing: "-0.03em" }}>
+            <Mono style={{ fontSize: "clamp(26px,5vw,72px)", fontWeight: 600, color: "rgba(216,217,88,0.9)", letterSpacing: "-0.03em" }}>
               det()
             </Mono>
           </div>
@@ -1886,7 +1886,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
               >
                 {/* Glyph header — solid fill, aspect-ratio locked */}
                 <div style={{ aspectRatio: "16/7", minHeight: 120, background: p.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Mono style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 600, color: p.glyphColor, letterSpacing: "-0.03em" }}>
+                  <Mono style={{ fontSize: "clamp(22px,4vw,42px)", fontWeight: 600, color: p.glyphColor, letterSpacing: "-0.03em" }}>
                     {p.glyph}
                   </Mono>
                 </div>

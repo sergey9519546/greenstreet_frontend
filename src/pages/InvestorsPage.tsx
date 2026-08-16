@@ -111,8 +111,8 @@ export default function InvestorsPage({
 
   const navLinks = [
     { label: "DSCR Calc", view: "dscr-calculator" },
-    { label: "STR Tool", view: "tools/str-underwriting" },
-    { label: "Tax Engine", view: "tools/tax-engine" },
+    { label: "STR Tool", view: "str-underwriting" },
+    { label: "Tax Engine", view: "tax-engine" },
     { label: "Rate Quiz", view: "rate-quiz" },
     { label: "Portfolio", view: "portfolio" },
   ];
@@ -148,7 +148,7 @@ export default function InvestorsPage({
         <div className="gs-dot-grid" />
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, background: "rgba(216,217,88,0.1)", border: "1px solid rgba(216,217,88,0.3)", padding: "6px 14px", borderRadius: 100, marginBottom: 24 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, background: "rgba(216,217,88,0.1)", border: "1px solid rgba(216,217,88,0.3)", padding: "6px 14px", borderRadius: 999, marginBottom: 24 }}>
               The DSCR Investor Operating System
             </div>
             <H1 style={{ margin: "0 0 18px", maxWidth: "16ch" }}>Scale your rental portfolio without DTI limits.</H1>
@@ -156,7 +156,7 @@ export default function InvestorsPage({
               Conventional lenders cap how many doors you can own based on your personal W-2 income and DTI. Greenstreet DSCR programs qualify each property strictly on its rental coverage, credit score, liquid reserves, and business-purpose LLC vesting.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 28px", borderRadius: radius.sm, fontFamily: font.family, boxShadow: "0 4px 14px rgba(216,217,88,0.3)" }}>
+              <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 28px", borderRadius: radius.sm, fontFamily: font.family }}>
                 Run Scenario Tool →
               </button>
               <button onClick={() => onNavigate("rate-quiz")} style={{ background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, border: "1.5px solid rgba(238,239,211,0.4)", cursor: "pointer", padding: "14px 24px", borderRadius: radius.sm, fontFamily: font.family }}>
@@ -164,7 +164,7 @@ export default function InvestorsPage({
               </button>
             </div>
           </div>
-          <div style={{ background: "rgba(0,55,56,0.6)", borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.18)", padding: "clamp(20px,2.5vw,30px)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}>
+          <div style={{ background: "rgba(0,55,56,0.6)", borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.18)", padding: "clamp(20px,2.5vw,30px)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[{ v: doors.length, l: "doors in model" }, { v: blended.toFixed(2) + "x", l: "blended DSCR" }, { v: fmt$(cashFlow) + "/mo", l: "net cash flow" }, { v: "ZERO", l: "DTI / Tax Returns" }].map((t, i) => (
               <div key={i} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "16px 14px", border: "1px solid rgba(238,239,211,0.1)" }}>
                 <Mono style={{ fontSize: 26, fontWeight: 700, color: i === 3 ? dc.lemon : dc.cream, display: "block", lineHeight: 1 }}>{t.v}</Mono>
@@ -179,7 +179,7 @@ export default function InvestorsPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}`, borderTop: "1px solid rgba(238,239,211,0.1)" }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: tracking.caps, textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Door-by-Door Underwriting</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 12px", maxWidth: "22ch" }}>Each property qualifies on its own rent.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(22px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 12px", maxWidth: "22ch" }}>Each property qualifies on its own rent.</h2>
           <p className="gs-reveal" style={{ fontSize: 16, color: onDark.secondary, margin: "0 0 30px", maxWidth: "66ch", lineHeight: 1.5 }}>
             Adjust any property's monthly rent and payment below. The 1.00x line marks exact debt service coverage. Adding a new door brings its own rent without impacting any existing property's DSCR.
           </p>
@@ -288,7 +288,7 @@ export default function InvestorsPage({
 
             <div className="dn-summary" style={{ background: SURFACE, borderRadius: radius.lg, border: `1px solid ${HAIRLINE}`, padding: "clamp(22px,2.6vw,30px)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: tracking.caps, textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Portfolio Summary</div>
-              <Mono style={{ fontSize: "clamp(44px,6vw,68px)", fontWeight: 700, color: dc.lemon, lineHeight: 1, display: "block" }}>{doors.length}</Mono>
+              <Mono style={{ fontSize: "clamp(28px,6vw,68px)", fontWeight: 700, color: dc.lemon, lineHeight: 1, display: "block" }}>{doors.length}</Mono>
               <div style={{ fontSize: 13, color: onDark.secondary, marginTop: 6, marginBottom: 20, lineHeight: 1.45 }}>doors modeled — zero personal DTI math</div>
               {[{ l: "Blended DSCR", v: blended.toFixed(2) + "x", c: blended >= 1.0 ? dc.emerald : RED }, { l: "Total cash flow", v: fmt$(cashFlow) + "/mo", c: cashFlow >= 0 ? dc.emerald : RED }, { l: "Gross rent", v: fmt$(totalRent) + "/mo", c: dc.cream }].map((r) => (
                 <div key={r.l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: `1px solid ${HAIRLINE}` }}>
@@ -313,17 +313,17 @@ export default function InvestorsPage({
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 40 }}>
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>Instant Institutional Analysis</div>
-            <h2 style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 700, color: dc.cream, margin: 0 }}>Greenstreet Investor Scenario Suite</h2>
+            <h2 style={{ fontSize: "clamp(21px,3.2vw,44px)", fontWeight: 700, color: dc.cream, margin: 0 }}>Greenstreet Investor Scenario Suite</h2>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18 }}>
             {[
               { title: "DSCR Coverage & Rates", desc: "Calculate exact coverage ratios, monthly PITIA, and lender rate pricing.", view: "dscr-calculator", btn: "Run Calculator →" },
-              { title: "Short-Term Rental Tool", desc: "Underwrite Airbnbs and resort cabins using AirDNA projections or 12-mo actuals.", view: "tools/str-underwriting", btn: "Underwrite STR →" },
+              { title: "Short-Term Rental Tool", desc: "Underwrite Airbnbs and resort cabins using AirDNA projections or 12-mo actuals.", view: "str-underwriting", btn: "Underwrite STR →" },
               { title: "50-State Penalty Rules", desc: "Check state-by-state prepayment penalty legal caps, thresholds, and LLC exemptions.", view: "state-laws", btn: "View State Laws →" },
-              { title: "Cost Seg & Tax Engine", desc: "Estimate Year-1 OBBBA 100% bonus depreciation and passive loss tax offsets.", view: "tools/tax-engine", btn: "Run Tax Engine →" },
-              { title: "10-Yr Cash Flow & IRR", desc: "Project multi-year cash-on-cash yield, equity accumulation, and IRR waterfall.", view: "tools/returns", btn: "Model Returns →" },
-              { title: "Commercial 5+ & Mixed-Use", desc: "Underwrite commercial multi-family and mixed-use storefront properties.", view: "tools/commercial-dscr", btn: "Commercial DSCR →" },
+              { title: "Cost Seg & Tax Engine", desc: "Estimate Year-1 OBBBA 100% bonus depreciation and passive loss tax offsets.", view: "tax-engine", btn: "Run Tax Engine →" },
+              { title: "10-Yr Cash Flow & IRR", desc: "Project multi-year cash-on-cash yield, equity accumulation, and IRR waterfall.", view: "returns", btn: "Model Returns →" },
+              { title: "Commercial 5+ & Mixed-Use", desc: "Underwrite commercial multi-family and mixed-use storefront properties.", view: "commercial-dscr", btn: "Commercial DSCR →" },
             ].map((tool) => (
               <div key={tool.view} style={{ background: "rgba(238,239,211,0.04)", padding: "22px", borderRadius: radius.md, border: "1px solid rgba(238,239,211,0.12)", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 16 }}>
                 <div>
@@ -362,7 +362,7 @@ export default function InvestorsPage({
 
       <BottomCTA onNavigate={onNavigate} cards={[
         { bg: dc.lemon, fg: dc.dark, blurb: "Run your next property's rent through Greenstreet — 60 seconds, zero credit impact.", title: "Price My Deal Now", view: "dscr-calculator" },
-        { bg: dc.mintBg, fg: dc.dark, blurb: "Underwrite short-term rental revenue with AirDNA projections and 12-month actuals.", title: "Run STR Scenario", view: "tools/str-underwriting" },
+        { bg: dc.mintBg, fg: dc.dark, blurb: "Underwrite short-term rental revenue with AirDNA projections and 12-month actuals.", title: "Run STR Scenario", view: "str-underwriting" },
       ]} />
     </DcShell>
   );

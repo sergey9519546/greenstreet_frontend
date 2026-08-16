@@ -16,6 +16,7 @@ import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
 import Notice from "./ui/Notice";
 import { captureException } from "../monitoring/sentry";
+import { track, AnalyticsEvent } from "../lib/analytics";
 import { qualify, fmtUsd, fmtRateRange, PPP_STATE_LAWS } from "../engine";
 import type {
   QuickDscrTier,
@@ -209,7 +210,7 @@ function dscrColor(dscr: number): string {
   if (dscr >= 1.25) return swatch.emerald;
   if (dscr >= 1.0) return swatch.rainforest;
   if (dscr >= 0.85) return swatch.lemon;
-  return "#c25b4e";
+  return "#a64949";
 }
 
 export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
@@ -276,7 +277,7 @@ export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         detail: "The estimated rent is materially below the full monthly payment. Lowering the payment or increasing verified rent would change the arithmetic.",
         purposeNote: ctx?.low ?? "Adjust the loan amount, rate, or rent assumptions to see how the estimate changes.",
         nextStep: "You can store these inputs with the configured intake for later review. A submission does not confirm staff notification or follow-up. This result is not a decline or a statement that financing is available.",
-        color: "#c25b4e",
+        color: "#a64949",
       };
   }
 }
@@ -540,7 +541,7 @@ const inputStyle: React.CSSProperties = {
 
 const inputErrorStyle: React.CSSProperties = {
   ...inputStyle,
-  borderColor: "#c25b4e",
+  borderColor: "#a64949",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -560,10 +561,10 @@ const helperStyle: React.CSSProperties = {
 };
 
 // Error ink. NOT theme `risk.danger` (#e06363): on this pistachio card that red
-// lands at ~2.9:1, which fails AA for 12px text. #c25b4e is the same red family
+// lands at ~2.9:1, which fails AA for 12px text. #a64949 is the same red family
 // darkened to clear the cream ground — the risk tokens themselves still carry the
 // signal in the submission Notice below (tinted ground + colored border/icon).
-const DANGER_INK = "#c25b4e";
+const DANGER_INK = "#a64949";
 
 const errorMsgStyle: React.CSSProperties = {
   fontSize: 12,
@@ -924,7 +925,7 @@ function Step1({
         {loanExceedsValue ? null : (
           <p style={helperStyle}>
             LTV (how the loan amount compares to the property value — lower = more equity = better terms):{" "}
-            <strong style={{ color: ltv > 0.8 ? "#c25b4e" : swatch.midnight, fontFamily: font.mono }}>
+            <strong style={{ color: ltv > 0.8 ? "#a64949" : swatch.midnight, fontFamily: font.mono }}>
               {data.propertyValue > 0 ? `${(ltv * 100).toFixed(0)}%` : "—"}
             </strong>
             {ltv > 0.8 && data.propertyValue > 0
@@ -2188,6 +2189,11 @@ export default function QualifyModal({ open, onClose, initialDraft = null }: Qua
         throw new Error(`Lead endpoint returned ${response.status}`);
       }
       if (formGeneration !== formGenerationRef.current) return;
+      // The conversion event. Fired only after the intake route accepted the
+      // lead, so it counts deliveries and not attempts. Deliberately carries no
+      // property of any kind — name, email, phone and the loan scenario are all
+      // PII and none of them belong in an analytics payload.
+      track(AnalyticsEvent.LeadSubmitted);
       setStep(5);
     } catch (err) {
       if (formGeneration !== formGenerationRef.current) return;

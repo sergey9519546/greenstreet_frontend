@@ -302,13 +302,19 @@ export default function PortfolioPage({
       `}</style>
 
       {/* ── TOOL ─────────────────────────────────────────────────────────── */}
+      {/* No hero section precedes this one (unlike ARMPage/RefiTrackerPage,
+          which open on an id="*-hero" section with no borderTop, then a tool
+          section with this same borderTop as the hero/tool separator). This
+          page's very first section is the tool itself, carrying its own
+          heading below ("Blended DSCR"), so the borderTop had nothing above
+          it to separate from — it rendered as a stray hairline directly
+          under the nav. Removed rather than building a new hero section. */}
       <section
         id="pf-tool"
         style={{
           background: dc.dark,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
-          borderTop: `1px solid ${dc.faded}`,
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
@@ -319,7 +325,7 @@ export default function PortfolioPage({
               Live portfolio aggregator
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap", marginBottom: 10 }}>
-              <h1 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.04, margin: 0, color: dc.cream }}>
+              <h1 style={{ fontSize: "clamp(23px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.04, margin: 0, color: dc.cream }}>
                 Blended DSCR{" "}
                 {rows.length === 0 ? (
                   <Mono style={{ color: "rgba(238,239,211,0.3)" }}>—</Mono>
@@ -360,7 +366,7 @@ export default function PortfolioPage({
             }}
           >
             {(() => {
-              const big = (color: string) => ({ display: "block" as const, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 700, letterSpacing: "-0.03em", color, lineHeight: 1 });
+              const big = (color: string) => ({ display: "block" as const, fontSize: "clamp(22px,3.5vw,44px)", fontWeight: 700, letterSpacing: "-0.03em", color, lineHeight: 1 });
               return [
                 { label: "Blended DSCR",     hint: "Combined rent ÷ combined payments. 1.25+ = strong; 1.0–1.24 = qualifies; below 1.0 = fix needed.", node: rows.length === 0 ? <Mono style={big("rgba(238,239,211,0.3)")}>—</Mono> : <CountUp value={agg.blend} decimals={2} suffix="x" style={big(blendColor)} /> },
                 { label: "Total Equity",      hint: "Sum of (property value minus loan balance) across all properties.", node: <CountUp value={agg.equity} group prefix="$" style={big(dc.cream)} /> },
@@ -892,7 +898,7 @@ export default function PortfolioPage({
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
                 Ready to finance your portfolio?
               </div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+              <h2 style={{ fontSize: "clamp(22px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
                 Greenstreet underwrites your entire book — one application.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>

@@ -65,7 +65,7 @@ export function DealRescuePanel({
             <div style={{ flex: '1 1 220px', minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: swatch.pistachio }}>{fix.label}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: riskColor(fix.risk), background: 'rgba(238,239,211,0.06)', borderRadius: 100, padding: '2px 8px' }}>{fix.risk} risk</span>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: riskColor(fix.risk), background: 'rgba(238,239,211,0.06)', borderRadius: 999, padding: '2px 8px' }}>{fix.risk} risk</span>
                 <span style={{ fontSize: 12, fontFamily: font.mono, color: swatch.emerald }}>{fix.impact}</span>
               </div>
               <div style={{ fontSize: 12.5, color: 'rgba(238,239,211,0.65)', lineHeight: 1.45 }}>{fix.description}</div>

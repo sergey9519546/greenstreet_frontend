@@ -503,7 +503,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
           </div>
           <h2
             style={{
-              fontSize: "clamp(28px,3.5vw,48px)",
+              fontSize: "clamp(22px,3.5vw,48px)",
               fontWeight: 600,
               lineHeight: 1.05,
               letterSpacing: "-0.02em",

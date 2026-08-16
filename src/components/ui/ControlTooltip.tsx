@@ -59,7 +59,6 @@ export const ControlTooltip: React.FC<ControlTooltipProps> = ({
             border: "1px solid rgba(216, 217, 88, 0.3)",
             borderRadius: radius.md,
             padding: "10px 14px",
-            boxShadow: "0 10px 25px -5px rgba(0,0,0,0.6)",
             zIndex: 9999,
             pointerEvents: "none",
           }}

@@ -365,7 +365,7 @@ export default function RefiTrackerPage({
                 color: "rgba(238,239,211,0.62)",
                 background: "rgba(238,239,211,0.06)",
                 border: "1px solid rgba(238,239,211,0.18)",
-                borderRadius: 100,
+                borderRadius: 999,
                 padding: "7px 14px",
                 marginBottom: 24,
               }}
@@ -396,7 +396,7 @@ export default function RefiTrackerPage({
                 <Mono
                   style={{
                     display: "block",
-                    fontSize: "clamp(32px,3.6vw,48px)",
+                    fontSize: "clamp(24px,3.6vw,48px)",
                     fontWeight: 600,
                     color: vColor,
                     lineHeight: 1,
@@ -412,7 +412,7 @@ export default function RefiTrackerPage({
                 <Mono
                   style={{
                     display: "block",
-                    fontSize: "clamp(32px,3.6vw,48px)",
+                    fontSize: "clamp(24px,3.6vw,48px)",
                     fontWeight: 600,
                     color: dc.cream,
                     lineHeight: 1,
@@ -428,7 +428,7 @@ export default function RefiTrackerPage({
                 <Mono
                   style={{
                     display: "block",
-                    fontSize: "clamp(32px,3.6vw,48px)",
+                    fontSize: "clamp(24px,3.6vw,48px)",
                     fontWeight: 600,
                     color: dc.cream,
                     lineHeight: 1,
@@ -571,7 +571,7 @@ export default function RefiTrackerPage({
       </section>
 
       {/* ── TOOL ──
-          This section was #003a39 and its cards were #004041, sitting on the
+          This section was #003a39 and its cards were #003738, sitting on the
           page's #003738 ground: three greens within six RGB points of each
           other, stacked. Read as one muddy field rather than three surfaces.
           DESIGN_SOURCE_OF_TRUTH allows exactly two surfaces — #003738 dark and
@@ -608,7 +608,7 @@ export default function RefiTrackerPage({
           <h2
             className="gs-reveal"
             style={{
-              fontSize: "clamp(26px,3.4vw,42px)",
+              fontSize: "clamp(21px,3.4vw,42px)",
               fontWeight: 600,
               letterSpacing: "-0.02em",
               margin: "0 0 32px",
@@ -713,7 +713,7 @@ export default function RefiTrackerPage({
                 </div>
                 <div
                   style={{
-                    fontSize: "clamp(28px,4vw,44px)",
+                    fontSize: "clamp(22px,4vw,44px)",
                     fontWeight: 700,
                     letterSpacing: "-0.02em",
                     color: vColor,
@@ -1009,7 +1009,7 @@ export default function RefiTrackerPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(48px,7vw,88px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Or: tap equity without refinancing</div>
-          <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "20ch" }}>Keep your {currentRate}% first lien. Borrow against the equity.</H2>
+          <H2 style={{ fontSize: "clamp(20px,3vw,38px)", margin: "0 0 12px", maxWidth: "20ch" }}>Keep your {currentRate}% first lien. Borrow against the equity.</H2>
           <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "62ch", margin: "0 0 26px" }}>
             A DSCR closed-end 2nd lien (the $21B market Angel Oak opened) pulls cash without touching a low-rate 1st lien or paying its prepay penalty. Qualifies on <strong style={{ color: dc.cream }}>combined</strong> DSCR = rent ÷ (1st payment + 2nd payment), CLTV ≤ 75%.
           </Lead>
@@ -1042,7 +1042,7 @@ export default function RefiTrackerPage({
               { v: secondLien.qualifies ? "QUALIFIES" : "TIGHT", l: `2nd pmt ${fmt$(secondLien.secondLienPayment)}/mo`, c: secondLien.qualifies ? dc.emerald : dc.lemon },
             ].map((s) => (
               <div key={s.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
-                <Mono style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
+                <Mono style={{ fontSize: "clamp(18px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
                 <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 8 }}>{s.l}</div>
               </div>
             ))}
@@ -1057,7 +1057,7 @@ export default function RefiTrackerPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(48px,7vw,88px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Refinance at maturity / ARM reset</div>
-          <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "22ch" }}>When the loan comes due, can the property refinance out?</H2>
+          <H2 style={{ fontSize: "clamp(20px,3vw,38px)", margin: "0 0 12px", maxWidth: "22ch" }}>When the loan comes due, can the property refinance out?</H2>
           <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "64ch", margin: "0 0 26px" }}>
             At a balloon maturity or ARM reset the new loan is capped by <strong style={{ color: dc.cream }}>both</strong> the 75% rate-term LTV and the DSCR floor — whichever binds first. If it can't cover the existing balance, you bring cash to close (the proceeds gap).
           </Lead>
@@ -1092,7 +1092,7 @@ export default function RefiTrackerPage({
               { v: refiGap.canRetireBalance ? "CLEARS" : "SHORT", l: `vs ${fmt$(currentBalance)} balance`, c: refiGap.canRetireBalance ? dc.emerald : risk.danger },
             ].map((s) => (
               <div key={s.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
-                <Mono style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
+                <Mono style={{ fontSize: "clamp(18px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
                 <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 8 }}>{s.l}</div>
               </div>
             ))}

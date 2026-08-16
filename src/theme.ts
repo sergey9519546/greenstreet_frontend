@@ -5,7 +5,7 @@
 export const swatch = {
   midnight: "#003738",        // --swatch--midnight-green
   midnightFaded: "#00373880", // --swatch--midnight-green-faded
-  // Was "#004041". Collapsed onto midnight: it was a third ground sitting 9 RGB
+  // Was "#003738". Collapsed onto midnight: it was a third ground sitting 9 RGB
   // points from #003738, used as the card fill across ~32 files, and
   // DESIGN_SOURCE_OF_TRUTH allows two surfaces with "no in-between tint" — it
   // names this exact hex as the single biggest reason app pages stopped looking

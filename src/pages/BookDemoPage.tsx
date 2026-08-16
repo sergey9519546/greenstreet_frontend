@@ -266,7 +266,7 @@ export default function BookDemoPage({
                   maxWidth: "16ch",
                   margin: 0,
                   color: swatch.pistachio,
-                  fontSize: "clamp(30px, 4vw, 48px)",
+                  fontSize: "clamp(23px, 4vw, 48px)",
                   lineHeight: 1,
                   letterSpacing: "-.05em",
                 }}

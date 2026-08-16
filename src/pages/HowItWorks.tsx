@@ -123,7 +123,7 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
         <div className="hiw-head" style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: CYAN, marginBottom: "14px" }}>
           How it works
         </div>
-        <h2 className="hiw-head" style={{ animationDelay: "0.08s", fontSize: "clamp(30px, 4vw, 52px)", fontWeight: 600, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.08, marginBottom: "14px", maxWidth: "760px" }}>
+        <h2 className="hiw-head" style={{ animationDelay: "0.08s", fontSize: "clamp(23px, 4vw, 52px)", fontWeight: 600, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.08, marginBottom: "14px", maxWidth: "760px" }}>
           Five steps. One application. Your deal — funded.
         </h2>
         <p className="hiw-head" style={{ animationDelay: "0.16s", fontSize: "18px", color: ICE, opacity: 0.85, maxWidth: "640px", lineHeight: 1.6, marginBottom: "clamp(40px, 5vw, 64px)" }}>
@@ -192,7 +192,7 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
                     <span style={{ fontSize: "22px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: LEMON, display: "inline-block", lineHeight: 1, width: 28, flexShrink: 0, transform: isActive ? "scale(1.12)" : "scale(1)", transition: "transform 0.35s ease" }}>{s.icon}</span>
-                    <span style={{ fontSize: "clamp(18px, 2.2vw, 22px)", fontWeight: 700, color: "#fff" }}>{s.title}</span>
+                    <span style={{ fontSize: "clamp(17px, 2.2vw, 22px)", fontWeight: 700, color: "#fff" }}>{s.title}</span>
                   </div>
                   <p style={{ fontSize: "15px", lineHeight: 1.65, color: ICE, opacity: 0.9, margin: 0 }}>{s.body}</p>
                 </AnimatedCard>

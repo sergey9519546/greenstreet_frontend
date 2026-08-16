@@ -268,7 +268,7 @@ export default function AboutPage({
               </div>
               <h2
                 style={{
-                  fontSize: "clamp(28px,3.4vw,46px)",
+                  fontSize: "clamp(22px,3.4vw,46px)",
                   fontWeight: 600,
                   letterSpacing: "-0.03em",
                   lineHeight: 1.04,
@@ -323,7 +323,7 @@ export default function AboutPage({
               </div>
               <h2
                 style={{
-                  fontSize: "clamp(28px,3.4vw,46px)",
+                  fontSize: "clamp(22px,3.4vw,46px)",
                   fontWeight: 600,
                   letterSpacing: "-0.03em",
                   lineHeight: 1.04,
@@ -378,7 +378,7 @@ export default function AboutPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(28px,3.5vw,48px)",
+                fontSize: "clamp(22px,3.5vw,48px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.0,
@@ -462,7 +462,7 @@ export default function AboutPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(34px,5vw,76px)",
+                fontSize: "clamp(24px,5vw,76px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.0,
@@ -475,41 +475,46 @@ export default function AboutPage({
           </div>
 
           <div className="gs-reveal ab-team-grid">
+            {/* No name/photo (see comment at :5-6) left an empty ~415×415
+                avatar square holding only a two-letter mark. Redesigned so
+                the ROLE — the actual discipline — is the tile's primary
+                content instead of a giant blank square; the mark now reads
+                as a small index code, not a monogram standing in for a face. */}
             {TEAM.map((m) => (
-              <div key={m.id}>
-                {/* Monogram — a functional mark for the discipline, not a person's initials */}
-                <div
+              <div
+                key={m.id}
+                style={{
+                  background: dc.teal,
+                  border: "1px solid rgba(238,239,211,0.10)",
+                  borderLeft: `3px solid ${dc.lemon}`,
+                  borderRadius: 9,
+                  padding: "22px 20px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  minHeight: 148,
+                  justifyContent: "flex-end",
+                }}
+              >
+                <span
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "100%",
-                    aspectRatio: "1",
-                    marginBottom: 14,
-                    borderRadius: 9,
-                    background: dc.teal,
-                    border: "1px solid rgba(238,239,211,0.10)",
+                    fontFamily: dc.mono,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase" as const,
+                    color: dc.lemon,
+                    userSelect: "none",
                   }}
                 >
-                  <span
-                    style={{
-                      fontFamily: dc.sans,
-                      fontSize: "clamp(28px,3.5vw,42px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.03em",
-                      color: dc.lemon,
-                      lineHeight: 1,
-                      userSelect: "none",
-                    }}
-                  >
-                    {m.mark}
-                  </span>
-                </div>
+                  {m.mark}
+                </span>
                 <div
                   style={{
-                    fontSize: 18,
+                    fontSize: "clamp(19px,2vw,25px)",
                     fontWeight: 600,
                     letterSpacing: "-0.02em",
+                    lineHeight: 1.18,
                     color: dc.cream,
                   }}
                 >
@@ -551,7 +556,7 @@ export default function AboutPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(32px,4vw,56px)",
+                fontSize: "clamp(24px,4vw,56px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.0,
@@ -642,7 +647,7 @@ export default function AboutPage({
           <div>
             <p
               style={{
-                fontSize: "clamp(19px,1.7vw,26px)",
+                fontSize: "clamp(18px,1.7vw,26px)",
                 fontWeight: 600,
                 lineHeight: 1.25,
                 letterSpacing: "-0.03em",
@@ -671,7 +676,7 @@ export default function AboutPage({
               <span
                 style={{
                   fontFamily: dc.sans,
-                  fontSize: "clamp(28px,3.5vw,48px)",
+                  fontSize: "clamp(22px,3.5vw,48px)",
                   fontWeight: 600,
                   letterSpacing: "-0.04em",
                   color: dc.lemon,
@@ -733,7 +738,7 @@ export default function AboutPage({
           >
             <div
               style={{
-                fontSize: "clamp(24px,2.6vw,34px)",
+                fontSize: "clamp(20px,2.6vw,34px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.08,
@@ -780,7 +785,7 @@ export default function AboutPage({
           >
             <div
               style={{
-                fontSize: "clamp(24px,2.6vw,34px)",
+                fontSize: "clamp(20px,2.6vw,34px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.08,
@@ -796,7 +801,7 @@ export default function AboutPage({
                 gap: 8,
                 color: dc.lemon,
                 fontWeight: 700,
-                fontSize: "clamp(22px,2.6vw,32px)",
+                fontSize: "clamp(19px,2.6vw,32px)",
                 fontFamily: dc.mono,
                 letterSpacing: "-0.03em",
                 alignSelf: "flex-start",

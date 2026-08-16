@@ -97,10 +97,10 @@ export default function GoLanding(p: GoLandingProps) {
         <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(64px,9vh,128px) ${dc.pad} clamp(56px,7vh,96px)` }}>
           <div style={{ maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,80px)", alignItems: "center" }} className="dc-hero">
             <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 26 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 999, marginBottom: 26 }}>
                 {p.eyebrow}
               </div>
-              <h1 style={{ fontSize: "clamp(46px,7vw,104px)", fontWeight: 600, lineHeight: 1.04, letterSpacing: "-0.04em", margin: "0 0 26px" }}>{p.title}</h1>
+              <h1 style={{ fontSize: "clamp(28px,7vw,104px)", fontWeight: 600, lineHeight: 1.04, letterSpacing: "-0.04em", margin: "0 0 26px" }}>{p.title}</h1>
               <p style={{ fontSize: "clamp(17px,1.5vw,22px)", fontWeight: 500, lineHeight: 1.5, letterSpacing: "-0.02em", color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 38px" }}>{p.lead}</p>
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
                 <button onClick={() => p.onNavigate(p.primaryCta.view)} style={{ display: "inline-flex", alignItems: "center", gap: 9, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 16, border: "none", cursor: "pointer", padding: "16px 32px", borderRadius: dc.r.md, fontFamily: dc.sans }}>
@@ -121,7 +121,7 @@ export default function GoLanding(p: GoLandingProps) {
                   <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>{p.mock.dealId}</span>
                 </div>
                 <div style={{ width: "100%", aspectRatio: "4 / 3", borderRadius: 10, background: "linear-gradient(135deg, rgba(238,239,211,0.08), rgba(238,239,211,0.02))", border: "1px solid rgba(238,239,211,0.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Mono style={{ fontSize: "clamp(40px,6vw,72px)", fontWeight: 600, color: dc.cream, letterSpacing: "-0.04em" }}>{p.mock.bigStat}</Mono>
+                  <Mono style={{ fontSize: "clamp(26px,6vw,72px)", fontWeight: 600, color: dc.cream, letterSpacing: "-0.04em" }}>{p.mock.bigStat}</Mono>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: `repeat(${p.mock.tiles.length},1fr)`, gap: 1, background: "rgba(238,239,211,0.12)", borderRadius: 9, overflow: "hidden", marginTop: 16 }}>
                   {p.mock.tiles.map((t) => (
@@ -152,7 +152,7 @@ export default function GoLanding(p: GoLandingProps) {
         <section id="go-flow" style={{ background: dc.cream, padding: `clamp(64px,9vh,128px) ${dc.pad}` }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.rain, marginBottom: 16 }}>{p.flowEyebrow}</div>
-            <h2 style={{ fontSize: "clamp(34px,5vw,72px)", fontWeight: 600, lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 14px", color: dc.dark }}>{p.flowTitle}</h2>
+            <h2 style={{ fontSize: "clamp(24px,5vw,72px)", fontWeight: 600, lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 14px", color: dc.dark }}>{p.flowTitle}</h2>
             <p style={{ fontSize: "clamp(16px,1.4vw,20px)", fontWeight: 500, color: "rgba(0,55,56,0.6)", maxWidth: "50ch", margin: "0 auto 56px", lineHeight: 1.5 }}>{p.flowLead}</p>
           </div>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
@@ -166,7 +166,7 @@ export default function GoLanding(p: GoLandingProps) {
               {p.flow.map((f) => (
                 <div key={f.step} style={{ textAlign: "center" }}>
                   <Mono style={{ fontSize: 13, fontWeight: 600, color: dc.rain, marginBottom: 10, display: "block" }}>{f.step}</Mono>
-                  <h3 style={{ fontSize: "clamp(22px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 10px", color: dc.dark }}>{f.title}</h3>
+                  <h3 style={{ fontSize: "clamp(19px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 10px", color: dc.dark }}>{f.title}</h3>
                   <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.6)", lineHeight: 1.5, margin: 0 }}>{f.body}</p>
                 </div>
               ))}
@@ -179,7 +179,7 @@ export default function GoLanding(p: GoLandingProps) {
           <div style={{ maxWidth: dc.maxW, margin: "0 auto", padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(28px,3vh,44px)`, display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 14 }}>{p.scenariosEyebrow}</div>
-              <h2 style={{ fontSize: "clamp(30px,4.4vw,60px)", fontWeight: 600, lineHeight: 1.0, letterSpacing: "-0.04em", margin: 0, color: dc.cream, maxWidth: "18ch" }}>{p.scenariosTitle}</h2>
+              <h2 style={{ fontSize: "clamp(23px,4.4vw,60px)", fontWeight: 600, lineHeight: 1.0, letterSpacing: "-0.04em", margin: 0, color: dc.cream, maxWidth: "18ch" }}>{p.scenariosTitle}</h2>
             </div>
             <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(238,239,211,0.62)", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>Scroll →</div>
           </div>
@@ -189,7 +189,7 @@ export default function GoLanding(p: GoLandingProps) {
                 <button key={c.num} onClick={() => p.onNavigate(c.view)} style={{ flex: "0 0 clamp(300px,30vw,400px)", background: c.bg, color: c.fg, borderRadius: 14, padding: 32, display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 360, border: "none", cursor: "pointer", textAlign: "left", fontFamily: dc.sans }}>
                   <div>
                     <Mono style={{ fontSize: 14, fontWeight: 600, opacity: 0.55, marginBottom: 24, display: "block", color: c.fg }}>{c.num}</Mono>
-                    <h3 style={{ fontSize: "clamp(22px,2.2vw,30px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05, margin: "0 0 12px" }}>{c.title}</h3>
+                    <h3 style={{ fontSize: "clamp(19px,2.2vw,30px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.05, margin: "0 0 12px" }}>{c.title}</h3>
                     <p style={{ fontSize: 15, fontWeight: 500, lineHeight: 1.5, opacity: 0.72, margin: 0 }}>{c.body}</p>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, marginTop: 28 }}>{c.tag} <span style={{ fontSize: 16 }}>→</span></div>
@@ -202,12 +202,12 @@ export default function GoLanding(p: GoLandingProps) {
         {/* ── VALUE GRID ────────────────────────────────────────────────────────── */}
         <section style={{ background: dc.cream, padding: `clamp(64px,8vh,112px) ${dc.pad}` }}>
           <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-            <h2 style={{ fontSize: "clamp(30px,4.4vw,58px)", fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.0, margin: "0 0 48px", maxWidth: "20ch", color: dc.dark }}>{p.valuesTitle}</h2>
+            <h2 style={{ fontSize: "clamp(23px,4.4vw,58px)", fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.0, margin: "0 0 48px", maxWidth: "20ch", color: dc.dark }}>{p.valuesTitle}</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "rgba(0,55,56,0.12)", borderRadius: 14, overflow: "hidden" }} className="dc-band-3">
               {p.values.map((v) => (
                 <div key={v.title} style={{ background: dc.cream, padding: 32, minHeight: 200 }}>
                   <div style={{ width: 44, height: 44, borderRadius: 10, background: v.chip, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 17, color: v.chipFg, marginBottom: 18 }}>{v.icon}</div>
-                  <h3 style={{ fontSize: "clamp(18px,1.8vw,23px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 8px", color: dc.dark }}>{v.title}</h3>
+                  <h3 style={{ fontSize: "clamp(17px,1.8vw,23px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 8px", color: dc.dark }}>{v.title}</h3>
                   <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(0,55,56,0.6)", lineHeight: 1.5, margin: 0 }}>{v.body}</p>
                 </div>
               ))}
@@ -222,7 +222,7 @@ export default function GoLanding(p: GoLandingProps) {
               <button key={i} onClick={() => p.onNavigate(c.view)} style={{ background: c.bg, color: c.fg || dc.dark, borderRadius: 16, padding: "clamp(32px,4vw,52px)", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 280, textAlign: "left", fontFamily: dc.sans }}>
                 <div style={{ fontSize: "clamp(15px,1.4vw,19px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.3, opacity: 0.85 }}>{c.blurb}</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 36 }}>
-                  <h2 style={{ fontSize: "clamp(28px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>{c.title}</h2>
+                  <h2 style={{ fontSize: "clamp(22px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>{c.title}</h2>
                   <span style={{ fontSize: 30 }}>→</span>
                 </div>
               </button>

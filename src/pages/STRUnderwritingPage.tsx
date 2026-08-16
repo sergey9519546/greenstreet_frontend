@@ -429,19 +429,27 @@ export default function STRUnderwritingPage({
         .str-field{display:flex;align-items:center;background:${dc.teal};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 12px;transition:border-color .15s;}
         .str-field:focus-within{border-color:${dc.lemon};outline:2px solid ${dc.lemon};outline-offset:1px;}
         .str-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.36);}
-        @media(max-width:991px){.str-hero-grid{grid-template-columns:1fr !important;} .str-tool-grid{grid-template-columns:1fr !important;} .str-3col{grid-template-columns:1fr 1fr !important;}}
-        @media(max-width:767px){.str-3col{grid-template-columns:1fr !important;}}
-        @media(max-width:479px){.str-worlds{grid-template-columns:1fr !important;}}
+        /* Removed: media-query rules for .str-hero-grid, .str-tool-grid, .str-3col,
+           .str-worlds — none of those classes are applied anywhere in this file
+           (only .str-field/.str-num are), so all four selectors matched zero
+           elements. Dead leftovers from an earlier layout. */
       `}</style>
 
       {/* ══ TOOL — dark teal, matches mockup #003a39 ══════════════════════ */}
+      {/* No hero section precedes this one (unlike ARMPage/RefiTrackerPage,
+          which open on an id="*-hero" section with no borderTop, then a tool
+          section with this same borderTop as the hero/tool separator). This
+          page folds its opening copy (eyebrow + h1 below) into the tool
+          section itself, so the borderTop had nothing above it to separate
+          from — it rendered as a stray hairline directly under the nav.
+          Removed rather than building a new hero section, since this section
+          already carries a proper heading (see "Underwritten DSCR" below). */}
       <section
         id="str-tool"
         style={{
           background: dc.dark,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
-          borderTop: "1px solid rgba(238,239,211,0.07)",
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
@@ -462,7 +470,7 @@ export default function STRUnderwritingPage({
             </div>
             <h1
               style={{
-                fontSize: "clamp(30px,3.8vw,52px)",
+                fontSize: "clamp(23px,3.8vw,52px)",
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
@@ -661,7 +669,7 @@ export default function STRUnderwritingPage({
                       <Mono
                         style={{
                           display: "block",
-                          fontSize: "clamp(22px,2.8vw,36px)",
+                          fontSize: "clamp(19px,2.8vw,36px)",
                           fontWeight: 600,
                           letterSpacing: "-0.03em",
                           color: dc.cream,
@@ -677,7 +685,7 @@ export default function STRUnderwritingPage({
                       <Mono
                         style={{
                           display: "block",
-                          fontSize: "clamp(22px,2.8vw,36px)",
+                          fontSize: "clamp(19px,2.8vw,36px)",
                           fontWeight: 600,
                           letterSpacing: "-0.03em",
                           color: dc.lemon,
@@ -693,7 +701,7 @@ export default function STRUnderwritingPage({
                       <Mono
                         style={{
                           display: "block",
-                          fontSize: "clamp(22px,2.8vw,36px)",
+                          fontSize: "clamp(19px,2.8vw,36px)",
                           fontWeight: 600,
                           letterSpacing: "-0.03em",
                           color: vColor,
@@ -771,7 +779,7 @@ export default function STRUnderwritingPage({
                           <Mono
                             style={{
                               display: "block",
-                              fontSize: "clamp(22px,2.8vw,36px)",
+                              fontSize: "clamp(19px,2.8vw,36px)",
                               fontWeight: 600,
                               letterSpacing: "-0.03em",
                               color: world.dscr >= 1.25 ? dc.emerald : world.dscr >= 1.0 ? dc.lemon : risk.danger,
@@ -1138,7 +1146,7 @@ export default function STRUnderwritingPage({
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
                 STR qualifies?
               </div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+              <h2 style={{ fontSize: "clamp(22px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
                 Get your STR rate from Greenstreet.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>

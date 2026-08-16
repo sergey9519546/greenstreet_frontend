@@ -424,7 +424,7 @@ export default function StressMatrixPage({
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase",
-              color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24,
+              color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 999, marginBottom: 24,
             }}>
               Stress Matrix · 12×10 grid · 5 zones
             </div>
@@ -499,7 +499,7 @@ export default function StressMatrixPage({
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: LEMON, marginBottom: 12 }}>
               Guided stress simulator · preliminary estimate
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 10px", color: CREAM }}>
+            <h2 style={{ fontSize: "clamp(23px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 10px", color: CREAM }}>
               Base{" "}
               <Mono style={{ color: CREAM }}>{baseDSCR.toFixed(2)}x</Mono>
               {" · "}
@@ -623,7 +623,7 @@ export default function StressMatrixPage({
                             background: on ? LEMON : "rgba(238,239,211,0.05)",
                             color: on ? DARK_INK : "rgba(238,239,211,0.82)",
                             border: `1px solid ${on ? LEMON : "rgba(238,239,211,0.14)"}`,
-                            borderRadius: 100, padding: "8px 15px", cursor: "pointer",
+                            borderRadius: 999, padding: "8px 15px", cursor: "pointer",
                             fontSize: 12.5, fontWeight: 600, letterSpacing: "-0.01em",
                             transition: "background 0.18s, color 0.18s, border-color 0.18s",
                           }}

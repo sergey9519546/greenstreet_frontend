@@ -54,7 +54,7 @@ function HyperframeScene({
           sandbox="allow-scripts"
           scrolling="no"
           loading="lazy"
-          style={{ ...cover, border: "none", background: "#00302e" }}
+          style={{ ...cover, border: "none", background: "#003738" }}
         />
       )}
     </>
@@ -255,7 +255,7 @@ function AggregateScoreboard() {
             transition: `opacity .6s ease ${0.1 + i * 0.12}s, transform .6s cubic-bezier(.22,.7,0,1) ${0.1 + i * 0.12}s`,
           }}
         >
-          <Mono style={{ display: "block", fontSize: "clamp(34px,4.4vw,54px)", fontWeight: 700, letterSpacing: "-0.03em", color: dc.lemon, lineHeight: 1 }}>
+          <Mono style={{ display: "block", fontSize: "clamp(24px,4.4vw,54px)", fontWeight: 700, letterSpacing: "-0.03em", color: dc.lemon, lineHeight: 1 }}>
             <CountUp value={shown ? a.value : 0} prefix={a.prefix} suffix={a.suffix} group={a.group} duration={1.1} />
           </Mono>
           <div style={{ fontSize: 15, fontWeight: 600, color: dc.cream, marginTop: 8, letterSpacing: "-0.01em" }}>{a.label}</div>
@@ -291,7 +291,7 @@ function DualTrackProof() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
             <div style={{ fontSize: "clamp(13px,1.2vw,15px)", fontWeight: 700, color: dc.dark, letterSpacing: "-0.01em" }}>{t.name}</div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-              <Mono style={{ fontSize: "clamp(22px,2.4vw,30px)", fontWeight: 700, color: t.color, letterSpacing: "-0.03em" }}>
+              <Mono style={{ fontSize: "clamp(19px,2.4vw,30px)", fontWeight: 700, color: t.color, letterSpacing: "-0.03em" }}>
                 <CountUp value={shown ? t.v : 0} decimals={2} suffix="x" duration={1.15} />
               </Mono>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: t.color, background: `${t.color}22`, border: `1px solid ${t.color}55`, borderRadius: 999, padding: "4px 11px" }}>{t.verdict}</span>
@@ -319,7 +319,7 @@ function MetricChip({ v, k }: StudyMetric) {
       <Mono
         style={{
           display: "block",
-          fontSize: "clamp(22px,2.4vw,32px)",
+          fontSize: "clamp(19px,2.4vw,32px)",
           fontWeight: 700,
           letterSpacing: "-0.03em",
           color: dc.lemon,
@@ -381,7 +381,7 @@ function StudyRow({
     >
       {/* Photo panel — big index + client wordmark composited over the scene */}
       <div className="cs-photo" style={{ order: photoLeft ? 0 : 1, ...rise(0) }}>
-        <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
+        <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#003738" }}>
           {s.scene && !reduce ? (
             // Live HyperFrames composition — the authored HTML/GSAP runs in a
             // sandboxed iframe (lazy: mounts only once the row reveals). Reduced
@@ -408,7 +408,7 @@ function StudyRow({
           {!(s.scene && !reduce) && (
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(140deg, rgba(0,55,56,0.34) 0%, rgba(0,55,56,0) 42%, rgba(0,55,56,0.88) 100%)" }} />
           )}
-          <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,22px)", left: "clamp(16px,1.8vw,26px)", fontSize: "clamp(28px,3.4vw,50px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.88)", lineHeight: 1, textShadow: "0 2px 16px rgba(0,26,24,0.6)" }}>{s.num}</Mono>
+          <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,22px)", left: "clamp(16px,1.8vw,26px)", fontSize: "clamp(22px,3.4vw,50px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.88)", lineHeight: 1 }}>{s.num}</Mono>
           {!(s.scene && !reduce) && (
             <div style={{ position: "absolute", left: "clamp(16px,1.8vw,24px)", right: "clamp(16px,1.8vw,24px)", bottom: "clamp(14px,1.6vw,20px)" }}>
               <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream }}>{s.company}</div>
@@ -425,7 +425,7 @@ function StudyRow({
           <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 600 }}>·</span>
           <span style={{ color: "rgba(238,239,211,0.55)", fontWeight: 600 }}>{s.type}</span>
         </div>
-        <h3 style={{ ...rise(0.06), fontSize: "clamp(22px,2.4vw,34px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.cream, lineHeight: 1.12, margin: "0 0 18px" }}>
+        <h3 style={{ ...rise(0.06), fontSize: "clamp(19px,2.4vw,34px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.cream, lineHeight: 1.12, margin: "0 0 18px" }}>
           {s.headline}
         </h3>
         <p style={{ ...rise(0.12), fontSize: "clamp(15px,1.2vw,19px)", fontWeight: 500, lineHeight: 1.6, color: "rgba(238,239,211,0.72)", margin: "0 0 28px", letterSpacing: "-0.01em" }}>
@@ -521,7 +521,7 @@ function StudyDetail({
 
             {/* 16:9 media panel — the study's animated explainer (poster fallback) */}
             <div className="cs-detail-media">
-              <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
+              <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#003738" }}>
                 {s.scene && !reduce ? (
                   <HyperframeScene
                     sceneKey={s.scene}
@@ -869,7 +869,7 @@ export default function CaseStudiesPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(28px,3.4vw,46px)",
+                fontSize: "clamp(22px,3.4vw,46px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
                 color: dc.dark,
@@ -928,7 +928,7 @@ export default function CaseStudiesPage({
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <h2
             style={{
-              fontSize: "clamp(28px,3.4vw,46px)",
+              fontSize: "clamp(22px,3.4vw,46px)",
               fontWeight: 600,
               letterSpacing: "-0.03em",
               color: dc.cream,

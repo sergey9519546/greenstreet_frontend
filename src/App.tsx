@@ -132,7 +132,16 @@ function warmAllRoutes() {
   if (_warmed || typeof window === "undefined") return;
   _warmed = true;
 
-  const entries = Object.entries(routeModules);
+  // ComplianceDashboard is excluded on purpose. import() EVALUATES a module, it
+  // does not merely fetch it, so warming it ran firebase's initializeApp/
+  // getAuth/getFirestore on every page view — including marketing landings that
+  // never touch Firebase. Its static closure is firebase + vendor + motion +
+  // icons: 1,183 KB raw / ~317 KB gzip, pulled and executed for one
+  // authenticated route nobody arrives on from search. The CLIENT_WORKSPACE
+  // gate below only guards rendering, not the import.
+  const entries = Object.entries(routeModules).filter(
+    ([name]) => name !== "ComplianceDashboard",
+  );
   const failures: string[] = [];
   Promise.all(
     entries.map(([name, load]) =>
@@ -729,6 +738,14 @@ export default function App() {
           window.location.href = "https://www.greenstreet.finance";
         }
         return null;
+      default:
+        // Without this the switch fell off the end and returned undefined, so
+        // <>{undefined}</> rendered NOTHING: a blank dark screen with the URL
+        // already rewritten. Twelve CTAs were passing a path ("tools/returns")
+        // where a PageView ("returns") was required, and every one of them
+        // destroyed the page instead of failing visibly. Rendering the
+        // not-found page makes a bad view survivable and obvious.
+        return <NotFoundPage key={pathname} onNavigate={goTo} />;
     }
   };
 
@@ -742,12 +759,22 @@ export default function App() {
         <Suspense fallback={<RouteFallback view={view} />}>
           <PageRenderer />
         </Suspense>
-        {view === "marketing" ||
-        view === "not-found" ||
+        {/* "marketing" is NOT in this list any more. Excluding it unmounted
+            QualifyWidget on the homepage, which also removed window.openQualify
+            — the global the widget's own docstring says exists "so any CTA on
+            the page (including the Webflow marketing layer) can open the
+            modal". So the one layer it was built for was the one layer that
+            could not reach it, and the hero CTA fell back to a full-page
+            navigation to /book-demo that dropped the visitor's answers.
+
+            The sticky pill stays off the marketing page via showTrigger, which
+            is what that exclusion was presumably protecting — the homepage keeps
+            its own design, and now also has a working funnel. */}
+        {view === "not-found" ||
         (view === "portal" && !CLIENT_WORKSPACE_CONFIGURED) ||
         QUALIFY_WIDGET_SUPPRESSED_VIEWS.has(view) ? null : (
           <QualifyWidget
-            showTrigger={view !== "book-demo"}
+            showTrigger={view !== "book-demo" && view !== "marketing"}
           />
         )}
       </div>

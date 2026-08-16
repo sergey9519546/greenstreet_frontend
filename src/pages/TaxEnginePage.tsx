@@ -213,7 +213,7 @@ export default function TaxEnginePage({
                 background: "rgba(238,239,211,0.06)",
                 border: "1px solid rgba(238,239,211,0.18)",
                 padding: "7px 14px",
-                borderRadius: 100,
+                borderRadius: 999,
                 marginBottom: 24,
               }}
             >
@@ -296,7 +296,7 @@ export default function TaxEnginePage({
               <span style={{ fontSize: 14, fontWeight: 600, color: dc.lemon }}>After-Tax IRR</span>
               <Mono
                 style={{
-                  fontSize: "clamp(36px,4vw,48px)",
+                  fontSize: "clamp(25px,4vw,48px)",
                   fontWeight: 600,
                   color: irrColor,
                   letterSpacing: "-0.03em",
@@ -338,7 +338,7 @@ export default function TaxEnginePage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(30px,3.8vw,52px)",
+                fontSize: "clamp(23px,3.8vw,52px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 lineHeight: 1.0,
@@ -681,7 +681,7 @@ export default function TaxEnginePage({
                     <Mono
                       style={{
                         display: "block",
-                        fontSize: "clamp(72px,9vw,120px)",
+                        fontSize: "clamp(32px,9vw,120px)",
                         fontWeight: 600,
                         letterSpacing: "-0.04em",
                         color: irrColor,

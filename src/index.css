@@ -89,11 +89,34 @@ button, input, select, textarea { font: inherit; }
   transform: translateY(0);
 }
 
+/* ── Heading scale ─────────────────────────────────────────────────────────
+   These three rules are why the app read as a desktop site squeezed onto a
+   phone. They were written to "match home .u-text-style-h1" — i.e. to adopt
+   the Webflow DESKTOP scale — and the !important made them beat every
+   responsive size the design system sets inline. Measured at 375px before
+   this change: h1 53.2px, h2 36.4px, h3 32px.
+
+   The Webflow ladder (--size--5-5rem etc.) only ever interpolates between a
+   desktop minimum and a desktop maximum; its floor is 52px. The homepage hero
+   escapes it via a @media(max-width:767px) override down to 27.5px, which is
+   exactly why the marketing page looked right and every tool page did not.
+
+   Rewritten so each curve hits a real phone size at 375px and the SAME
+   desktop maximum at 1440px, so wide viewports render identically:
+     h1  30px @375  ->  88px @1440   (was 53.2 @375)
+     h2  23px @375  ->  48px @1440   (was 36.4 @375)
+     h3  19px @375  ->  40px @1440   (was 32.0 @375)
+   Each is `clamp(mobile, intercept + slope·vw, desktop)` with the slope solved
+   over the 375->1440 range, so the growth is linear and continuous — no jump
+   at a breakpoint.
+
+   h1 line-height moves 1 -> 1.06: a display headline set solid is fine at
+   88px on one line, and cramped at 30px wrapping to three. */
 #root .page_wrap h1,
 #root .u-text-style-h1 {
   font-family: var(--font-display) !important;
-  font-size: clamp(3.25rem, 2.8rem + 2.25vw, 5.5rem) !important; /* matches home .u-text-style-h1 */
-  line-height: 1 !important;
+  font-size: clamp(1.875rem, 0.6rem + 5.45vw, 5.5rem) !important;
+  line-height: 1.06 !important;
   font-weight: 600 !important;
   letter-spacing: -0.02em !important;
 }
@@ -101,7 +124,7 @@ button, input, select, textarea { font: inherit; }
 #root .page_wrap h2,
 #root .u-text-style-h2 {
   font-family: var(--font-display) !important;
-  font-size: clamp(2.25rem, 2.1rem + 0.75vw, 3rem) !important; /* matches home .u-text-style-h2 */
+  font-size: clamp(1.4375rem, 0.89rem + 2.35vw, 3rem) !important;
   line-height: 1.1 !important;
   font-weight: 600 !important;
   letter-spacing: -0.02em !important;
@@ -110,7 +133,7 @@ button, input, select, textarea { font: inherit; }
 #root .page_wrap h3,
 #root .u-text-style-h3 {
   font-family: var(--font-display) !important;
-  font-size: clamp(2rem, 1.9rem + 0.5vw, 2.5rem) !important; /* matches home .u-text-style-h3 */
+  font-size: clamp(1.1875rem, 0.73rem + 1.97vw, 2.5rem) !important;
   line-height: 1.1 !important;
   font-weight: 600 !important;
   letter-spacing: -0.02em !important;
@@ -716,7 +739,19 @@ input:focus-visible,
 [tabindex]:focus-visible,
 .w-checkbox:has(:focus-visible) .w-checkbox-input--inputType-custom,
 .w-radio:has(:focus-visible) .w-form-formradioinput--inputType-custom {
-  outline: 2px solid var(--color-lemon-lime) !important;
+  /* Was --color-lemon-lime (#d8d958): 8.72:1 on the dark app ground, but
+     1.28:1 on pistachio, 1.20:1 on mint and 1.50:1 on white. So the focus ring
+     was effectively invisible on the sticky nav, every marketing form, and
+     .gs-num — the primary calculator number input, which always paints on a
+     light field. SC 1.4.11 needs 3:1 against adjacent colours.
+
+     #039692 is the one value that clears the bar on BOTH grounds (3.10:1 on
+     cream, 3.61:1 on dark), so the ring does not have to be scoped per
+     surface. It is also already what <select> and <textarea> receive from the
+     fallback further down this file, so this unifies the app rather than
+     introducing a new colour. Not a box-shadow ring — DESIGN_SOURCE_OF_TRUTH
+     forbids shadows. */
+  outline: 2px solid var(--color-light-green) !important;
   outline-offset: 2px !important;
 }
 

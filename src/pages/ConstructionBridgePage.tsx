@@ -336,7 +336,7 @@ export default function ConstructionBridgePage({
                         value={result.exitDscr}
                         decimals={2}
                         suffix="x"
-                        style={{ fontSize: "clamp(40px,4.4vw,54px)", fontWeight: 800, color: verdictColor, lineHeight: 1, letterSpacing: dc.tracking.tight }}
+                        style={{ fontSize: "clamp(26px,4.4vw,54px)", fontWeight: 800, color: verdictColor, lineHeight: 1, letterSpacing: dc.tracking.tight }}
                       />
                       <span style={{ fontSize: 14, fontWeight: 600, color: dc.ink.secondary }}>Stabilized DSCR</span>
                       <span

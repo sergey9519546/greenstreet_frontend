@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
-import { radius } from "../theme";
+import { radius, risk } from "../theme";
 import BottomCTA from "../design/BottomCTA";
 import ComplianceNote from "../design/ComplianceNote";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
@@ -64,7 +64,9 @@ export default function PerfectPropertyPage({
     // CQR (Certainty-Equivalent Score) Math
     const baseCqr = Math.min(99, Math.max(45, (track1Dscr * 40) + (track2Dscr > 1.0 ? 30 : 10) + (ltv <= 75 ? 20 : 10)));
 
-    // Monte Carlo Exceedance Probability (Simulated 10,000 runs)
+    // Exceedance probability — a closed-form clamp, NOT a simulation. This
+    // comment used to claim "Simulated 10,000 runs", and the user-facing copy
+    // echoed it. There is no sampling loop here; it is one linear expression.
     const exceedanceProb = Math.min(99.4, Math.max(55.0, 75 + (track1Dscr - 1.0) * 45));
 
     // OBBBA Year-1 Cost Segregation Depreciation
@@ -96,9 +98,9 @@ export default function PerfectPropertyPage({
       accent={dc.lemon}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "STR Tool", view: "tools/str-underwriting" },
-        { label: "Tax Engine", view: "tools/tax-engine" },
-        { label: "Returns", view: "tools/returns" },
+        { label: "STR Tool", view: "str-underwriting" },
+        { label: "Tax Engine", view: "tax-engine" },
+        { label: "Returns", view: "returns" },
         { label: "State Laws", view: "state-laws" },
       ]}
       cta={{ label: "Price This Deal →", view: "dscr-calculator" }}
@@ -128,7 +130,7 @@ export default function PerfectPropertyPage({
               background: "rgba(216,217,88,0.1)",
               border: "1px solid rgba(216,217,88,0.3)",
               padding: "6px 14px",
-              borderRadius: 100,
+              borderRadius: 999,
               marginBottom: 20,
             }}
           >
@@ -138,7 +140,10 @@ export default function PerfectPropertyPage({
             Regime-Aware Property Underwriting Copilot
           </H1>
           <Lead style={{ color: "rgba(238,239,211,0.75)", maxWidth: "64ch", margin: "0 auto 32px" }}>
-            Underwrite any rental property against ARV uncertainty, Dual-Track DSCR, 10,000-run Monte Carlo certainty scoring (CQR), and OBBBA Cost Segregation tax shelter.
+            {/* CQR is a closed-form clamp on Track 1/2 DSCR and LTV (see the
+                engine below), not a simulation — "Monte Carlo" overstated the
+                method here the same way it did in the results panel. */}
+            Underwrite any rental property against ARV uncertainty, Dual-Track DSCR, closed-form certainty scoring (CQR), and OBBBA Cost Segregation tax shelter.
           </Lead>
         </div>
       </section>
@@ -309,17 +314,26 @@ export default function PerfectPropertyPage({
               </div>
 
               <div>
+                {/* "High Signal Investment Profile" was a fixed headline, not
+                    a computed read of this deal — every deal saw the same
+                    words no matter what the inputs said. Neutralised to a
+                    label for the figure underneath rather than a claim about
+                    deal quality we can't back with a computation. */}
                 <div style={{ fontSize: 15, fontWeight: 700, color: dc.cream, marginBottom: 4 }}>
-                  High Signal Investment Profile
+                  Certainty Score Summary
                 </div>
+                {/* engineResults.exceedanceProb (:68) is a closed-form clamp
+                    on Track 1 DSCR, not a Monte Carlo simulation — the old
+                    copy claimed "10,000 Monte Carlo runs" that never ran.
+                    State the method honestly: a model estimate, not a sim. */}
                 <div style={{ fontSize: 13, color: "rgba(238,239,211,0.75)", lineHeight: 1.4 }}>
-                  10,000 Monte Carlo runs indicate a <strong>{engineResults.exceedanceProb}% probability of net profit</strong> over a {holdYears}-year hold.
+                  Model estimate: a <strong>{engineResults.exceedanceProb}% likelihood of positive net cash flow</strong> over a {holdYears}-year hold.
                 </div>
               </div>
 
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 11, color: "rgba(238,239,211,0.6)", textTransform: "uppercase" }}>Track 1 DSCR</div>
-                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.track1Dscr >= 1.0 ? dc.emerald : "#e57373" }}>
+                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.track1Dscr >= 1.0 ? dc.emerald : risk.dangerOnDark }}>
                   {engineResults.track1Dscr.toFixed(2)}x
                 </Mono>
               </div>
@@ -358,8 +372,14 @@ export default function PerfectPropertyPage({
                 <div style={{ fontSize: 13, color: "rgba(238,239,211,0.75)" }}>
                   Monthly PITIA Payment: <Mono style={{ color: dc.lemon }}>{fmt$(engineResults.pitiaMo)}</Mono>
                 </div>
-                <div style={{ fontSize: 12, color: dc.emerald, marginTop: 8, fontWeight: 600 }}>
-                  ✓ Clears 1.00x Lender Qualification Floor
+                {/* This used to be a hardcoded green checkmark that showed
+                    regardless of the DSCR above it — a red 0.73x could sit
+                    directly under a green "clears the floor" claim. Derive
+                    the pass/fail state (and its color) from the same
+                    track1Dscr the number itself renders, so the two can
+                    never contradict each other. */}
+                <div style={{ fontSize: 12, color: engineResults.track1Dscr >= 1.0 ? risk.positive : risk.dangerOnDark, marginTop: 8, fontWeight: 600 }}>
+                  {engineResults.track1Dscr >= 1.0 ? "✓ Clears 1.00x Lender Qualification Floor" : "✕ Below 1.00x Lender Qualification Floor"}
                 </div>
               </div>
 
@@ -367,7 +387,7 @@ export default function PerfectPropertyPage({
                 <div style={{ fontSize: 11, fontWeight: 700, color: dc.lemon, textTransform: "uppercase", marginBottom: 6 }}>
                   Track 2: Investor Net Carry
                 </div>
-                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.netCashFlowMo >= 0 ? dc.emerald : "#e57373", marginBottom: 6 }}>
+                <Mono style={{ fontSize: 28, fontWeight: 700, color: engineResults.netCashFlowMo >= 0 ? dc.emerald : "#e88a8a", marginBottom: 6 }}>
                   {fmt$(engineResults.netCashFlowMo)}<span style={{ fontSize: 14, color: "rgba(238,239,211,0.6)" }}>/mo</span>
                 </Mono>
                 <div style={{ fontSize: 13, color: "rgba(238,239,211,0.75)" }}>
@@ -390,8 +410,14 @@ export default function PerfectPropertyPage({
                   <Mono style={{ fontSize: 20, fontWeight: 700, color: dc.emerald }}>{fmt$(engineResults.year1TaxWriteoff)}</Mono>
                 </div>
                 <div>
+                  {/* The address field above is free text — this page has no
+                      way to parse or verify a state from it, so a hardcoded
+                      "Florida" claim was fabricated for every address typed
+                      in, including ones nowhere near Florida. Nothing here
+                      can compute a state, so point at the tool that actually
+                      knows state-by-state PPP rules instead of asserting one. */}
                   <div style={{ fontSize: 12, color: "rgba(238,239,211,0.6)" }}>State PPP Legal Status</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: dc.emerald, marginTop: 2 }}>✓ Florida 5-Yr Stepdown Allowed</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: dc.cream, marginTop: 2 }}>Varies by property state — see State Rules</div>
                 </div>
               </div>
             </div>
@@ -411,7 +437,6 @@ export default function PerfectPropertyPage({
                   border: "none",
                   cursor: "pointer",
                   fontFamily: dc.sans,
-                  boxShadow: "0 4px 14px rgba(216,217,88,0.3)",
                 }}
               >
                 Price Live Loan Package →
@@ -450,7 +475,7 @@ export default function PerfectPropertyPage({
         onNavigate={onNavigate}
         cards={[
           { bg: dc.lemon, fg: dc.dark, blurb: "Run your property's rent through the Greenstreet DSCR engine — 60 seconds, no credit pull.", title: "Price My Deal Now", view: "dscr-calculator" },
-          { bg: dc.mintBg, fg: dc.dark, blurb: "Underwrite short-term rental revenue with AirDNA projections and 12-month actuals.", title: "Run STR Underwriting", view: "tools/str-underwriting" },
+          { bg: dc.mintBg, fg: dc.dark, blurb: "Underwrite short-term rental revenue with AirDNA projections and 12-month actuals.", title: "Run STR Underwriting", view: "str-underwriting" },
         ]}
       />
     </DcShell>

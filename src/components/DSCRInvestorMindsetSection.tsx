@@ -20,7 +20,7 @@ export default function DSCRInvestorMindsetSection({
   return (
     <section
       style={{
-        background: "#002829", // Deep midnight green
+        background: "#003738", // Deep midnight green
         color: dc.cream,
         padding: "clamp(60px, 8vw, 110px) clamp(1.5rem, 4vw, 3rem)",
         borderTop: "1px solid rgba(238, 239, 211, 0.12)",
@@ -43,7 +43,7 @@ export default function DSCRInvestorMindsetSection({
           >
             The DSCR Investor Underwriting Standard
           </div>
-          <H2 style={{ color: dc.cream, fontSize: "clamp(32px, 4.5vw, 56px)", marginBottom: 16, lineHeight: 1.05 }}>
+          <H2 style={{ color: dc.cream, fontSize: "clamp(24px, 4.5vw, 56px)", marginBottom: 16, lineHeight: 1.05 }}>
             Everything a DSCR Investor Needs to Know
           </H2>
           <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "66ch", margin: "0 auto" }}>
@@ -100,7 +100,6 @@ export default function DSCRInvestorMindsetSection({
             borderRadius: radius.lg,
             border: "1px solid rgba(238, 239, 211, 0.16)",
             padding: "clamp(24px, 4vw, 44px)",
-            boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
           }}
         >
           {/* TAB 1: COVERAGE TIERS & LTV */}
@@ -180,24 +179,24 @@ export default function DSCRInvestorMindsetSection({
                       <td style={{ padding: "16px", color: dc.cream }}>Standard Par Rate</td>
                     </tr>
                     <tr style={{ borderBottom: "1px solid rgba(238,239,211,0.1)", background: "rgba(238,239,211,0.03)" }}>
-                      <td style={{ padding: "16px", fontWeight: 700, color: "#e8927c" }}>
+                      <td style={{ padding: "16px", fontWeight: 700, color: "#e88a8a" }}>
                         0.75x – 0.99x (Low-Ratio)
                       </td>
                       <td style={{ padding: "16px" }}><Mono style={{ color: dc.cream, fontWeight: 700 }}>Up to 70%</Mono></td>
                       <td style={{ padding: "16px" }}><Mono style={{ color: dc.cream }}>Up to 65%</Mono></td>
                       <td style={{ padding: "16px" }}>700+</td>
                       <td style={{ padding: "16px" }}>6–12 Months</td>
-                      <td style={{ padding: "16px", color: "#e8927c" }}>+0.375% Rate Adjustment</td>
+                      <td style={{ padding: "16px", color: "#e88a8a" }}>+0.375% Rate Adjustment</td>
                     </tr>
                     <tr style={{ background: "rgba(238,239,211,0.06)" }}>
-                      <td style={{ padding: "16px", fontWeight: 700, color: "#e57373" }}>
+                      <td style={{ padding: "16px", fontWeight: 700, color: "#e88a8a" }}>
                         No-Ratio (&lt; 0.75x or Vacant)
                       </td>
                       <td style={{ padding: "16px" }}><Mono style={{ color: dc.cream, fontWeight: 700 }}>Up to 65%</Mono></td>
                       <td style={{ padding: "16px" }}><Mono style={{ color: dc.cream }}>Up to 60%</Mono></td>
                       <td style={{ padding: "16px" }}>720+</td>
                       <td style={{ padding: "16px" }}>12 Months</td>
-                      <td style={{ padding: "16px", color: "#e57373" }}>+0.625% Rate Adjustment</td>
+                      <td style={{ padding: "16px", color: "#e88a8a" }}>+0.625% Rate Adjustment</td>
                     </tr>
                   </tbody>
                 </table>

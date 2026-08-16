@@ -74,7 +74,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
   return (
     <div style={{ background: swatch.white, border: `1px solid ${swatch.midnightFaded}`, borderRadius: radius.md, padding: "clamp(20px,2.6vw,32px)" }}>
       <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: accent, marginBottom: 6 }}>True cost of capital</div>
-      <h3 style={{ fontSize: "clamp(20px,2.4vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 8px", color: dc.dark }}>Compare offers on total cost — not the rate.</h3>
+      <h3 style={{ fontSize: "clamp(18px,2.4vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 8px", color: dc.dark }}>Compare offers on total cost — not the rate.</h3>
       <p style={{ fontSize: 14, color: "rgba(0,55,56,0.6)", margin: "0 0 22px", lineHeight: 1.55, maxWidth: "64ch" }}>
         The lowest rate is not always the cheapest loan. Enter the real quotes you've received — points, fees, and prepay penalty included — and we rank them by what you actually pay over your hold. Replace the example numbers below.
       </p>
@@ -151,7 +151,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
           const recoupColor =
             tc?.pointsRecoupVerdict === "GREEN" ? dc.emerald
               : tc?.pointsRecoupVerdict === "YELLOW" ? "#b8901f"
-                : "#c0554f";
+                : "#a64949";
           const recoupNote =
             !tc || r.upfront === 0 || tc.pointsPct === 0
               ? null
@@ -163,7 +163,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
               <div style={{ flex: "2 1 200px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 15, fontWeight: 700, color: dc.dark }}>{r.label}</span>
-                  {best && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream, background: dc.rain, borderRadius: 100, padding: "3px 9px" }}>Recommended</span>}
+                  {best && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream, background: dc.rain, borderRadius: 999, padding: "3px 9px" }}>Recommended</span>}
                 </div>
                 <div style={{ fontSize: 12, color: "rgba(0,55,56,0.55)" }}>{r.rate}% · interest {fmt(r.interestPaid)} · upfront {fmt(r.upfront)} · prepay {fmt(r.prepayPenalty)}</div>
                 {recoupNote && (
@@ -173,7 +173,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
                 )}
               </div>
               <div style={{ flex: "1 1 120px", textAlign: "right" }}>
-                <Mono style={{ fontSize: "clamp(20px,2.4vw,26px)", fontWeight: 700, letterSpacing: "-0.02em", color: best ? dc.rain : dc.dark, display: "block", lineHeight: 1 }}>{fmt(r.totalCost)}</Mono>
+                <Mono style={{ fontSize: "clamp(18px,2.4vw,26px)", fontWeight: 700, letterSpacing: "-0.02em", color: best ? dc.rain : dc.dark, display: "block", lineHeight: 1 }}>{fmt(r.totalCost)}</Mono>
                 <div style={{ fontSize: 11, color: "rgba(0,55,56,0.5)", marginTop: 3 }}>all-in over {holdYears}yr</div>
                 {tc && (
                   <div style={{ fontSize: 12, fontWeight: 700, fontFamily: dc.mono, color: best ? dc.rain : "rgba(0,55,56,0.7)", marginTop: 6, letterSpacing: "-0.01em" }}>

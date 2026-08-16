@@ -62,7 +62,7 @@ export default function VacationHomesPage({
         <div className="gs-dot-grid" />
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For Vacation &amp; Second Homes</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 999, marginBottom: 24 }}>For Vacation &amp; Second Homes</div>
             <H1 style={{ margin: "0 0 18px", maxWidth: "14ch" }}>The getaway that pays for itself.</H1>
             <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
               Keep the weeks you want. Rent the rest. A second home financed as an investment qualifies on the nights you let — so your escape carries part of its own payment.
@@ -71,7 +71,7 @@ export default function VacationHomesPage({
           </div>
           <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.5vw,30px)" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE, marginBottom: 14 }}>Your month, split</div>
-            <div style={{ display: "flex", height: 22, borderRadius: 100, overflow: "hidden", marginBottom: 8 }}>
+            <div style={{ display: "flex", height: 22, borderRadius: 999, overflow: "hidden", marginBottom: 8 }}>
               <div style={{ width: `${(useNights / 30) * 100}%`, background: dc.lemon, transition: "width .25s" }} />
               <div style={{ width: `${(rentNights / 30) * 100}%`, background: BLUE, transition: "width .25s" }} />
             </div>
@@ -79,7 +79,7 @@ export default function VacationHomesPage({
               <span><b style={{ color: dc.lemon }}>{useNights}</b> nights yours</span>
               <span><b style={{ color: BLUE }}>{rentNights}</b> nights rented</span>
             </div>
-            <Mono style={{ fontSize: "clamp(30px,4vw,44px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, display: "block", lineHeight: 1 }}>{paysForItself ? "Pays for itself" : fmt$(net) + "/mo"}</Mono>
+            <Mono style={{ fontSize: "clamp(23px,4vw,44px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, display: "block", lineHeight: 1 }}>{paysForItself ? "Pays for itself" : fmt$(net) + "/mo"}</Mono>
             <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{paysForItself ? `rental income covers the ${fmt$(pay)} payment` : `your carry after ${fmt$(income)} rental income`}</div>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function VacationHomesPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Use vs. earn</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>Slide the month. Watch it pay you back.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(22px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>Slide the month. Watch it pay you back.</h2>
           <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Drag the split between nights you keep and nights you rent. The more you rent, the more your getaway offsets its own payment.</p>
           <div className="vac-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, alignItems: "stretch" }}>
             {/* slider + bar */}
@@ -112,7 +112,7 @@ export default function VacationHomesPage({
             {/* result */}
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: `1px solid ${paysForItself ? "rgba(77,189,151,0.4)" : "rgba(238,239,211,0.1)"}`, padding: "clamp(24px,3vw,36px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: paysForItself ? dc.emerald : BLUE, marginBottom: 8 }}>{paysForItself ? "It pays for itself" : "Your monthly carry"}</div>
-              <Mono style={{ fontSize: "clamp(40px,6vw,72px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, lineHeight: 0.9 }}>{paysForItself ? "$0" : fmt$(net)}</Mono>
+              <Mono style={{ fontSize: "clamp(26px,6vw,72px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, lineHeight: 0.9 }}>{paysForItself ? "$0" : fmt$(net)}</Mono>
               <div style={{ fontSize: 14, color: "rgba(238,239,211,0.65)", marginTop: 12, lineHeight: 1.5 }}>
                 {fmt$(income)} rental income offsets {offsetPct}% of the {fmt$(pay)} payment. {paysForItself ? "The income covers the loan — you own a getaway at no monthly cost." : `You'd carry ${fmt$(net)} a month and keep ${useNights} nights for yourself.`}
               </div>
@@ -125,7 +125,7 @@ export default function VacationHomesPage({
       {/* WHY */}
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>A second home, financed like the asset it is.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(21px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>A second home, financed like the asset it is.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
             {[
               { t: "Qualify on the rental nights", s: "We underwrite the income from the nights you let — not your salary. Use it yourself the rest of the year." },

@@ -105,6 +105,7 @@ var import_express = require("express");
 
 // src/middleware/validate.ts
 var import_zod = require("zod");
+var MAX_ISSUE_MESSAGE = 200;
 function validateBody(schema) {
   return (req, res, next) => {
     try {
@@ -114,7 +115,12 @@ function validateBody(schema) {
       if (error instanceof import_zod.ZodError) {
         const issues = error.issues.map((i) => ({
           field: i.path.join("."),
-          message: i.message
+          // Zod's invalid_enum_value message embeds the received value in full,
+          // so an oversized field is echoed verbatim into both the 400 body and
+          // the retained log line below. /api/dscr/solve is anonymous and hands
+          // the whole 100kb body straight to this middleware, which turned a
+          // bad enum into a ~99kb response and a ~99kb log entry. Cap it.
+          message: i.message.length > MAX_ISSUE_MESSAGE ? `${i.message.slice(0, MAX_ISSUE_MESSAGE)}\u2026 (truncated)` : i.message
         }));
         logger.warn({ issues, path: req.path }, "Validation failed");
         res.status(400).json({ error: "Validation failed", issues });
@@ -3734,6 +3740,7 @@ var LeadSubmissionSchema = import_zod3.z.object({
   path: ["loanAmount"],
   message: "Loan amount must be below property value"
 });
+var WEBHOOK_TIMEOUT_MS = 2500;
 var LEAD_BODY_LIMIT_BYTES = 8 * 1024;
 var ACCEPTED_RESPONSE = Object.freeze({ accepted: true });
 function isAlreadyExists(error) {
@@ -3768,6 +3775,77 @@ function createStorageOnlyLeadDeliveryRecorder(options = {}) {
         updatedAt: import_firestore2.FieldValue.serverTimestamp()
       });
       return { status: "not_configured" };
+    } catch (error) {
+      if (isAlreadyExists(error)) return { status: "existing" };
+      throw error;
+    }
+  };
+}
+function resolveWebhook(env) {
+  const raw = env.LEAD_DELIVERY_WEBHOOK_URL?.trim();
+  if (!raw) return null;
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    logger.error(
+      { route: "lead-intake", stage: "delivery-config" },
+      "LEAD_DELIVERY_WEBHOOK_URL is not a valid URL; lead delivery is disabled"
+    );
+    return null;
+  }
+  if (parsed.protocol !== "https:" || parsed.username || parsed.password) {
+    logger.error(
+      { route: "lead-intake", stage: "delivery-config", protocol: parsed.protocol },
+      "LEAD_DELIVERY_WEBHOOK_URL must be https and carry no credentials; lead delivery is disabled"
+    );
+    return null;
+  }
+  return { url: parsed.toString(), token: env.LEAD_DELIVERY_WEBHOOK_TOKEN?.trim() || void 0 };
+}
+function createLeadDeliveryRecorder(options = {}) {
+  const env = options.env ?? process.env;
+  const webhook = resolveWebhook(env);
+  if (!webhook) return createStorageOnlyLeadDeliveryRecorder(options);
+  const doFetch = options.fetchImpl ?? fetch;
+  return async (lead) => {
+    let delivered = false;
+    try {
+      const response = await doFetch(webhook.url, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...webhook.token ? { authorization: `Bearer ${webhook.token}` } : {}
+        },
+        body: JSON.stringify({ type: "lead.created", lead }),
+        signal: AbortSignal.timeout(WEBHOOK_TIMEOUT_MS)
+      });
+      delivered = response.ok;
+      if (!response.ok) {
+        logger.warn(
+          { route: "lead-intake", stage: "delivery", status: response.status },
+          "Lead delivery webhook returned a non-2xx status"
+        );
+      }
+    } catch (error) {
+      logger.warn(
+        {
+          route: "lead-intake",
+          stage: "delivery",
+          errorName: error instanceof Error ? error.name : "UnknownError"
+        },
+        "Lead delivery webhook did not complete"
+      );
+    }
+    const store = options.store ?? getAdminFirestore();
+    try {
+      await store.collection("leadDelivery").doc(lead.submissionId).create({
+        attemptCount: 1,
+        channel: "webhook",
+        status: delivered ? "delivered" : "failed",
+        updatedAt: import_firestore2.FieldValue.serverTimestamp()
+      });
+      return { status: delivered ? "delivered" : "failed" };
     } catch (error) {
       if (isAlreadyExists(error)) return { status: "existing" };
       throw error;
@@ -3858,12 +3936,12 @@ var import_express4 = require("express");
 var import_zod4 = require("zod");
 var import_firestore3 = require("firebase-admin/firestore");
 var SdrDispatchSchema = import_zod4.z.object({
-  dealId: import_zod4.z.string().min(1),
-  address: import_zod4.z.string().min(1),
-  city: import_zod4.z.string(),
-  state: import_zod4.z.string(),
-  estimatedValue: import_zod4.z.number().positive(),
-  distressReason: import_zod4.z.string().optional()
+  dealId: import_zod4.z.string().min(1).max(128),
+  address: import_zod4.z.string().min(1).max(200),
+  city: import_zod4.z.string().max(100),
+  state: import_zod4.z.string().max(64),
+  estimatedValue: import_zod4.z.number().positive().finite().max(1e9),
+  distressReason: import_zod4.z.string().max(500).optional()
 });
 var sdrRouter = (0, import_express4.Router)();
 sdrRouter.post("/dispatch", async (req, res) => {
@@ -3886,7 +3964,7 @@ sdrRouter.post("/dispatch", async (req, res) => {
       campaign: "distressed_pre_approval"
     };
     await getAdminFirestore().collection("sdr_outreach").add(outreachRecord);
-    logger.info({ dealId, address }, "AI SDR email dispatched to orchestration queue");
+    logger.info({ dealId }, "AI SDR email dispatched to orchestration queue");
     res.status(202).json({ success: true, message: "SDR Outreach Sequence Triggered" });
   } catch (error) {
     logger.error({ error, dealId }, "Failed to dispatch SDR email");
@@ -4274,10 +4352,12 @@ app.use(
   leadLimiter,
   createLeadsRouter({
     allowedOrigins,
-    recordDeliveryStatus: createStorageOnlyLeadDeliveryRecorder()
+    // Delivers to LEAD_DELIVERY_WEBHOOK_URL when set; otherwise records the
+    // truthful storage-only state exactly as before.
+    recordDeliveryStatus: createLeadDeliveryRecorder()
   })
 );
-app.use("/api/sdr", apiLimiter, sdrRouter);
+app.use("/api/sdr", apiLimiter, requireAuth, sdrRouter);
 app.use("/api/narrate", narrateLimiter, requireAuth, narrationQuota, narrateRouter);
 app.use(errorHandler);
 // Annotate the CommonJS export names for ESM import in node:

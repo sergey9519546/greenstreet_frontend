@@ -89,7 +89,7 @@ export const dc = {
   mintBg: MINT_BG,         // #e8e9bf
   lemon: LEMON,            // #d8d958
   rain: RAINFOREST,        // #006565
-  // Collapsed to the canonical dark surface. This was #004041 — a third ground
+  // Collapsed to the canonical dark surface. This was #003738 — a third ground
   // sitting 9 RGB points from #003738, used as the card fill on 32 files and
   // ~74 call sites. DESIGN_SOURCE_OF_TRUTH allows two surfaces and states there
   // is "no in-between tint"; the doc names this specific hex as the single
@@ -105,7 +105,7 @@ export const dc = {
   // Kept as a named token instead of deleted so the 74 call sites keep
   // compiling and any future divergence is a deliberate edit here, not a hex
   // pasted into a page.
-  teal: MIDNIGHT,          // was #004041 — now the same ground as dc.dark
+  teal: MIDNIGHT,          // was #003738 — now the same ground as dc.dark
   emerald: swatch.emerald, // #4dbd97
   // Semantic accent split (W4 — ration the brand color). Lemon is RESERVED for
   // the ONE live/primary action per view (the changing CountUp number, the
@@ -563,7 +563,7 @@ export function HeroProof({
           aspectRatio: "1.08",
           borderRadius: radius.lg,
           overflow: "hidden",
-          background: `linear-gradient(160deg, ${swatch.darkTeal} 0%, #003738 60%, #002a2b 100%)`,
+          background: `linear-gradient(160deg, ${swatch.darkTeal} 0%, #003738 60%, #003738 100%)`,
           border: "1px solid rgba(238,239,211,0.16)",
           boxShadow: "inset 0 1px 0 rgba(238,239,211,0.07)",
         }}
@@ -607,9 +607,26 @@ export function HeroProof({
           {/* Footer: real inputs (supporting) + honest verdict */}
           <div className="hp-panel" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
             <div style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", fontFamily: font.mono, letterSpacing: "-0.01em" }}>{sub}</div>
+            {/* The verdict chip sits on MIDNIGHT, not MINT_BG. chip.color is the
+                ON-DARK risk ramp (callers pass zoneColor, documented as the
+                dark-card ramp), and painting it on mint put four of the five
+                verdict states between 1.20:1 and 2.00:1 — the most important
+                string on the page, effectively unreadable. On #003738 the same
+                ramp is caution 8.72:1, warning 7.06:1, positive 5.64:1,
+                dangerOnDark 5.26:1: all pass, and the colour coding survives.
+
+                The chip was also the only light island on an otherwise dark
+                panel — its sibling `sub` text is cream ink — so this is more
+                consistent with the two-surface system, not less. */}
             {chip && (
-              <div className="hp-chip" style={{ background: MINT_BG, borderRadius: radius.md, padding: "12px 16px", border: "1px solid rgba(0,55,56,0.12)" }}>
-                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: RAINFOREST, marginBottom: 3 }}>Verdict</div>
+              // role="status" (implicit aria-live="polite"): the verdict is
+              // recomputed as the visitor drags a slider or edits a field, and
+              // it changed silently before this — a screen-reader user got no
+              // signal that the answer they came for had moved. Scoped to the
+              // chip alone on purpose; announcing the whole results column
+              // would re-read the entire panel on every keystroke.
+              <div role="status" className="hp-chip" style={{ background: MIDNIGHT, borderRadius: radius.md, padding: "12px 16px", border: "1px solid rgba(238,239,211,0.16)" }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 3 }}>Verdict</div>
                 <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: "0.05em", textTransform: "uppercase", color: chip.color }}>{chip.label}</div>
               </div>
             )}
