@@ -358,6 +358,8 @@ export function PremiumSlider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        aria-label={label}
+        aria-valuetext={formatValue(value)}
         style={{
           width: "100%",
           accentColor: swatch.rainforest,

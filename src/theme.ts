@@ -176,6 +176,10 @@ export const onLight = {
   primary: "#003738",
   secondary: "rgba(0,55,56,0.66)",
   tertiary: "rgba(0,55,56,0.5)",
+  // AA-safe label ink. The audit flagged rgba(0,55,56,0.5) at 2.96:1 on white
+  // (DealAnalyzerPage, TrueCostComparator). 0.7 measures 5.22:1 on white, 4.85:1
+  // on pistachio, ~4.9:1 on mint — clears 4.5:1 on every light ground.
+  label: "rgba(0,55,56,0.7)",
 } as const;
 
 // ── Deal-depth ground ramp ────────────────────────────────────────────────────

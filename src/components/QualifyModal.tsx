@@ -267,7 +267,9 @@ export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         detail: "The estimated rent is below the full monthly payment. A different structure may change the arithmetic, but this tool does not determine product eligibility.",
         purposeNote: ctx?.low ?? "Adjust the loan amount, rate, or rent assumptions to see how the estimate changes.",
         nextStep: "You can store these assumptions with the configured intake for later review. A submission does not confirm staff notification or follow-up. Do not treat this result as evidence that a sub-1.0 product is available.",
-        color: "#b8a820",
+        // AA text on the light grounds: #b8a820 measured 2.07:1 on pistachio;
+        // this darkened olive-amber is 5.44:1 on pistachio / 5.11:1 on mint.
+        color: "#6d5f0c",
       };
     case "UNLIKELY":
     default:
@@ -1569,12 +1571,12 @@ function Step3({
           marginBottom: 20,
           padding: "14px 16px",
           background: isBorderlineOrLow
-            ? "rgba(184,168,32,0.08)"
+            ? "rgba(109,95,12,0.10)"
             : swatch.mint,
           borderRadius: radius.sm,
           lineHeight: 1.55,
           borderLeft: isBorderlineOrLow
-            ? "3px solid #b8a820"
+            ? "3px solid #6d5f0c"
             : `3px solid ${swatch.emerald}`,
         }}
       >

@@ -1016,7 +1016,9 @@ export default function StressMatrixPage({
                                       return (
                                         <td
                                           key={ci}
-                                          style={{ padding: 2 }}
+                                          style={{ padding: 2, outlineOffset: -2 }}
+                                          tabIndex={0}
+                                          aria-label={`DSCR ${cell.track1DSCR.toFixed(2)} at ${offsetBps >= 0 ? "+" : ""}${offsetBps} basis points rate shock and ${cell.rentOffsetPct >= 0 ? "+" : ""}${cell.rentOffsetPct.toFixed(0)} percent rent change, ${zoneLabel(cell.riskZone).toLowerCase()}. Press Enter to pin this scenario.`}
                                           onMouseEnter={(e) => {
                                             const rect = (e.currentTarget.closest("[style*='overflow']") as HTMLElement)?.getBoundingClientRect();
                                             const tdRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -1031,6 +1033,17 @@ export default function StressMatrixPage({
                                             rateBps: offsetBps, rentPct: cell.rentOffsetPct,
                                             dscr: cell.track1DSCR, zone: cell.riskZone,
                                           })}
+                                          onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                              e.preventDefault();
+                                              setPinned({
+                                                rateBps: offsetBps, rentPct: cell.rentOffsetPct,
+                                                dscr: cell.track1DSCR, zone: cell.riskZone,
+                                              });
+                                            } else if (e.key === "Escape") {
+                                              setPinned(null);
+                                            }
+                                          }}
                                         >
                                           <div className="sm-cell" style={cellStyle(cell.riskZone, isBaseCell, isHovered)}>
                                             {cell.track1DSCR.toFixed(2)}
@@ -1215,6 +1228,7 @@ function SliderField({
       <PremiumSlider
         min={min} max={max} step={step} value={value}
         onChange={onChange}
+        ariaLabel={label}
         accentColor={accentColor}
         trackColor="rgba(238,239,211,0.12)"
       />

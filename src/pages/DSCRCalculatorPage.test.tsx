@@ -224,4 +224,27 @@ describe('DSCRCalculatorPage — live DSCR', () => {
       purpose: 'purchase',
     });
   });
+
+  describe('accessible verdict and controls', () => {
+    it('names both sliders and wraps the verdict in a live region', () => {
+      const { container } = renderPage();
+
+      // The two PremiumSliders must carry an accessible name — bare range
+      // inputs announce as a number, not "Down payment" / "Interest rate".
+      expect(screen.getByRole('slider', { name: 'Down payment' })).toBeInTheDocument();
+      expect(screen.getByRole('slider', { name: 'Interest rate' })).toBeInTheDocument();
+
+      // The verdict subtree (chip + headline + text) is a polite live region,
+      // scoped away from the gauge so result changes are announced once.
+      const liveRegions = Array.from(
+        container.querySelectorAll('[aria-live="polite"][aria-atomic="true"]'),
+      );
+      expect(liveRegions.length).toBeGreaterThan(0);
+      expect(
+        liveRegions.some((region) =>
+          /qualif|sub-1\.0|floor|green deal|strong coverage/i.test(region.textContent ?? ''),
+        ),
+      ).toBe(true);
+    });
+  });
 });

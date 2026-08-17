@@ -143,6 +143,19 @@ describe('QualifyModal — lead funnel', () => {
     expect(within(dialog()).getAllByText(expectedTier).length).toBeGreaterThan(0);
   });
 
+  it('paints the Borderline and Below Threshold verdicts in AA-contrast ink', () => {
+    // Borderline (SPECIALIST_REQUIRED) and Below Threshold (UNLIKELY) are the
+    // two highest-stakes strings in the funnel. Their ink must clear 4.5:1 on
+    // the mint/pistachio grounds — #b8a820 measured 2.07:1 before this fix.
+    const borderline = dscrVerdict(classifyQuickDscr(0.9).tier, 'purchase');
+    expect(borderline.tier).toBe('Borderline');
+    expect(borderline.color).toBe('#6d5f0c');
+
+    const below = dscrVerdict(classifyQuickDscr(0.7).tier, 'purchase');
+    expect(below.tier).toBe('Below Threshold');
+    expect(below.color).toBe('#a64949');
+  });
+
   it('hydrates the opening step from an in-memory non-PII scenario draft', async () => {
     render(
       <QualifyModal

@@ -468,32 +468,34 @@ export default function STRUnderwritingPage({
             >
               Live STR engine
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(23px,3.8vw,52px)",
-                fontWeight: 600,
-                letterSpacing: "-0.04em",
-                lineHeight: 1.0,
-                margin: "0 0 10px",
-                color: dc.cream,
-              }}
-            >
-              Underwritten DSCR{" "}
-              {bestDSCR === null ? (
-                <Mono style={{ color: vColor }}>—</Mono>
-              ) : (
-                <CountUp value={bestDSCR} decimals={2} suffix="x" style={{ color: vColor }} />
-              )}
-            </h1>
-            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.62)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
-              {bestDSCR === null
-                ? "Enter your deal details to see the underwritten DSCR."
-                : bestDSCR >= 1.25
-                ? `DSCR of ${dscrStr} is strong — the selected qualifying rent comfortably covers the full monthly payment (principal, interest, taxes, insurance, and any HOA dues). Most DSCR programs approve at this level.`
-                : bestDSCR >= 1.0
-                ? `DSCR of ${dscrStr} qualifies but is close to the minimum. Check the month-by-month table below — if off-season months dip below 1.0x you'll need cash reserves (months of mortgage payments kept in the bank after closing) to cover the gap.`
-                : `DSCR of ${dscrStr} is below 1.0x — the qualifying rent does not cover the full monthly payment. Consider increasing STR revenue projections, reducing the loan amount, or checking if a no-ratio DSCR program (which skips the rent-to-payment test) applies.`}
-            </p>
+            <div aria-live="polite" aria-atomic="true">
+              <h1
+                style={{
+                  fontSize: "clamp(23px,3.8vw,52px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.04em",
+                  lineHeight: 1.0,
+                  margin: "0 0 10px",
+                  color: dc.cream,
+                }}
+              >
+                Underwritten DSCR{" "}
+                {bestDSCR === null ? (
+                  <Mono style={{ color: vColor }}>—</Mono>
+                ) : (
+                  <CountUp value={bestDSCR} decimals={2} suffix="x" style={{ color: vColor }} />
+                )}
+              </h1>
+              <p style={{ fontSize: 15, color: "rgba(238,239,211,0.62)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+                {bestDSCR === null
+                  ? "Enter your deal details to see the underwritten DSCR."
+                  : bestDSCR >= 1.25
+                  ? `DSCR of ${dscrStr} is strong — the selected qualifying rent comfortably covers the full monthly payment (principal, interest, taxes, insurance, and any HOA dues). Most DSCR programs approve at this level.`
+                  : bestDSCR >= 1.0
+                  ? `DSCR of ${dscrStr} qualifies but is close to the minimum. Check the month-by-month table below — if off-season months dip below 1.0x you'll need cash reserves (months of mortgage payments kept in the bank after closing) to cover the gap.`
+                  : `DSCR of ${dscrStr} is below 1.0x — the qualifying rent does not cover the full monthly payment. Consider increasing STR revenue projections, reducing the loan amount, or checking if a no-ratio DSCR program (which skips the rent-to-payment test) applies.`}
+              </p>
+            </div>
           </div>
 
           {/* inputs + results split */}

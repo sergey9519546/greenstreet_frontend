@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import DataVintageLine from "../design/DataVintageLine";
-import { swatch, radius, risk } from "../theme";
+import { swatch, radius, risk, onLight } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import { computeTcoRate } from "../engine/tcoDscr";
@@ -353,27 +353,27 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 </div>
               </div>
 
-              <p style={{ fontSize: 12, color: "rgba(0,55,56,0.5)", marginBottom: 18, lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: onLight.label, marginBottom: 18, lineHeight: 1.5 }}>
                 {isQuickMode
                   ? "60-Second Mode: Plug in price, down payment, and rent. Taxes, insurance, & rates are auto-estimated."
                   : "Pro Mode: Fine-tune exact annual property taxes, insurance, market rent (Form 1007), and HOA fees."}
               </p>
 
               <div style={{ marginBottom: 16 }}>
-                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Purchase Price</span>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: onLight.label, marginBottom: 7 }}>Purchase Price</span>
                 <CurrencyInput value={price} onChange={setPrice} prefix="$" style={{ padding: "10px 12px" }} />
               </div>
               
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Down Payment</span>
+                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: onLight.label, marginBottom: 7 }}>Down Payment</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: dc.dark }}>{down}%</span>
                 </div>
-                <PremiumSlider value={down} min={10} max={40} step={1} onChange={setDown} />
+                <PremiumSlider value={down} min={10} max={40} step={1} onChange={setDown} ariaLabel="Down payment" />
               </div>
 
               <div style={{ marginBottom: 16 }}>
-                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Monthly Rent</span>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: onLight.label, marginBottom: 7 }}>Monthly Rent</span>
                 <CurrencyInput value={rent} onChange={setRent} prefix="$" style={{ padding: "10px 12px" }} />
               </div>
 
@@ -381,37 +381,37 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 <>
                   <div style={{ marginBottom: 20 }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Interest Rate</span>
+                      <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: onLight.label, marginBottom: 7 }}>Interest Rate</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: dc.dark }}>{rate.toFixed(3)}%</span>
                     </div>
-                    <PremiumSlider value={rate} min={5.0} max={10.0} step={0.125} onChange={setRate} />
+                    <PremiumSlider value={rate} min={5.0} max={10.0} step={0.125} onChange={setRate} ariaLabel="Interest rate" />
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Annual Property Taxes</span>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: onLight.label, marginBottom: 7 }}>Annual Property Taxes</span>
                     <CurrencyInput value={tax} onChange={setTax} prefix="$" style={{ padding: "10px 12px" }} />
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Annual Insurance</span>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: onLight.label, marginBottom: 7 }}>Annual Insurance</span>
                     <CurrencyInput value={ins} onChange={setIns} prefix="$" style={{ padding: "10px 12px" }} />
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>HOA / mo</span>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: onLight.label, marginBottom: 7 }}>HOA / mo</span>
                     <CurrencyInput value={hoa} onChange={setHoa} prefix="$" style={{ padding: "10px 12px" }} />
                   </div>
                 </>
               )}
 
               <label style={{ display: "block", marginBottom: 16 }}>
-                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Market Rent — 1007 (optional)</span>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: onLight.label, marginBottom: 7 }}>Market Rent — 1007 (optional)</span>
                 <CurrencyInput value={marketRent} onChange={setMarketRent} prefix="$" style={{ padding: "10px 12px" }} />
                 <span style={{ display: "block", fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 6, lineHeight: 1.4 }}>The appraiser's market rent. If your stated rent sits well above it, lenders underwrite to the lower figure.</span>
               </label>
 
               <label style={{ display: "block", marginBottom: 0 }}>
-                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>State (2-letter)</span>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: onLight.label, marginBottom: 7 }}>State (2-letter)</span>
                 <div className="da-field">
                   <input className="da-num" type="text" maxLength={2} value={stateCode} onChange={(e) => setStateCode(e.target.value.toUpperCase().slice(0, 2))} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600, textTransform: "uppercase" }} />
                 </div>
@@ -438,7 +438,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                     {verdictHeadline}
                   </div>
                   <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(0,55,56,0.65)", marginBottom: 12, lineHeight: 1.5, letterSpacing: "-0.01em" }}>{verdictNote}</p>
-                  <p style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.5)", margin: 0, lineHeight: 1.5, padding: "10px 14px", background: `${verdictBorder}18`, borderRadius: radius.sm, border: `1px solid ${verdictBorder}44` }}>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: onLight.label, margin: 0, lineHeight: 1.5, padding: "10px 14px", background: `${verdictBorder}18`, borderRadius: radius.sm, border: `1px solid ${verdictBorder}44` }}>
                     <strong style={{ color: "rgba(0,55,56,0.75)" }}>Next step: </strong>{nextStep}
                   </p>
 
@@ -494,8 +494,8 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 4 }}>Rent vs PITIA (full monthly payment)</div>
                     <BalanceScale rent={rent} payment={pitia} size={210} />
                     <div style={{ display: "flex", justifyContent: "space-between", width: "90%", marginTop: 2 }}>
-                      <span style={{ fontSize: 11, color: "rgba(0,55,56,0.5)", fontWeight: 500 }}>{fmt(rent)} rent</span>
-                      <span style={{ fontSize: 11, color: "rgba(0,55,56,0.5)", fontWeight: 500 }}>{fmt(pitia)} PITIA</span>
+                      <span style={{ fontSize: 11, color: onLight.label, fontWeight: 500 }}>{fmt(rent)} rent</span>
+                      <span style={{ fontSize: 11, color: onLight.label, fontWeight: 500 }}>{fmt(pitia)} PITIA</span>
                     </div>
                   </div>
                 </div>
@@ -510,7 +510,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   ].map((m) => (
                     <div key={m.label} style={{ background: `${verdictBorder}14`, borderRadius: radius.sm, padding: "clamp(10px,1.2vw,14px)", textAlign: "center", border: `1px solid ${verdictBorder}22` }}>
                       <Mono style={{ display: "block", fontSize: "clamp(16px,2vw,22px)", fontWeight: 600, letterSpacing: "-0.02em", color: m.color }}>{m.val}</Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginTop: 3 }}>{m.label}</div>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: onLight.label, marginTop: 3 }}>{m.label}</div>
                       <div style={{ fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 1 }}>{m.sub}</div>
                     </div>
                   ))}

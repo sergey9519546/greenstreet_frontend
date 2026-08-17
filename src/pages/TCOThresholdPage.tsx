@@ -341,10 +341,12 @@ export default function TCOThresholdPage({
                 <span style={{ fontSize: 14, fontWeight: 600, color: dc.ink.secondary }}>TCO DSCR</span>
               </div>
 
-              <div style={{ fontSize: 15, fontWeight: 600, color: verdictInk, marginBottom: 20 }}>
-                {clearsFloor
-                  ? "Clears the 1.00 floor with reserves funded"
-                  : "Below the 1.00 floor once reserves are funded"}
+              <div aria-live="polite" aria-atomic="true">
+                <div style={{ fontSize: 15, fontWeight: 600, color: verdictInk, marginBottom: 20 }}>
+                  {clearsFloor
+                    ? "Clears the 1.00 floor with reserves funded"
+                    : "Below the 1.00 floor once reserves are funded"}
+                </div>
               </div>
 
               {/* Inputs restated next to the output — a readout, not a second copy

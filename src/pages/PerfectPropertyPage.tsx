@@ -267,6 +267,7 @@ export default function PerfectPropertyPage({
                 max={85}
                 step={5}
                 onChange={setLtv}
+                ariaLabel="Loan-to-value"
               />
             </div>
 
@@ -378,8 +379,10 @@ export default function PerfectPropertyPage({
                     the pass/fail state (and its color) from the same
                     track1Dscr the number itself renders, so the two can
                     never contradict each other. */}
-                <div style={{ fontSize: 12, color: engineResults.track1Dscr >= 1.0 ? risk.positive : risk.dangerOnDark, marginTop: 8, fontWeight: 600 }}>
-                  {engineResults.track1Dscr >= 1.0 ? "✓ Clears 1.00x Lender Qualification Floor" : "✕ Below 1.00x Lender Qualification Floor"}
+                <div aria-live="polite" aria-atomic="true">
+                  <div style={{ fontSize: 12, color: engineResults.track1Dscr >= 1.0 ? risk.positive : risk.dangerOnDark, marginTop: 8, fontWeight: 600 }}>
+                    {engineResults.track1Dscr >= 1.0 ? "✓ Clears 1.00x Lender Qualification Floor" : "✕ Below 1.00x Lender Qualification Floor"}
+                  </div>
                 </div>
               </div>
 

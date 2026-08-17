@@ -641,7 +641,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       </span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{down}% · {fmt(price * down / 100)}</Mono>
                     </div>
-                    <PremiumSlider min={20} max={50} step={5} value={down} onChange={setDown} />
+                    <PremiumSlider min={20} max={50} step={5} value={down} onChange={setDown} ariaLabel="Down payment" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}><span>20%</span><span>50%</span></div>
                   </div>
                   <div>
@@ -656,7 +656,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       </span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{rate.toFixed(3)}%</Mono>
                     </div>
-                    <PremiumSlider min={4} max={12} step={0.125} value={rate} onChange={setRate} />
+                    <PremiumSlider min={4} max={12} step={0.125} value={rate} onChange={setRate} ariaLabel="Interest rate" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}><span>4%</span><span>12%</span></div>
                   </div>
                   <div>
@@ -870,14 +870,17 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
                 {/* ── TIER 1 · VERDICT (dominant) ── */}
                 <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(28px,3vw,40px)', border: `1px solid ${zoneColor}55` }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: zoneChipBg, border: `1px solid ${zoneColor}`, borderRadius: 999, padding: '6px 14px', marginBottom: 12 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: zoneColor, display: 'inline-block' }}></span>
-                    <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: zoneColor }}>{verdictLabel}</span>
+                  {/* Verdict subtree only — the gauge below stays out of the live region */}
+                  <div aria-live="polite" aria-atomic="true">
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: zoneChipBg, border: `1px solid ${zoneColor}`, borderRadius: 999, padding: '6px 14px', marginBottom: 12 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: zoneColor, display: 'inline-block' }}></span>
+                      <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: zoneColor }}>{verdictLabel}</span>
+                    </div>
+                    <div style={{ fontSize: 'clamp(18px,2vw,26px)', fontWeight: 600, color: zoneColor, letterSpacing: '-0.025em', marginBottom: 6, lineHeight: 1.15 }}>
+                      {verdictHeadline}
+                    </div>
+                    <p style={{ fontSize: 'clamp(14px,1.2vw,16px)', fontWeight: 500, lineHeight: 1.55, color: 'rgba(238,239,211,0.72)', margin: '0 0 22px' }}>{verdictText}</p>
                   </div>
-                  <div style={{ fontSize: 'clamp(18px,2vw,26px)', fontWeight: 600, color: zoneColor, letterSpacing: '-0.025em', marginBottom: 6, lineHeight: 1.15 }}>
-                    {verdictHeadline}
-                  </div>
-                  <p style={{ fontSize: 'clamp(14px,1.2vw,16px)', fontWeight: 500, lineHeight: 1.55, color: 'rgba(238,239,211,0.72)', margin: '0 0 22px' }}>{verdictText}</p>
 
                   {/* Gauge + the binding constraint, side by side */}
                   <div className="dscr-verdict-inner" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(16px,3vw,36px)', alignItems: 'center' }}>

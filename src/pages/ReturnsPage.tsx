@@ -485,16 +485,18 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             <h2 style={{ fontSize: "clamp(23px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 12px", color: dc.cream }}>
               Levered IRR <span style={{ color: irrColor }}>{irrStr}</span> · {emStr} equity multiple
             </h2>
-            <div style={{
-              display: "flex", alignItems: "flex-start", gap: 14,
-              background: levIRR >= 12 ? "rgba(77,189,151,0.1)" : levIRR >= 8 ? "rgba(216,217,88,0.1)" : risk.dangerBg,
-              border: `1px solid ${levIRR >= 12 ? "rgba(77,189,151,0.25)" : levIRR >= 8 ? "rgba(216,217,88,0.25)" : "rgba(224,99,99,0.2)"}`,
-              borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 660,
-            }}>
-              <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={20} />
-              <p style={{ fontSize: 14, fontWeight: 500, color: dc.cream, margin: 0, lineHeight: 1.5 }}>
-                {verdictText}
-              </p>
+            <div aria-live="polite" aria-atomic="true">
+              <div style={{
+                display: "flex", alignItems: "flex-start", gap: 14,
+                background: levIRR >= 12 ? "rgba(77,189,151,0.1)" : levIRR >= 8 ? "rgba(216,217,88,0.1)" : risk.dangerBg,
+                border: `1px solid ${levIRR >= 12 ? "rgba(77,189,151,0.25)" : levIRR >= 8 ? "rgba(216,217,88,0.25)" : "rgba(224,99,99,0.2)"}`,
+                borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 660,
+              }}>
+                <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={20} />
+                <p style={{ fontSize: 14, fontWeight: 500, color: dc.cream, margin: 0, lineHeight: 1.5 }}>
+                  {verdictText}
+                </p>
+              </div>
             </div>
           </div>
 

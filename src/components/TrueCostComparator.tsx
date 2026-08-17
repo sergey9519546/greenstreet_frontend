@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { dc, Mono } from "../design/dc";
-import { swatch, radius } from "../theme";
+import { swatch, radius, onLight } from "../theme";
 import { compareTrueCost, type LoanCostQuote } from "../engine/trueCostOfCapital";
 import { computeAEY } from "../engine/trueCostEngine";
 import type { PrepayType } from "../engine/types";
@@ -69,7 +69,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
   const fmtPct = (n: number) => n.toFixed(2) + "%";
 
   const fieldStyle: React.CSSProperties = { width: "100%", border: `1.5px solid ${swatch.midnightFaded}`, background: swatch.white, borderRadius: radius.sm, padding: "9px 11px", fontFamily: dc.sans, fontSize: 14, fontWeight: 600, color: dc.dark, outline: "none" };
-  const labelStyle: React.CSSProperties = { display: "block", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 5 };
+  const labelStyle: React.CSSProperties = { display: "block", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: onLight.label, marginBottom: 5 };
 
   return (
     <div style={{ background: swatch.white, border: `1px solid ${swatch.midnightFaded}`, borderRadius: radius.md, padding: "clamp(20px,2.6vw,32px)" }}>
@@ -174,7 +174,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
               </div>
               <div style={{ flex: "1 1 120px", textAlign: "right" }}>
                 <Mono style={{ fontSize: "clamp(18px,2.4vw,26px)", fontWeight: 700, letterSpacing: "-0.02em", color: best ? dc.rain : dc.dark, display: "block", lineHeight: 1 }}>{fmt(r.totalCost)}</Mono>
-                <div style={{ fontSize: 11, color: "rgba(0,55,56,0.5)", marginTop: 3 }}>all-in over {holdYears}yr</div>
+                <div style={{ fontSize: 11, color: onLight.label, marginTop: 3 }}>all-in over {holdYears}yr</div>
                 {tc && (
                   <div style={{ fontSize: 12, fontWeight: 700, fontFamily: dc.mono, color: best ? dc.rain : "rgba(0,55,56,0.7)", marginTop: 6, letterSpacing: "-0.01em" }}>
                     {fmtPct(tc.aey)} AEY

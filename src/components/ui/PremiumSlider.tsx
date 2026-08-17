@@ -10,7 +10,7 @@ interface PremiumSliderProps {
   accentColor?: string;
   trackColor?: string;
   /** Accessible name. Range inputs with no label announce as a bare number. */
-  ariaLabel?: string;
+  ariaLabel: string;
   /** Spoken value, e.g. "40 percent" or "$170,000". Falls back to the number. */
   ariaValueText?: string;
 }

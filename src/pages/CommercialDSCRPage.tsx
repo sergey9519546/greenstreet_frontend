@@ -274,7 +274,9 @@ export default function CommercialDSCRPage({
             <Eyebrow color={dc.lemon} style={{ marginBottom: 12 }}>
               Live underwriting
             </Eyebrow>
-            <H2 style={{ margin: "0 0 10px", color: dc.cream }}>{verdictSentence}</H2>
+            <div aria-live="polite" aria-atomic="true">
+              <H2 style={{ margin: "0 0 10px", color: dc.cream }}>{verdictSentence}</H2>
+            </div>
             <p style={{ fontSize: 15, fontWeight: 500, color: dc.ink.secondary, margin: 0, letterSpacing: dc.tracking.snug }}>
               {unitCount} units · {fmt$(grossRent)}/mo gross scheduled rent · {fmt$(loanAmount)} at {rate}%.
             </p>
