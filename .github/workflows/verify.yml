@@ -25,5 +25,8 @@ jobs:
       - run: npm test
       - run: npm run test:home-fidelity
       - run: npm run build
+      # FTC render-lock: no fabricated testimonial/logo/rate string may appear
+      # in any shipped HTML (16 CFR 465).
+      - run: npm run test:ftc
       - run: npm run test:project-brain
       - run: npm run test:delivery

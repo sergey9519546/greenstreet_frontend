@@ -4,6 +4,7 @@ import path from 'path';
 import {defineConfig} from 'vite';
 import type { UserConfig } from 'vite';
 import { replaceUnverifiedBookingEmbeds } from './src/marketing/bookingEmbed';
+import { CLAIM_REPLACEMENTS } from './src/marketing/claimReplacements';
 import { injectSchemaPlugin } from './vite-plugins/inject-schema';
 
 const OPTIONAL_RELEASE_SCRIPT_MARKERS = [
@@ -19,6 +20,20 @@ const OPTIONAL_RELEASE_SCRIPT_MARKERS = [
   "G-JERVW0S7X4",
   "GTM-WB2F5WH6",
 ] as const;
+
+/**
+ * Applies the homepage fabricated-claim replacements to index.html's static
+ * #webflow-root markup at build time, so the shell and every prerendered twin
+ * ship clean to non-JS crawlers. The same list drives the runtime homepage
+ * (MarketingHome) and the FTC render-lock (scripts/check-ftc-contract.ts);
+ * no-match pairs are no-ops, so this is safe to run on any document.
+ */
+export function applyClaimReplacements(html: string): string {
+  return CLAIM_REPLACEMENTS.reduce(
+    (result, [unsupported, replacement]) => result.replaceAll(unsupported, replacement),
+    html,
+  );
+}
 
 export function sanitizeReleaseHtml(html: string): string {
   return replaceUnverifiedBookingEmbeds(
@@ -39,7 +54,7 @@ export default defineConfig(() => {
         name: "release-html-sanitizer",
         enforce: "pre",
         transformIndexHtml(html) {
-          return sanitizeReleaseHtml(html)
+          return applyClaimReplacements(sanitizeReleaseHtml(html)
             // Optional analytics and de-anonymization are disabled until a
             // consent owner, retention policy, and verified production domain
             // are configured. The unverified legacy booking embed is replaced
@@ -103,6 +118,10 @@ export default defineConfig(() => {
               /(<div class="hero_form_wrap"[\s\S]*?<div class="form_main_error_text">)[^<]*(<\/div>)/,
               "$1This form does not submit information. Use Book a demo to continue.$2"
             )
+            // Fabricated claims in the static Webflow export (rates, lender
+            // stats, in-house funding, fake testimonials, placeholder phone)
+            // are swapped by applyClaimReplacements below — the same list the
+            // runtime homepage applies, so no-JS crawlers get the clean copy.
             // The markup already points at the correct image; only its stale
             // responsive source set references a file that was never shipped.
             .replaceAll(
@@ -115,7 +134,8 @@ export default defineConfig(() => {
             .replaceAll("+1 (555) 010-0000", "Book a demo")
             // The apex redirects to www; keep canonical and share metadata
             // aligned with the active production host.
-            .replaceAll("https://greenstreet.com", "https://www.greenstreet.finance");
+            .replaceAll("https://greenstreet.com", "https://www.greenstreet.finance")
+          );
         },
       },
       injectSchemaPlugin(),

@@ -14,6 +14,7 @@
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "sitemap": "tsx scripts/generate-sitemap.ts",
+    "test:ftc": "tsx scripts/check-ftc-contract.ts",
     "qa:interactions": "node scripts/interaction-qa.mjs",
     "test": "vitest run",
     "test:home-fidelity": "node scripts/check-home-contract.mjs",

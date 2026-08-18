@@ -36,6 +36,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      # FTC render-lock: no fabricated testimonial/logo/rate string may appear
+      # in any shipped HTML (16 CFR 465). Fails if a claim replacement breaks
+      # or a banned string is re-introduced into rendered output.
+      - name: Verify FTC render-lock
+        run: npm run test:ftc
+
       # Guards the production cold-start path. api/index.js require()s a bundle
       # emitted by `npm run build`; nothing else in CI ever resolves that
       # specifier, so a build-output rename silently 500s every /health and
