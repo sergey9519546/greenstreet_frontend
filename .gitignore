@@ -104,3 +104,4 @@ greenstreet_frontend/
 _to_delete/
 *.bundle
 *.tar.gz
+.env*
