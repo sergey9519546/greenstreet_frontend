@@ -33,7 +33,6 @@ import type { Server } from "node:http";
 import puppeteer from "puppeteer";
 import type { Browser, Page } from "puppeteer";
 import { readSitemapPaths, twinPathFor } from "./prerenderCore";
-
 const ROOT = path.resolve(import.meta.dirname, "..");
 const DIST = path.join(ROOT, "dist");
 const SITEMAP = path.join(ROOT, "public", "sitemap.xml");
@@ -74,7 +73,9 @@ const origin = `http://127.0.0.1:${port}`;
 // 2. Headless Chromium — same launch args as scripts/interaction-qa.mjs.
 // Preferred engine: puppeteer's bundled Chrome (deterministic on CI). On
 // machines where that build can't run (e.g. a missing VC++ runtime on
-// Windows), fall back to a system Chrome/Edge install before giving up.
+// Windows), fall back to a system Chrome/Edge install. On serverless build
+// hosts (Vercel/AWS-style containers with no system browser and no Chrome
+// download), fall back to @sparticuz/chromium's Lambda-compiled binary.
 const launchArgs = ["--no-sandbox", "--disable-setuid-sandbox"];
 const EDGE_CANDIDATES = [
   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -102,9 +103,27 @@ for (const engine of engines) {
     // try the next engine
   }
 }
+// Serverless fallback: @sparticuz/chromium ships a Chromium build compiled
+// for Amazon Linux / Vercel build containers, where bundled Chrome won't
+// launch (missing shared libs) and no system browser exists.
+if (!browser) {
+  try {
+    const { default: chromium } = await import("@sparticuz/chromium");
+    const { default: puppeteerCore } = await import("puppeteer-core");
+    chromium.setGraphicsMode = false;
+    browser = (await puppeteerCore.launch({
+      args: [...chromium.args, ...launchArgs],
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    })) as unknown as Browser;
+    engineLabel = "@sparticuz/chromium (serverless)";
+  } catch {
+    // fall through to the error below
+  }
+}
 if (!browser) {
   console.error(
-    "prerender: no usable Chromium — bundled Chrome, system Chrome, and system Edge all failed to launch.",
+    "prerender: no usable Chromium — bundled Chrome, system Chrome, system Edge, and @sparticuz/chromium all failed to launch.",
   );
   console.error(
     "prerender: install one with `npx puppeteer browsers install chrome`, or set PRERENDER_SKIP=1",
