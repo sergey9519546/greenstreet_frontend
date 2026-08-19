@@ -1,5 +1,10 @@
 {
   "cleanUrls": true,
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{api/_app.cjs,dist/engineWorker.cjs}"
+    }
+  },
   "headers": [
     {
       "source": "/assets/(.*)",
