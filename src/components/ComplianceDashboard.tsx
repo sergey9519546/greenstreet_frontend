@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useId } from "react";
+import React, { useState, useEffect, useCallback, useId, useRef } from "react";
 import { auth, db, loginWithGoogle, logoutUser, loginAnonymously } from "../firebase";
 import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
@@ -336,6 +336,54 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || "dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Mobile nav drawer is a real dialog: Escape closes it, Tab is trapped inside,
+  // and focus returns to the hamburger that opened it (a11y audit: the drawer
+  // had no role/name, no Escape, no focus management at all).
+  const sidebarTriggerRef = useRef<HTMLButtonElement>(null);
+  const sidebarDrawerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const drawer = sidebarDrawerRef.current;
+    // Land focus INSIDE the dialog the moment it opens; restore it on close.
+    const focusables = drawer
+      ? Array.from(drawer.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ))
+      : [];
+    (focusables[0] ?? drawer)?.focus();
+    return () => {
+      previouslyFocused?.focus?.();
+    };
+  }, [sidebarOpen]);
+
+  const handleSidebarDrawerKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      setSidebarOpen(false);
+      return;
+    }
+    if (e.key !== "Tab") return;
+    const drawer = sidebarDrawerRef.current;
+    if (!drawer) return;
+    const focusables = Array.from(drawer.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    ));
+    if (focusables.length === 0) {
+      e.preventDefault();
+      return;
+    }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
 
   // Breakpoint hooks — must be at top level, before any early returns
   const isWide = useMinWidth(992);
@@ -794,7 +842,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         <div className="flex items-center justify-between px-4 py-3 md:hidden"
           style={{ background: swatch.midnight, borderBottom: `1px solid ${swatch.pistachio}18` }}>
           <span className="font-bold text-base" style={{ color: swatch.pistachio, letterSpacing: "-0.04em" }}>Greenstreet</span>
-          <button onClick={() => setSidebarOpen(v => !v)} style={{ color: swatch.pistachio }}>
+          <button ref={sidebarTriggerRef} onClick={() => setSidebarOpen(v => !v)} style={{ color: swatch.pistachio }}>
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -804,10 +852,15 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           {sidebarOpen && (
             <motion.div
               key="sidebar-drawer"
+              ref={sidebarDrawerRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Workspace navigation"
               initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 z-50 flex md:hidden"
-              onClick={() => setSidebarOpen(false)}>
+              onClick={() => setSidebarOpen(false)}
+              onKeyDown={handleSidebarDrawerKeyDown}>
               <div className="w-64 h-full flex flex-col p-5 overflow-y-auto"
                 onClick={e => e.stopPropagation()}
                 style={{ background: swatch.midnight }}>

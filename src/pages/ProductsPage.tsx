@@ -17,6 +17,8 @@ interface Tool {
   desc: string;
   cta: string;
   view: string;
+  /** Canonical path the CTA links to — the same path viewToPath() emits. */
+  path: string;
   tag?: string;
   panelBg: string;
   panelAccent: string;
@@ -32,6 +34,7 @@ const TOOLS: Tool[] = [
     desc: "The full picture in one pass. Track 1 shows what the lender uses to qualify the file (DSCR: whether rent covers the full monthly PITIA payment — principal, interest, taxes, insurance, HOA). Track 2 strips out vacancy, management fees and CapEx reserves to show what you'll actually earn. Also computes break-even rate and cash-on-cash — before you wire earnest money.",
     cta: "Analyze my deal",
     view: "deal-analyzer",
+    path: "/deal-analyzer",
     tag: "Most used",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
@@ -45,6 +48,7 @@ const TOOLS: Tool[] = [
     desc: "Quick DSCR check and max-purchase-price. Enter the rent, rate and property costs; get the PITIA breakdown (full monthly payment), rate tier guidance, and which Greenstreet programs fit — when you need an answer in 60 seconds, not 60 minutes.",
     cta: "Check my DSCR",
     view: "dscr-calculator",
+    path: "/dscr-calculator",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
@@ -57,6 +61,7 @@ const TOOLS: Tool[] = [
     desc: "Filter all 7 published Greenstreet DSCR program profiles by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See which program parameters your scenario clears — and which it misses — before you make a single call. Screening is not an eligibility decision.",
     cta: "Screen my scenario against the programs",
     view: "lender-intel",
+    path: "/lender-intel",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.62)",
@@ -69,6 +74,7 @@ const TOOLS: Tool[] = [
     desc: "50-state matrix with statutory citations covering prepayment penalties (a fee some loans charge if you pay off or refinance early), usury caps, and short-term-rental restrictions. Covers the traps that kill deals after you think you're done: OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437.",
     cta: "Check my state's rules",
     view: "state-laws",
+    path: "/state-laws",
     panelBg: dc.teal,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.6)",
@@ -81,6 +87,7 @@ const TOOLS: Tool[] = [
     desc: "500 simulated rate paths show the probability your DSCR (rent-to-payment ratio) breaks below 1.0 before the ARM resets. Uses a calibrated Vasicek stochastic model — the same framework bank stress teams use — giving P10/P50/P90 distributions so you can see best, median and worst case in one view.",
     cta: "Simulate my rate risk",
     view: "monte-carlo",
+    path: "/tools/monte-carlo",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
     panelBody: "rgba(238,239,211,0.6)",
@@ -93,6 +100,7 @@ const TOOLS: Tool[] = [
     desc: "A 120-cell grid shows every combination of rent haircut and rate shock — so you can see exactly where DSCR breaks before a lender asks. Run it in seconds; share it as a defensible page in the loan package.",
     cta: "Run the stress matrix",
     view: "stress-matrix",
+    path: "/tools/stress-matrix",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
@@ -105,6 +113,7 @@ const TOOLS: Tool[] = [
     desc: "Levered IRR (return on your cash invested after debt), equity multiple (total returned ÷ invested), and after-tax IRR accounting for the full depreciation stack: §167 straight-line depreciation, §469 passive-activity-loss, §1250 recapture at sale, and §1411 net investment income tax. The real net return, every line traceable.",
     cta: "Run my returns",
     view: "returns",
+    path: "/tools/returns",
     panelBg: dc.lemon,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.6)",
@@ -117,6 +126,7 @@ const TOOLS: Tool[] = [
     desc: "Rental property's biggest advantage is depreciation — the IRS lets you deduct a portion of the building each year. The Tax Engine runs the full stack: §167 straight-line depreciation, §469 passive-activity-loss rules with the real-estate-professional exception, §1250 recapture at 25%, and §1411 NIIT. Every line traceable to a code section.",
     cta: "Calculate my tax shield",
     view: "tax-engine",
+    path: "/tools/tax-engine",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.62)",
@@ -129,6 +139,7 @@ const TOOLS: Tool[] = [
     desc: "Short-term rental (Airbnb / VRBO) income is modeled on average daily rate (ADR) × occupancy with seasonal haircuts — a conservative methodology rather than the optimistic projections Airbnb shows hosts. Runs against published STR program parameters so you can model a qualifying DSCR before you list the property. Individual providers apply their own income rules.",
     cta: "Model my STR income",
     view: "str-underwriting",
+    path: "/tools/str-underwriting",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
     panelBody: "rgba(238,239,211,0.6)",
@@ -141,6 +152,7 @@ const TOOLS: Tool[] = [
     desc: "Adjustable-rate mortgages (ARMs) have a fixed period — e.g., 5 years on a 5/1 ARM — then reset based on an index (usually SOFR) plus a margin, subject to periodic and lifetime caps. The ARM Reset Analyzer computes the payment at every future reset date so you know the worst-case payment before your client signs.",
     cta: "Model my ARM resets",
     view: "arm-reset",
+    path: "/tools/arm-reset",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
@@ -153,6 +165,7 @@ const TOOLS: Tool[] = [
     desc: "A rate & term refinance (replace your current loan to change the rate or term, without taking cash out) pencils only if the monthly savings pay back closing costs before you sell or refinance again. The Refi Tracker shows break-even month, NPV of savings, and the minimum rate drop that justify closing costs — so you refinance when the math confirms it, not when rates feel low.",
     cta: "Find my refi break-even",
     view: "refi-tracker",
+    path: "/tools/refi-tracker",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.62)",
@@ -165,6 +178,7 @@ const TOOLS: Tool[] = [
     desc: "Analyze multifamily underwriting economics. Calculates Effective Gross Income (EGI), Net Operating Income (NOI), and verifies expense-ratio minimums to ensure your 5+ unit deal meets commercial DSCR constraints.",
     cta: "Model 5+ Units",
     view: "commercial-dscr",
+    path: "/tools/commercial-dscr",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
     panelBody: "rgba(238,239,211,0.6)",
@@ -177,6 +191,7 @@ const TOOLS: Tool[] = [
     desc: "Analyze short-term carry costs and exit viability. Calculates progressive-draw interest reserves and ensures the permanent takeout loan can retire the bridge note before you start drawing funds.",
     cta: "Calculate Bridge Carry",
     view: "construction-bridge",
+    path: "/tools/construction-bridge",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
@@ -189,6 +204,7 @@ const TOOLS: Tool[] = [
     desc: "Convert standard Gross-Rent DSCR into True Cost of Ownership (TCO) DSCR, which loads CapEx and Maintenance reserves into the denominator so you understand true cash flow.",
     cta: "Convert DSCR to TCO",
     view: "tco-threshold",
+    path: "/tools/tco-threshold",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.62)",
@@ -318,8 +334,12 @@ function FeatureRow({
         >
           {tool.desc}
         </p>
-        <button
-          onClick={() => onNavigate(tool.view)}
+        {/* A real anchor so non-JS crawlers (invited by robots.txt) can follow
+            the tool graph; the app's global click interceptor turns the click
+            into SPA navigation. */}
+        <a
+          href={tool.path}
+          onClick={(e) => { e.preventDefault(); onNavigate(tool.view); }}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -335,10 +355,11 @@ function FeatureRow({
             fontFamily: dc.sans,
             letterSpacing: "-0.01em",
             minHeight: 44,
+            textDecoration: "none",
           }}
         >
           {tool.cta} →
-        </button>
+        </a>
       </div>
 
       {/* Visual panel */}
@@ -441,12 +462,13 @@ function SpecialToolCard({
           {tool.desc}
         </p>
       </div>
-      <button
-        // Route to the card's own destination when it has one. Three of the
-        // four special tools genuinely resolve to "portal" in resolve.ts, so
-        // that stays their target; Structure Optimizer has its own page and
-        // was being swallowed by the blanket navigation.
-        onClick={() => onNavigate(("view" in tool ? tool.view : "portal") as never)}
+      {/* A real anchor per card: three of these hrefs resolve to the InvestGO
+          workspace in resolve.ts (so that stays their destination); Structure
+          Optimizer keeps its own page. The href makes each destination
+          crawlable — the button it replaces hid them from non-JS crawlers. */}
+      <a
+        href={tool.href}
+        onClick={(e) => { e.preventDefault(); onNavigate(("view" in tool ? tool.view : "portal") as never); }}
         style={{
           marginTop: 30,
           justifySelf: "start",
@@ -458,10 +480,11 @@ function SpecialToolCard({
           fontFamily: dc.sans,
           fontWeight: 650,
           cursor: "pointer",
+          textDecoration: "none",
         }}
       >
         {tool.label} →
-      </button>
+      </a>
     </article>
   );
 }
@@ -483,7 +506,7 @@ export default function ProductsPage({
     <DcShell
       onNavigate={onNavigate}
       navLinks={[
-        { label: "All tools", view: "products" },
+        { label: "All tools", view: "tools" },
         { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
       ]}

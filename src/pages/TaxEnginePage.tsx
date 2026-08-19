@@ -147,6 +147,97 @@ export default function TaxEnginePage({
       });
   };
 
+  // Input registry for the two-section control panel below. `personal` splits
+  // deal economics (fieldset 1) from the borrower's income/tax profile
+  // (fieldset 2) — the a11y audit found all 14 controls in one flat div with
+  // no <fieldset>/<legend> anywhere on the site.
+  type TaxField = {
+    label: string;
+    hint: string;
+    key: string;
+    step: number;
+    prefix: string;
+    suffix: string;
+    val: number;
+    set: (n: number) => void;
+    /** Belongs to the borrower's personal tax situation, not the deal. */
+    personal?: boolean;
+  };
+
+  const taxInputFields: TaxField[] = [
+    { label: "Purchase Price", hint: "What you're paying for the property.", key: "purchasePrice", step: 5000, prefix: "$", suffix: "", val: purchasePrice, set: setPurchasePrice },
+    { label: "LTV", hint: "Loan-to-value — loan ÷ value. E.g. 25% down = 75% LTV.", key: "ltv", step: 1, prefix: "", suffix: "%", val: ltv, set: setLtv },
+    { label: "Note Rate", hint: "Your loan interest rate. Estimate is fine.", key: "rate", step: 0.125, prefix: "", suffix: "%", val: rate, set: setRate },
+    { label: "Monthly Rent", hint: "Expected gross rent per month.", key: "monthlyRent", step: 100, prefix: "$", suffix: "", val: monthlyRent, set: setMonthlyRent },
+    { label: "Annual Taxes", hint: "Property taxes per year.", key: "annualTaxes", step: 250, prefix: "$", suffix: "", val: annualTaxes, set: setAnnualTaxes },
+    { label: "Annual Insurance", hint: "Homeowners insurance per year.", key: "annualInsurance", step: 100, prefix: "$", suffix: "", val: annualInsurance, set: setAnnualInsurance },
+    { label: "Monthly HOA", hint: "HOA dues per month. Enter 0 if none.", key: "hoa", step: 25, prefix: "$", suffix: "", val: hoa, set: setHoa },
+    { label: "Hold Years", hint: "How long you plan to own the property before selling.", key: "holdYears", step: 1, prefix: "", suffix: "", val: holdYears, set: setHoldYears },
+    { label: "Land %", hint: "Estimated land value as a percent of purchase price. Land is not depreciable — lower land % = larger depreciation deduction. Typical range: 15%–30%.", key: "landPct", step: 1, prefix: "", suffix: "%", val: landPct, set: setLandPct },
+    { label: "MAGI — your income", hint: "Modified adjusted gross income. Determines whether passive-loss rules limit your deductions and whether NIIT (3.8% extra tax) applies.", key: "magi", step: 5000, prefix: "$", suffix: "", val: magi, set: setMagi, personal: true },
+    { label: "State Tax %", hint: "Your state income tax rate. Enter 0 for states with no income tax (TX, FL, etc.).", key: "stateRate", step: 0.5, prefix: "", suffix: "%", val: stateRate, set: setStateRate, personal: true },
+    { label: "Exit prepayment penalty %", hint: "A fee some loans charge if you pay the loan off or refinance early. Expressed as % of loan balance. Enter 0 if your loan has no prepayment penalty.", key: "exitPppPct", step: 0.5, prefix: "", suffix: "%", val: exitPppPct, set: setExitPppPct },
+  ];
+
+  const taxFieldLegendStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: "0.04em",
+    textTransform: "uppercase",
+    color: "rgba(238,239,211,0.62)",
+    marginBottom: 10,
+    padding: 0,
+  };
+
+  const renderTaxField = (f: TaxField) => (
+    <label key={f.label} style={{ display: "block", marginBottom: 14 }}>
+      <span
+        style={{
+          display: "block",
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          color: "rgba(238,239,211,0.62)",
+          marginBottom: 3,
+        }}
+      >
+        {f.label}
+      </span>
+      <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>{f.hint}</span>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          background: dc.dark,
+          borderRadius: 6,
+          padding: "0 11px",
+          border: "1px solid rgba(238,239,211,0.16)",
+        }}
+      >
+        {f.prefix && (
+          <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>
+            {f.prefix}
+          </span>
+        )}
+        <input
+          className="te-num"
+          type="number"
+          step={f.step}
+          value={f.val}
+          onChange={(e) => f.set(+e.target.value)}
+          style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
+        />
+        {f.suffix && (
+          <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>
+            {f.suffix}
+          </span>
+        )}
+      </div>
+    </label>
+  );
+
   return (
     <DcShell
       onNavigate={onNavigate}
@@ -396,186 +487,24 @@ export default function TaxEnginePage({
                 Deal numbers at the top; your personal tax situation below. Estimates are fine — numbers update live.
               </p>
 
-              {/* Numeric fields */}
-              {(
-                [
-                  {
-                    label: "Purchase Price",
-                    hint: "What you're paying for the property.",
-                    key: "purchasePrice" as const,
-                    step: 5000,
-                    prefix: "$",
-                    suffix: "",
-                    val: purchasePrice,
-                    set: setPurchasePrice,
-                  },
-                  {
-                    label: "LTV",
-                    hint: "Loan-to-value — loan ÷ value. E.g. 25% down = 75% LTV.",
-                    key: "ltv" as const,
-                    step: 1,
-                    prefix: "",
-                    suffix: "%",
-                    val: ltv,
-                    set: setLtv,
-                  },
-                  {
-                    label: "Note Rate",
-                    hint: "Your loan interest rate. Estimate is fine.",
-                    key: "rate" as const,
-                    step: 0.125,
-                    prefix: "",
-                    suffix: "%",
-                    val: rate,
-                    set: setRate,
-                  },
-                  {
-                    label: "Monthly Rent",
-                    hint: "Expected gross rent per month.",
-                    key: "monthlyRent" as const,
-                    step: 100,
-                    prefix: "$",
-                    suffix: "",
-                    val: monthlyRent,
-                    set: setMonthlyRent,
-                  },
-                  {
-                    label: "Annual Taxes",
-                    hint: "Property taxes per year.",
-                    key: "annualTaxes" as const,
-                    step: 250,
-                    prefix: "$",
-                    suffix: "",
-                    val: annualTaxes,
-                    set: setAnnualTaxes,
-                  },
-                  {
-                    label: "Annual Insurance",
-                    hint: "Homeowners insurance per year.",
-                    key: "annualInsurance" as const,
-                    step: 100,
-                    prefix: "$",
-                    suffix: "",
-                    val: annualInsurance,
-                    set: setAnnualInsurance,
-                  },
-                  {
-                    label: "Monthly HOA",
-                    hint: "HOA dues per month. Enter 0 if none.",
-                    key: "hoa" as const,
-                    step: 25,
-                    prefix: "$",
-                    suffix: "",
-                    val: hoa,
-                    set: setHoa,
-                  },
-                  {
-                    label: "Hold Years",
-                    hint: "How long you plan to own the property before selling.",
-                    key: "holdYears" as const,
-                    step: 1,
-                    prefix: "",
-                    suffix: "",
-                    val: holdYears,
-                    set: setHoldYears,
-                  },
-                  {
-                    label: "Land %",
-                    hint: "Estimated land value as a percent of purchase price. Land is not depreciable — lower land % = larger depreciation deduction. Typical range: 15%–30%.",
-                    key: "landPct" as const,
-                    step: 1,
-                    prefix: "",
-                    suffix: "%",
-                    val: landPct,
-                    set: setLandPct,
-                  },
-                  {
-                    label: "MAGI — your income",
-                    hint: "Modified adjusted gross income. Determines whether passive-loss rules limit your deductions and whether NIIT (3.8% extra tax) applies.",
-                    key: "magi" as const,
-                    step: 5000,
-                    prefix: "$",
-                    suffix: "",
-                    val: magi,
-                    set: setMagi,
-                  },
-                  {
-                    label: "State Tax %",
-                    hint: "Your state income tax rate. Enter 0 for states with no income tax (TX, FL, etc.).",
-                    key: "stateRate" as const,
-                    step: 0.5,
-                    prefix: "",
-                    suffix: "%",
-                    val: stateRate,
-                    set: setStateRate,
-                  },
-                  {
-                    label: "Exit prepayment penalty %",
-                    hint: "A fee some loans charge if you pay the loan off or refinance early. Expressed as % of loan balance. Enter 0 if your loan has no prepayment penalty.",
-                    key: "exitPppPct" as const,
-                    step: 0.5,
-                    prefix: "",
-                    suffix: "%",
-                    val: exitPppPct,
-                    set: setExitPppPct,
-                  },
-                ] as {
-                  label: string;
-                  hint: string;
-                  key: string;
-                  step: number;
-                  prefix: string;
-                  suffix: string;
-                  val: number;
-                  set: (n: number) => void;
-                }[]
-              ).map((f) => (
-                <label key={f.label} style={{ display: "block", marginBottom: 14 }}>
-                  <span
-                    style={{
-                      display: "block",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: "0.04em",
-                      textTransform: "uppercase",
-                      color: "rgba(238,239,211,0.62)",
-                      marginBottom: 3,
-                    }}
-                  >
-                    {f.label}
-                  </span>
-                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>{f.hint}</span>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      background: dc.dark,
-                      borderRadius: 6,
-                      padding: "0 11px",
-                      border: "1px solid rgba(238,239,211,0.16)",
-                    }}
-                  >
-                    {f.prefix && (
-                      <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>
-                        {f.prefix}
-                      </span>
-                    )}
-                    <input
-                      className="te-num"
-                      type="number"
-                      step={f.step}
-                      value={f.val}
-                      onChange={(e) => f.set(+e.target.value)}
-                      style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
-                    />
-                    {f.suffix && (
-                      <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>
-                        {f.suffix}
-                      </span>
-                    )}
-                  </div>
-                </label>
-              ))}
+              {/* Deal numbers — a real fieldset, so assistive tech names the group */}
+              <fieldset style={{ border: "none", padding: 0, margin: 0, minWidth: 0 }}>
+                <legend style={taxFieldLegendStyle}>Deal numbers</legend>
+                {taxInputFields.filter((f) => !f.personal).map(renderTaxField)}
+              </fieldset>
+
+              {/* Personal tax situation — the income-profile controls */}
+              <fieldset
+                style={{
+                  border: "none",
+                  padding: "16px 0 0",
+                  margin: "18px 0 0",
+                  minWidth: 0,
+                  borderTop: "1px solid rgba(238,239,211,0.16)",
+                }}
+              >
+                <legend style={taxFieldLegendStyle}>Personal tax situation</legend>
+                {taxInputFields.filter((f) => f.personal).map(renderTaxField)}
 
               {/* Filing status */}
               <label style={{ display: "block", marginBottom: 14 }}>
@@ -636,6 +565,7 @@ export default function TaxEnginePage({
                   <strong style={{ color: dc.lemon }}>Real estate professional status</strong> (750hr test + 50% of work time in real estate) — unlocks the ability to deduct passive losses against ordinary income. If you don't meet both tests, leave this unchecked.
                 </span>
               </label>
+              </fieldset>
             </div>
 
             {/* ── RESULTS ── */}

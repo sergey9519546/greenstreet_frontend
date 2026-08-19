@@ -18,6 +18,7 @@ import type { ComponentType } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import DSCRCalculatorPage from './DSCRCalculatorPage';
+import ToolsPage from './ToolsPage';
 import DealAnalyzerPage from './DealAnalyzerPage';
 import LenderIntelPage from './LenderIntelPage';
 import MonteCarloPage from './MonteCarloPage';
@@ -34,6 +35,7 @@ type ToolPageProps = { onBack: () => void; onNavigate: (view: string) => void };
 
 const TOOL_PAGES: ReadonlyArray<readonly [string, ComponentType<ToolPageProps>]> = [
   ['DSCRCalculatorPage', DSCRCalculatorPage as ComponentType<ToolPageProps>],
+  ['ToolsPage', ToolsPage as ComponentType<ToolPageProps>],
   ['DealAnalyzerPage', DealAnalyzerPage as ComponentType<ToolPageProps>],
   ['StressMatrixPage', StressMatrixPage as ComponentType<ToolPageProps>],
   ['MonteCarloPage', MonteCarloPage as ComponentType<ToolPageProps>],
@@ -70,6 +72,7 @@ describe('interactive tool pages — render smoke', () => {
       const { unmount } = render(<Page onBack={() => {}} onNavigate={() => {}} />);
       const controls = [
         ...screen.queryAllByRole('button'),
+        ...screen.queryAllByRole('link'),
         ...screen.queryAllByRole('textbox'),
         ...screen.queryAllByRole('slider'),
         ...screen.queryAllByRole('combobox'),

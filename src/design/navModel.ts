@@ -30,6 +30,7 @@ export const NAV_MENUS: NavMenu[] = [
       { label: "Stress Matrix", view: "stress-matrix", path: "/tools/stress-matrix" },
       { label: "ARM Reset Risk", view: "arm-reset", path: "/tools/arm-reset" },
       { label: "Portfolio Builder", view: "portfolio", path: "/tools/portfolio" },
+      { label: "All Tools", view: "tools", path: "/tools" },
     ],
   },
   {
