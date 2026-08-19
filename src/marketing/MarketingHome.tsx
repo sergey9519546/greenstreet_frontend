@@ -309,7 +309,9 @@ export default function MarketingHome({ onNavigate }: { onNavigate?: (view: stri
     // React island immediately before Resources when the legacy export does not
     // already include the property-guide slot.
     const pSlot = ensureHomepagePropertySlot(root);
-    if (pSlot) setPropertySlot(pSlot);
+    // Only render the React portal if the slot is empty. The prerender build
+    // already hydrates the slot with full content; portaling again duplicates it.
+    if (pSlot && !pSlot.hasChildNodes()) setPropertySlot(pSlot);
 
     const runtime = window as MarketingRuntime;
     // The static homepage already parsed its embedded scripts; a React-owned
