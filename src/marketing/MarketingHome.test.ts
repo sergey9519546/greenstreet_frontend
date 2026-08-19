@@ -9,6 +9,20 @@ describe("public marketing reliability holds", () => {
     expect(publicMarketingMarkup).toContain("State-rule conclusions are under review.");
   });
 
+  it("keeps the homepage tool islands on the shared editorial visual system", () => {
+    for (const className of [
+      "gs-rate-widget-section",
+      "gs-rate-widget-copy",
+      "gs-rate-widget-card",
+      "gs-video-section",
+      "gs-statemap-section",
+    ]) {
+      expect(publicMarketingMarkup).toContain(`class="${className}`);
+    }
+    expect(publicMarketingMarkup).toContain("Rate estimates are under review.");
+    expect(publicMarketingMarkup).toContain("State-rule conclusions are under review.");
+  });
+
   it("preserves the accepted composition without publishing unsupported claims", () => {
     for (const unsupported of [
       "we underwrite and fund in-house",
