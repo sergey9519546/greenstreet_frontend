@@ -22,6 +22,7 @@
     "test:home-fidelity": "node scripts/check-home-contract.mjs",
     "test:project-brain": "node scripts/check-project-brain-contract.mjs",
     "test:delivery": "node scripts/check-delivery-contract.mjs",
+    "test:live": "node scripts/check-live.mjs",
     "test:watch": "vitest",
     "test:unit": "vitest run --project node",
     "test:dom": "vitest run --project dom"
@@ -63,6 +64,7 @@
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-markdown": "^10.1.0",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",

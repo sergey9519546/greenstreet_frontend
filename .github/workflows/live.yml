@@ -1,0 +1,34 @@
+name: Live Smoke
+
+# Post-deploy reality check. The verify workflow pins the source; this pins
+# the deployment. It exists because the entire API layer (every /api route,
+# including the lead funnel) once 404'd in production while all 1,519 source
+# tests passed. Documents cannot catch that; only touching the live origin can.
+#
+# Run after every production deploy, on a schedule (catches drift + silent
+# outages between deploys), and on demand.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *" # hourly — the lead funnel must never be silently down
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: Live origin smoke
+    # Only act on a successful production deployment, or on schedule/dispatch.
+    if: >-
+      github.event_name != 'deployment_status' ||
+      github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Smoke the live origin
+        run: node scripts/check-live.mjs
+        env:
+          LIVE_ORIGIN: https://www.greenstreet.finance
