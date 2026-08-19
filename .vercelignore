@@ -1,4 +1,4 @@
-# Vercel Ignore - Exclude from deployment (ROOT LEVEL)
+# Vercel Ignore - Exclude from deployment
 
 # Development
 node_modules
@@ -11,69 +11,40 @@ node_modules
 .superpowers
 .cake_matrices
 .trash
-_claude/
-_kilo/
-_playwright-cli/
-_tmp/
-_freebuff/
 
-# Documentation
+# Documentation (keep README)
 docs/
 *.md
 !README.md
 
-# Large data files
+# Large data files (keep data/ folder for imports)
 99_attachments/
 airdna-project/
 perfectproperty/
 graphify-out/
 pgliteData/
-DSCR_Intelligence_V2_Package/
-DSCR_SOVEREIGN_OS/
-api/
-docs/
-output/
 
 # Build artifacts
 dist/assets/**/*.map
 dist/**/*.map
 
-# Heavy media - EXCLUDE ALL OF THESE
-dist/img/
-dist/video/
-dist/media/
-dist/assets/img/
-dist/assets/video/
-dist/assets/media/
-dist/*.mp4
-dist/*.webm
-dist/*.mov
-dist/*.avi
-dist/*.png
-dist/*.jpg
-dist/*.jpeg
-dist/*.gif
-dist/*.svg
+# Heavy media
+animations/
+hf-*/
 
 # Scripts
-scripts/
+# scripts/ — keep: build runs npm run prerender (scripts/prerender.ts)
 _regen_tmp/
 
 # Logs
 *.log
 logs/
 
-# Large images
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.svg
-*.ico
-*.mp4
-*.webm
-*.mov
-*.avi
+# Large images in root only (keep dist and public)
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif
 
 # HTML files except index.html
 /*.html
@@ -105,54 +76,3 @@ vitest.config.ts
 
 # Review files
 review-*.html
-
-# Large video files
-*.mp4
-*.webm
-*.mov
-*.avi
-
-# Public folder media - keep only essential
-public/video/
-public/img/
-public/*.mp4
-public/*.webm
-public/*.mov
-public/*.avi
-public/*.png
-public/*.jpg
-public/*.jpeg
-public/*.gif
-public/*.svg
-
-# Greenstreet frontend subfolder - exclude completely
-greenstreet_frontend/
-greenstreet-60-seconds-ad/
-
-# Other large folders
-greenstreet_frontend/
-greenstreet-60-seconds-ad/
-.agents/
-.claude/
-.gemini/
-.minimax/
-.qodo/
-.understand-anything/
-.superpowers/
-.cake_matrices/
-.trash/
-.claude/
-.kilo/
-.playwright-cli/
-.tmp/
-.freebuff/
-.agent/
-DSCR_Intelligence_V2_Package/
-DSCR_SOVEREIGN_OS/
-api/
-docs/
-output/
-_to_delete/
-.dist/
-greenstreet_frontend/
-greenstreet-60-seconds-ad/
