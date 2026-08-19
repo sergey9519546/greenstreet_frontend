@@ -3,6 +3,7 @@
   <url><loc>https://www.greenstreet.finance/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://www.greenstreet.finance/products</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://www.greenstreet.finance/products/platform</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/solutions</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://www.greenstreet.finance/investors</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/borrower-profiles</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>

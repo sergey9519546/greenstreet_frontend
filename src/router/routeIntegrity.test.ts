@@ -105,6 +105,7 @@ const WITNESS_PATH: Record<PageView, string | null> = {
   solutions: "/solutions",
   "book-demo": "/book-demo",
   "perfect-property": "/tools/perfect-property",
+  tools: "/tools",
   // The fallback resolveRoute() returns when nothing else matches — by
   // construction, no path is "the" path that produces it (every unregistered
   // path does). See "resolveRoute — exempt view mechanisms" below.

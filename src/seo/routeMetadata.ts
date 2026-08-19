@@ -243,6 +243,16 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
     canonicalPath: "/products",
     jsonLdKind: "WebPage",
   },
+  // /tools hub — every tool page is linked from here, which is what makes the
+  // five once-orphaned tool routes (str-underwriting, commercial-dscr,
+  // construction-bridge, tco-threshold, perfect-property) crawlable from the
+  // site's own link graph. Title mirrors ToolsPage's document.title exactly.
+  tools: {
+    title: "All DSCR Tools | Greenstreet Finance",
+    description: "Every Greenstreet Finance DSCR tool in one index — deal analyzer, state rules, STR underwriting, commercial DSCR, construction bridge, and more.",
+    canonicalPath: "/tools",
+    jsonLdKind: "CollectionPage",
+  },
   "lender-intel": {
     title: "Lender Intelligence — DSCR Program Matching | Greenstreet Finance",
     description: "Compare business-purpose DSCR program archetypes and see which scenario details a provider reviews. Educational only — not a quote, eligibility determination, or loan commitment.",
@@ -489,6 +499,37 @@ function jsonLdFor(metadata: RouteMetadata): Record<string, string> | undefined 
 }
 
 /**
+ * BreadcrumbList for any canonical public page. The one schema type that still
+ * earns rich results for a site with this hierarchy, and it was missing
+ * everywhere (audit: SEO backlog #4). Tool pages sit two levels deep under
+ * Home → Tools; everything else one. Skipped for the homepage itself.
+ */
+export function breadcrumbFor(metadata: RouteMetadata): Record<string, unknown> | undefined {
+  if (!metadata.canonical) return undefined;
+  const path = new URL(metadata.canonical).pathname;
+  if (!path || path === "/") return undefined;
+
+  const name = metadata.title.replace(` | ${SITE_NAME}`, "");
+  const items: Array<{ "@type": "ListItem"; position: number; name: string; item: string }> = [
+    { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_ORIGIN}/` },
+  ];
+  if (path.startsWith("/tools/")) {
+    items.push({ "@type": "ListItem", position: 2, name: "Tools", item: `${SITE_ORIGIN}/tools` });
+  }
+  items.push({
+    "@type": "ListItem",
+    position: items.length + 1,
+    name,
+    item: metadata.canonical,
+  });
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items,
+  };
+}
+
+/**
  * Applies one route's head metadata and returns a cleanup callback for a React
  * effect. The cleanup only removes elements this module owns, so application
  * scripts and third-party tags are left alone.
@@ -514,6 +555,14 @@ export function applyRouteMetadata(metadata: RouteMetadata, documentRef: Documen
     script.type = "application/ld+json";
     script.dataset.greenstreetRouteMetadata = "true";
     script.textContent = JSON.stringify(jsonLd);
+    documentRef.head.append(script);
+  }
+  const breadcrumb = breadcrumbFor(metadata);
+  if (breadcrumb) {
+    const script = documentRef.createElement("script");
+    script.type = "application/ld+json";
+    script.dataset.greenstreetRouteMetadata = "true";
+    script.textContent = JSON.stringify(breadcrumb);
     documentRef.head.append(script);
   }
 

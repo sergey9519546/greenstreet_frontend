@@ -39,6 +39,7 @@ export type PageView =
   | "solutions"
   | "book-demo"
   | "perfect-property"
+  | "tools"
   | "not-found";
 
 const ROUTE_MAP: Record<string, PageView> = {
@@ -94,6 +95,7 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/partnerships": "portal", // old Partnerships page now lands on the INVESTGO dashboard
 
   // Tools routes (canonical /tools/* paths)
+  "/tools": "tools", // hub — every tool page is linked from here
   "/tools/refi-tracker": "refi-tracker",
   "/tools/arm-reset": "arm-reset",
   "/tools/monte-carlo": "monte-carlo",

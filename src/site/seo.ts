@@ -107,6 +107,7 @@ export const CANONICAL_PUBLIC_PATHS = [
   "/",
   "/products",
   "/products/platform",
+  "/tools",
   "/solutions",
   "/investors",
   "/borrower-profiles",

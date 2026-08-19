@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRouteMetadata, SITE_ORIGIN } from "./routeMetadata";
+import { getRouteMetadata, SITE_ORIGIN, breadcrumbFor } from "./routeMetadata";
 import { TOOL_RELIABILITY_HOLDS } from "../components/toolReliabilityHolds";
 import type { PageView } from "../router/resolve";
 
@@ -20,6 +20,27 @@ describe("public route metadata", () => {
     expect(privacy.canonical).toBe(`${SITE_ORIGIN}/legal/privacy-policy`);
     expect(privacy.title).toMatch(/Privacy Policy/);
     expect(support.canonical).toBe(`${SITE_ORIGIN}/faq`);
+  });
+
+  it("indexes the /tools hub and breadcrumbs tool pages two levels deep", () => {
+    const hub = getRouteMetadata({ pathname: "/tools", view: "tools" });
+    expect(hub.robots).toBe("index,follow");
+    expect(hub.canonical).toBe(`${SITE_ORIGIN}/tools`);
+    expect(hub.title).toMatch(/All DSCR Tools/);
+    expect(hub.jsonLdKind).toBe("CollectionPage");
+
+    // The hub itself sits one level below Home; its children sit two.
+    const hubCrumb = breadcrumbFor(hub);
+    const hubItems = hubCrumb?.itemListElement as Array<{ name: string; item: string }>;
+    expect(hubItems.map((item) => item.name)).toEqual(["Home", "All DSCR Tools"]);
+    expect(hubItems[0].item).toBe(`${SITE_ORIGIN}/`);
+
+    const tool = getRouteMetadata({ pathname: "/tools/str-underwriting", view: "str-underwriting" });
+    const toolCrumb = breadcrumbFor(tool);
+    const toolItems = toolCrumb?.itemListElement as Array<{ name: string; item: string }>;
+    expect(toolItems.map((item) => item.name)).toEqual(["Home", "Tools", "STR Underwriting"]);
+    expect(toolItems[1].item).toBe(`${SITE_ORIGIN}/tools`);
+    expect(toolItems[2].item).toBe(`${SITE_ORIGIN}/tools/str-underwriting`);
   });
 
   it("only indexes published article slugs", () => {

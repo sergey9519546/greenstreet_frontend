@@ -39,6 +39,7 @@ const CANONICAL: Record<string, PageView> = {
   '/products': 'products',
   '/products/platform': 'platform',
   '/solutions': 'solutions',
+  '/tools': 'tools',
   '/tools/refi-tracker': 'refi-tracker',
   '/tools/arm-reset': 'arm-reset',
   '/tools/monte-carlo': 'monte-carlo',
