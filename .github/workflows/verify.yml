@@ -13,7 +13,7 @@ jobs:
   verify:
     name: Build and contract checks
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,6 +25,9 @@ jobs:
       - run: npm test
       - run: npm run test:home-fidelity
       - run: npm run build
+      # Every sitemap URL must ship a prerendered static twin (real content,
+      # not the empty SPA shell) for non-JS crawlers.
+      - run: npm run test:prerender
       # FTC render-lock: no fabricated testimonial/logo/rate string may appear
       # in any shipped HTML (16 CFR 465).
       - run: npm run test:ftc

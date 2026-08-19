@@ -36,6 +36,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Every sitemap URL must ship a prerendered static twin (real content,
+      # not the empty SPA shell) for non-JS crawlers. `npm run build` already
+      # generates them; this step proves it.
+      - name: Verify prerendered static twins
+        run: npm run test:prerender
+
       # FTC render-lock: no fabricated testimonial/logo/rate string may appear
       # in any shipped HTML (16 CFR 465). Fails if a claim replacement breaks
       # or a banned string is re-introduced into rendered output.
