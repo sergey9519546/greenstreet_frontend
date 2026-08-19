@@ -16,7 +16,21 @@ const STATE_NAMES: Record<string, string> = {
   VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
 };
 
-const SPECIAL_TIER: Record<string, Tier> = {
+// DEPRECATED HARDCODED TIER TABLE — conflicts with legal engine source.
+// This neutral map visualization is intentionally held behind MarketingHome.tsx:127-139
+// review gate. The tier assignments below DO NOT reflect current law:
+//   - MN: shown as tier 1, but HF 3437 (enacted 2026-04-23, effective 2026-08-01)
+//     narrows § 58.137 to personal/family/household loans only — business-purpose
+//     DSCR loans are now CONDITIONAL, not threshold-based tier 1.
+//   - Other states may have drifted from src/engine/statePppLaws.ts (the legal source
+//     of truth, verified monthly, with provenance and statutory citations).
+//
+// DO NOT use this table for product decisions. If this map is ever re-enabled,
+// derive tiers from PPP_STATE_LAWS status, not this frozen snapshot.
+//
+// See docs/PROJECT_INTELLIGENCE_BLUEPRINT.md:145 and docs/RECOVERY_AUDIT_2026-08-19.md
+// for the reconciliation decision.
+const SPECIAL_TIER_DEPRECATED: Record<string, Tier> = {
   AK: 2, AR: 1, CA: 1, IL: 1, KS: 3, ME: 1, MD: 3, MN: 1, MS: 1,
   NJ: 2, NM: 1, NY: 1, ND: 3, OH: 1, OK: 1, PA: 1, RI: 1, SC: 1,
   WA: 1, WV: 1, WI: 1,
@@ -61,7 +75,7 @@ function injectStyle() {
 }
 
 function tierFor(code: string): Tier {
-  return SPECIAL_TIER[code] ?? 0;
+  return SPECIAL_TIER_DEPRECATED[code] ?? 0;
 }
 
 function mountLegend() {
