@@ -1360,6 +1360,7 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 
 /* Greenstreet rebuild video section — editorial band, not a floating media card. */
 .gs-video-section { background: #003738; color: #eeefd3; padding: clamp(4rem, 8vw, 8rem) 0; }
+.gs-video-contain { width: min(90%, 76rem); margin: 0 auto; }
 .gs-video-head { max-width: 52rem; margin-bottom: clamp(1.25rem, 3vw, 2.25rem); }
 .gs-video-head .u-text-style-h5 { color: #d8d958; }
 .gs-video-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #00201f; cursor: pointer; }
@@ -1374,6 +1375,7 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 
 /* 50-state rules — same dark editorial surface as the video band. */
 .gs-statemap-section { background: #003738; color: #eeefd3; padding: 0 0 clamp(4rem, 8vw, 8rem); }
+.gs-statemap-contain { width: min(90%, 76rem); margin: 0 auto; }
 .gs-statemap-head { max-width: 56rem; margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
 .gs-statemap-head h2, .gs-statemap-head .u-text-style-h5 { color: #eeefd3; }
 .gs-statemap-head .u-text-style-h5 { color: #d8d958; }
