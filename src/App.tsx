@@ -29,6 +29,7 @@ const routeModules = {
   CaseStudiesPage: () => import("./pages/CaseStudiesPage"),
   LegalPage: () => import("./pages/LegalPage"),
   ProductsPage: () => import("./pages/ProductsPage"),
+  ToolsPage: () => import("./pages/ToolsPage"),
   PlatformPage: () => import("./pages/PlatformPage"),
   SupportPage: () => import("./pages/SupportPage"),
   SolutionsPage: () => import("./pages/SolutionsPage"),
@@ -182,6 +183,7 @@ const CareersPage = lazyRoute("CareersPage");
 const CaseStudiesPage = lazyRoute("CaseStudiesPage");
 const LegalPage = lazyRoute("LegalPage");
 const ProductsPage = lazyRoute("ProductsPage");
+const ToolsPage = lazyRoute("ToolsPage");
 const PlatformPage = lazyRoute("PlatformPage");
 const SupportPage = lazyRoute("SupportPage");
 const SolutionsPage = lazyRoute("SolutionsPage");
@@ -464,6 +466,7 @@ function viewToPath(view: PageView): string {
     case "careers":           return "/careers";
     case "legal":             return "/legal";
     case "products":          return "/products";
+    case "tools":             return "/tools";
     case "platform":          return "/products/platform";
     case "support":           return "/support";
     case "solutions":         return "/solutions";
@@ -695,6 +698,8 @@ export default function App() {
         return <LegalPage key={pathname} path={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "products":
         return <ProductsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "tools":
+        return <ToolsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "platform":
         return <PlatformPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "support":

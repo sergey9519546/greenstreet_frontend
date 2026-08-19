@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * The contract: a lookup either returns a seed or returns null. It never
- * throws, because a ZIP with no coverage is a normal outcome — 28,797 of
+ * throws, because a ZIP with no coverage is a normal outcome — 29,166 of
  * ~41,000 US ZIPs are covered — and a failed seed must not disturb the tool the
  * visitor is actually using.
  *
@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 type Mod = typeof import("./zipFundamentals");
 
 const SHARD = {
-  "94110": { r: 3450, i: 1938, p: 1250000, d: 24, y: 3.31, s: "CA", c: "San Francisco" },
+  "94110": { r: 3450, i: 1938, p: 1250000, d: 24, y: 3.31, s: "CA", c: "San Francisco", f: 12, fp: 45000, s2: 3100, a: 40 },
   "94111": { p: 980000, s: "CA", c: "San Francisco" },
 };
 
@@ -61,6 +61,10 @@ describe("ZIP fundamentals lookup", () => {
       listPrice: 1250000,
       daysOnMarket: 24,
       grossYieldPct: 3.31,
+      floodClaims: 12,
+      floodPaidAvg: 45000,
+      safmr2Br: 3100,
+      activeListings: 40,
     });
   });
 

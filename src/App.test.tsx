@@ -53,6 +53,9 @@ vi.mock('./pages/CommercialDSCRPage', () => ({
 vi.mock('./pages/LenderIntelPage', () => ({
   default: () => <div data-testid="route-lender-intel" />,
 }));
+vi.mock('./pages/ToolsPage', () => ({
+  default: () => <div data-testid="route-tools" />,
+}));
 
 import App from './App';
 
@@ -90,6 +93,12 @@ describe('App routing', () => {
   it('renders a nested tool route (/tools/commercial-dscr)', async () => {
     await renderAt('/tools/commercial-dscr');
     expect(await screen.findByTestId('route-commercial-dscr')).toBeInTheDocument();
+    expect(screen.queryByTestId('route-marketing-home')).toBeNull();
+  });
+
+  it('renders the tools hub at /tools', async () => {
+    await renderAt('/tools');
+    expect(await screen.findByTestId('route-tools')).toBeInTheDocument();
     expect(screen.queryByTestId('route-marketing-home')).toBeNull();
   });
 

@@ -11,6 +11,8 @@
  *     there is no scaling error — but individual ZIPs diverge materially.
  *   - Rent and price are as-of 2026-05. Insurance is as-of 2022.
  *   - ZORI is an index across all bedroom counts, not a 3/2 comp.
+ *   - State is source-level for ~97% of ZIPs (ZORI or realtor.com zip_name);
+ *     insurance covers 24,965 ZIPs (Treasury FIO NATIONAL series, 2022).
  *
  * So the UI applies a value only when the visitor asks for it, always shows the
  * source and date, and always leaves the field editable.
@@ -23,12 +25,16 @@
 /** Compact wire format. Keys are short because this ships to the browser. */
 interface ZipRow {
   r?: number; // monthly rent — Zillow ZORI
-  i?: number; // annual insurance premium — US Treasury FIO (CA/FL only)
+  i?: number; // annual insurance premium — US Treasury FIO, 2022
   p?: number; // median list price — realtor.com
   d?: number; // median days on market — realtor.com
   y?: number; // gross yield %
-  s?: string; // state
+  s?: string; // state — source-level (ZORI or realtor.com zip_name)
   c?: string; // city
+  f?: number; // NFIP flood claims since 1984 — FEMA
+  fp?: number; // average $ paid per flood claim — FEMA
+  s2?: number; // HUD SAFMR 2BR rent cross-check
+  a?: number; // active listings — realtor.com market depth
 }
 
 export interface ZipFundamentals {
@@ -37,7 +43,7 @@ export interface ZipFundamentals {
   state?: string;
   /** Monthly rent. Zillow ZORI, 2026-05. */
   rent?: number;
-  /** Annual homeowners premium. US Treasury FIO, 2022. CA and FL only. */
+  /** Annual homeowners premium. US Treasury FIO, 2022. */
   insuranceAnnual?: number;
   /** Median list price. realtor.com, 2026-05. */
   listPrice?: number;
@@ -45,6 +51,14 @@ export interface ZipFundamentals {
   daysOnMarket?: number;
   /** rent x 12 / value, as a percentage. */
   grossYieldPct?: number;
+  /** NFIP flood claims since 1984 — FEMA (public domain). */
+  floodClaims?: number;
+  /** Average $ paid per flood claim — FEMA NFIP. */
+  floodPaidAvg?: number;
+  /** HUD SAFMR 2BR rent — independent cross-check for the ZORI seed. */
+  safmr2Br?: number;
+  /** Active listings — realtor.com market depth. */
+  activeListings?: number;
 }
 
 /** Rendered wherever a seeded value is shown. Both sources require attribution. */
@@ -52,6 +66,8 @@ export const ZIP_DATA_SOURCES = {
   rent: "Zillow ZORI · May 2026",
   insurance: "U.S. Treasury FIO · 2022",
   listing: "realtor.com · May 2026",
+  flood: "FEMA NFIP · claims since 1984",
+  safmr: "HUD SAFMR",
 } as const;
 
 export const ZIP_ATTRIBUTION =
@@ -98,5 +114,9 @@ export async function lookupZip(zip: string): Promise<ZipFundamentals | null> {
     listPrice: row.p,
     daysOnMarket: row.d,
     grossYieldPct: row.y,
+    floodClaims: row.f,
+    floodPaidAvg: row.fp,
+    safmr2Br: row.s2,
+    activeListings: row.a,
   };
 }

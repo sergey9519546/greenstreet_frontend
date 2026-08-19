@@ -76,7 +76,9 @@ export default function ZipSeedPanel({ onApply, initialZip = "" }: Props) {
     });
   }, [data, onApply]);
 
-  const hasSeed = Boolean(data && (data.rent || data.insuranceAnnual || data.listPrice));
+  const hasSeed = Boolean(
+    data && (data.rent || data.insuranceAnnual || data.listPrice || data.floodClaims || data.safmr2Br),
+  );
 
   return (
     <div
@@ -131,7 +133,7 @@ export default function ZipSeedPanel({ onApply, initialZip = "" }: Props) {
 
         {state === "missing" && (
           <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", lineHeight: 1.45 }}>
-            No market data for {zip}. Coverage is 28,797 ZIPs — enter the numbers yourself.
+            No market data for {zip}. Coverage is 29,166 ZIPs — enter the numbers yourself.
           </div>
         )}
 
@@ -155,6 +157,23 @@ export default function ZipSeedPanel({ onApply, initialZip = "" }: Props) {
             )}
             {data.listPrice !== undefined && (
               <Row label="Median list price" value={money(data.listPrice)} source={ZIP_DATA_SOURCES.listing} />
+            )}
+            {data.activeListings !== undefined && (
+              <Row label="Active listings" value={`${data.activeListings.toLocaleString("en-US")}`} source={ZIP_DATA_SOURCES.listing} />
+            )}
+            {data.safmr2Br !== undefined && data.rent !== undefined && (
+              <Row
+                label="SAFMR 2BR cross-check"
+                value={`${money(data.safmr2Br)}/mo`}
+                source={ZIP_DATA_SOURCES.safmr}
+              />
+            )}
+            {data.floodClaims !== undefined && (
+              <Row
+                label="Flood claims"
+                value={`${data.floodClaims.toLocaleString("en-US")} since 1984`}
+                source={ZIP_DATA_SOURCES.flood}
+              />
             )}
 
             <button
